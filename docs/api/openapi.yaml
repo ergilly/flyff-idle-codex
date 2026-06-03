@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: Flyff Idle API
   version: 0.1.0
@@ -312,81 +312,62 @@ components:
         - ringL
       properties:
         helmet:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         suit:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         gloves:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         boots:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         flying:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         csBoots:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         csGloves:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         csSuit:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         csHelm:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         mask:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         cloak:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         ammo:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         offhand:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         mainhand:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         ringR:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         earringR:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         necklace:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         earringL:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
         ringL:
-          type:
-            - string
-            - "null"
+          type: string
+          nullable: true
     CharacterInventory:
       type: object
       required:
