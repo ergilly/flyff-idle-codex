@@ -31,3 +31,28 @@ test("player can register a new profile", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Create character in slot 1" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create character in slot 8" })).toBeVisible();
 });
+
+test("player can create a character from an empty slot", async ({ page }) => {
+  const email = `creator-${Date.now()}@flyff-idle.local`;
+  const characterName = `Hero${Date.now().toString().slice(-6)}`;
+
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Register" }).click();
+  await page.getByLabel("Display name").fill("Character Creator");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Create profile" }).click();
+
+  await expect(page.getByRole("heading", { name: "Pick your adventurer" })).toBeVisible();
+  await page.getByRole("button", { name: "Create character in slot 1" }).click();
+
+  await expect(page.getByRole("heading", { name: "Slot 1" })).toBeVisible();
+  await page.getByLabel("Character name").fill(characterName);
+  await page.getByRole("button", { name: "Create character" }).click();
+
+  await expect(page.getByRole("heading", { name: "Pick your adventurer" })).toBeVisible();
+  await expect(page.getByText(characterName)).toBeVisible();
+  await expect(page.getByText("Vagrant")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create character in slot 2" })).toBeVisible();
+});

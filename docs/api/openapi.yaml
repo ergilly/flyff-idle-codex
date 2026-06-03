@@ -97,6 +97,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create a character in an open roster slot
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCharacterRequest"
+      responses:
+        "201":
+          description: Created character
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - character
+                properties:
+                  character:
+                    $ref: "#/components/schemas/Character"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Character slot already occupied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   securitySchemes:
     bearerAuth:
@@ -162,10 +202,28 @@ components:
           format: email
         displayName:
           type: string
+    CreateCharacterRequest:
+      type: object
+      required:
+        - slotIndex
+        - name
+      properties:
+        slotIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
+          example: 2
+        name:
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: "^[A-Za-z][A-Za-z0-9 ]*$"
+          example: FlarisHero
     Character:
       type: object
       required:
         - id
+        - slotIndex
         - name
         - job
         - level
@@ -177,6 +235,10 @@ components:
       properties:
         id:
           type: string
+        slotIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
         name:
           type: string
         job:

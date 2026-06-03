@@ -7,6 +7,7 @@ describe("CharacterCard", () => {
       <CharacterCard
         character={{
           id: "char-1",
+          slotIndex: 0,
           name: "Blade Runner",
           job: "Mercenary",
           level: 20,

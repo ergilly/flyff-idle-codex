@@ -9,6 +9,7 @@ export type AuthResponse = {
 
 export type Character = {
   id: string;
+  slotIndex: number;
   name: string;
   job: string;
   level: number;
@@ -106,4 +107,24 @@ export async function fetchCharacters(token: string): Promise<Character[]> {
 
   const data = (await response.json()) as { characters: Character[] };
   return data.characters;
+}
+
+export async function createCharacter(token: string, slotIndex: number, name: string): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ slotIndex, name })
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      response.status === 409 ? "That character slot is already occupied" : "Unable to create character"
+    );
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
 }

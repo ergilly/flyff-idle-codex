@@ -27,6 +27,7 @@ test("login returns a token and the token can load characters", async ({ request
       characters: expect.arrayContaining([
         expect.objectContaining({
           name: "Saint Morning",
+          slotIndex: 0,
           job: "Mercenary",
           penya: 0,
           stats: {
@@ -52,6 +53,65 @@ test("login returns a token and the token can load characters", async ({ request
       ])
     })
   );
+});
+
+test("authenticated players can create a vagrant in an open slot", async ({ request }) => {
+  const registerResponse = await request.post("/api/auth/register", {
+    data: {
+      displayName: "API Creator",
+      email: `api-creator-${Date.now()}@flyff-idle.local`,
+      password: "password123"
+    }
+  });
+  const session = (await registerResponse.json()) as { token: string };
+
+  const createResponse = await request.post("/api/characters", {
+    data: {
+      slotIndex: 0,
+      name: "NewVagrant"
+    },
+    headers: {
+      Authorization: `Bearer ${session.token}`
+    }
+  });
+
+  expect(createResponse.status()).toBe(201);
+  const createData = await createResponse.json();
+
+  expect(createData).toEqual(
+    expect.objectContaining({
+      character: expect.objectContaining({
+        name: "NewVagrant",
+        slotIndex: 0,
+        job: "Vagrant",
+        level: 1,
+        exp: 0,
+        penya: 0,
+        stats: {
+          str: 15,
+          sta: 15,
+          dex: 15,
+          int: 15
+        },
+        inventory: {
+          size: 50,
+          items: []
+        }
+      })
+    })
+  );
+
+  const duplicateResponse = await request.post("/api/characters", {
+    data: {
+      slotIndex: 0,
+      name: "OtherVagrant"
+    },
+    headers: {
+      Authorization: `Bearer ${session.token}`
+    }
+  });
+
+  expect(duplicateResponse.status()).toBe(409);
 });
 
 test("characters require a bearer token", async ({ request }) => {
