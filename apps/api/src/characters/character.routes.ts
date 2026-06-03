@@ -13,7 +13,8 @@ const createCharacterSchema = z.object({
     .trim()
     .min(3)
     .max(16)
-    .regex(/^[A-Za-z][A-Za-z0-9 ]*$/)
+    .regex(/^[A-Za-z][A-Za-z0-9 ]*$/),
+  gender: z.enum(["male", "female"])
 });
 
 function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
@@ -39,7 +40,8 @@ characterRouter.post("/", requireAuth, async (request, response) => {
     const character = await characterRepository.create({
       playerId: (response.locals.auth as AuthTokenPayload).sub,
       slotIndex: result.data.slotIndex,
-      name: result.data.name
+      name: result.data.name,
+      gender: result.data.gender
     });
 
     if (!character) {

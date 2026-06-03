@@ -207,6 +207,7 @@ components:
       required:
         - slotIndex
         - name
+        - gender
       properties:
         slotIndex:
           type: integer
@@ -219,12 +220,15 @@ components:
           maxLength: 16
           pattern: "^[A-Za-z][A-Za-z0-9 ]*$"
           example: FlarisHero
+        gender:
+          $ref: "#/components/schemas/CharacterGender"
     Character:
       type: object
       required:
         - id
         - slotIndex
         - name
+        - gender
         - job
         - level
         - exp
@@ -241,6 +245,8 @@ components:
           maximum: 7
         name:
           type: string
+        gender:
+          $ref: "#/components/schemas/CharacterGender"
         job:
           type: string
         level:
@@ -410,6 +416,11 @@ components:
         quantity:
           type: integer
           minimum: 1
+    CharacterGender:
+      type: string
+      enum:
+        - male
+        - female
     ErrorResponse:
       type: object
       required:

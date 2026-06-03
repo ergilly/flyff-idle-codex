@@ -11,6 +11,7 @@ export type Character = {
   id: string;
   slotIndex: number;
   name: string;
+  gender: CharacterGender;
   job: string;
   level: number;
   exp: number;
@@ -19,6 +20,8 @@ export type Character = {
   equipment: CharacterEquipment;
   inventory: CharacterInventory;
 };
+
+export type CharacterGender = "male" | "female";
 
 export type CharacterStats = {
   str: number;
@@ -109,14 +112,19 @@ export async function fetchCharacters(token: string): Promise<Character[]> {
   return data.characters;
 }
 
-export async function createCharacter(token: string, slotIndex: number, name: string): Promise<Character> {
+export async function createCharacter(
+  token: string,
+  slotIndex: number,
+  name: string,
+  gender: CharacterGender
+): Promise<Character> {
   const response = await fetch(`${apiBaseUrl}/api/characters`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ slotIndex, name })
+    body: JSON.stringify({ slotIndex, name, gender })
   });
 
   if (!response.ok) {

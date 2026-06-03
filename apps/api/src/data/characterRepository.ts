@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
-import type { Character } from "../types.js";
+import type { Character, CharacterGender } from "../types.js";
 
 type CreateCharacterInput = {
   playerId: string;
   slotIndex: number;
   name: string;
+  gender: CharacterGender;
 };
 
 type CharacterRow = {
@@ -13,6 +14,7 @@ type CharacterRow = {
   playerId: string;
   slotIndex: number;
   name: string;
+  gender: CharacterGender;
   job: string;
   level: number;
   exp: number;
@@ -51,7 +53,7 @@ type InventoryItemRow = {
 };
 
 export const characterRepository = {
-  create({ playerId, slotIndex, name }: CreateCharacterInput) {
+  create({ playerId, slotIndex, name, gender }: CreateCharacterInput) {
     const now = new Date().toISOString();
     const id = randomUUID();
 
@@ -61,6 +63,7 @@ export const characterRepository = {
         player_id,
         slot_index,
         name,
+        gender,
         job,
         level,
         exp,
@@ -72,8 +75,8 @@ export const characterRepository = {
         int,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(id, playerId, slotIndex, name, "Vagrant", 1, 0, 0, 50, 15, 15, 15, 15, now, now);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(id, playerId, slotIndex, name, gender, "Vagrant", 1, 0, 0, 50, 15, 15, 15, 15, now, now);
 
     return this.findById(id);
   },
@@ -90,6 +93,7 @@ export const characterRepository = {
           player_id AS playerId,
           slot_index AS slotIndex,
           name,
+          gender,
           job,
           level,
           exp,
@@ -137,6 +141,7 @@ export const characterRepository = {
           player_id AS playerId,
           slot_index AS slotIndex,
           name,
+          gender,
           job,
           level,
           exp,

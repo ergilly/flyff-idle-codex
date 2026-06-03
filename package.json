@@ -13,6 +13,7 @@
     "typecheck": "npm run typecheck -w @flyff-idle/api && npm run typecheck -w @flyff-idle/web",
     "test": "npm run test -w @flyff-idle/api && npm run test -w @flyff-idle/web",
     "test:unit": "npm run test:unit -w @flyff-idle/api && npm run test:unit -w @flyff-idle/web",
+    "test:coverage": "npm run test:coverage -w @flyff-idle/api && npm run test:coverage -w @flyff-idle/web",
     "test:e2e": "npm run test:e2e -w @flyff-idle/api && npm run test:e2e -w @flyff-idle/web",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

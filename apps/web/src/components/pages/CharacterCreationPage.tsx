@@ -9,7 +9,7 @@ import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { TextField } from "@/components/atoms/TextField";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { GameTemplate } from "@/components/templates/GameTemplate";
-import { createCharacter } from "@/lib/api";
+import { createCharacter, type CharacterGender } from "@/lib/api";
 
 type CharacterCreationPageProps = {
   slot?: string;
@@ -30,6 +30,7 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
   const slotIndex = useMemo(() => getSlotIndex(slot), [slot]);
   const slotNumber = slotIndex + 1;
   const [name, setName] = useState("");
+  const [gender, setGender] = useState<CharacterGender>("male");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,7 +55,7 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
     setIsSubmitting(true);
 
     try {
-      await createCharacter(token, slotIndex, trimmedName);
+      await createCharacter(token, slotIndex, trimmedName, gender);
       router.replace("/characters");
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "Unable to create character");
@@ -81,7 +82,7 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
           />
           <div className="stack">
             <h2>{name.trim() || "New Vagrant"}</h2>
-            <p className="muted">Vagrant</p>
+            <p className="muted">Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</p>
           </div>
           <div className="stat-pill-grid" aria-label="Starting stats">
             <span>STR 15</span>
@@ -105,8 +106,29 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             value={name}
           />
           <div className="field">
-            <label htmlFor="character-job">Starting class</label>
-            <input id="character-job" readOnly value="Vagrant" />
+            <span className="field-label">Gender</span>
+            <div className="gender-options" role="radiogroup" aria-label="Gender">
+              <label className="gender-option">
+                <input
+                  checked={gender === "male"}
+                  name="gender"
+                  onChange={() => setGender("male")}
+                  type="radio"
+                  value="male"
+                />
+                <span>Male</span>
+              </label>
+              <label className="gender-option">
+                <input
+                  checked={gender === "female"}
+                  name="gender"
+                  onChange={() => setGender("female")}
+                  type="radio"
+                  value="female"
+                />
+                <span>Female</span>
+              </label>
+            </div>
           </div>
           <div className="form-actions">
             <button className="secondary-button" type="button" onClick={() => router.push("/characters")}>

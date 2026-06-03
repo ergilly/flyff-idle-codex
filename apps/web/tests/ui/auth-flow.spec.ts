@@ -49,6 +49,7 @@ test("player can create a character from an empty slot", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Slot 1" })).toBeVisible();
   await page.getByLabel("Character name").fill(characterName);
+  await page.getByLabel("Female").check();
   await page.getByRole("button", { name: "Create character" }).click();
 
   await expect(page.getByRole("heading", { name: "Pick your adventurer" })).toBeVisible();

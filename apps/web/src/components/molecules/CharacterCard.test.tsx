@@ -9,6 +9,7 @@ describe("CharacterCard", () => {
           id: "char-1",
           slotIndex: 0,
           name: "Blade Runner",
+          gender: "male",
           job: "Mercenary",
           level: 20,
           exp: 1500,
@@ -60,5 +61,57 @@ describe("CharacterCard", () => {
     render(<CharacterCard slotNumber={3} />);
 
     expect(screen.getByRole("button", { name: "Create character in slot 3" })).toBeInTheDocument();
+  });
+
+  it("falls back to the vagrant image for unknown jobs", () => {
+    render(
+      <CharacterCard
+        character={{
+          id: "char-2",
+          slotIndex: 1,
+          name: "Mystery",
+          gender: "female",
+          job: "Unknown",
+          level: 1,
+          exp: 0,
+          penya: 0,
+          stats: {
+            str: 15,
+            sta: 15,
+            dex: 15,
+            int: 15
+          },
+          equipment: {
+            helmet: null,
+            suit: null,
+            gloves: null,
+            boots: null,
+            flying: null,
+            csBoots: null,
+            csGloves: null,
+            csSuit: null,
+            csHelm: null,
+            mask: null,
+            cloak: null,
+            ammo: null,
+            offhand: null,
+            mainhand: null,
+            ringR: null,
+            earringR: null,
+            necklace: null,
+            earringL: null,
+            ringL: null
+          },
+          inventory: {
+            size: 50,
+            items: []
+          }
+        }}
+      />
+    );
+
+    expect(screen.getByRole("img", { name: "Unknown class logo" }).getAttribute("src")).toContain(
+      "%2Fimages%2Fclasses%2Fvagrant.png"
+    );
   });
 });

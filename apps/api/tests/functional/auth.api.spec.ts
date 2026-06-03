@@ -28,6 +28,7 @@ test("login returns a token and the token can load characters", async ({ request
         expect.objectContaining({
           name: "Saint Morning",
           slotIndex: 0,
+          gender: "female",
           job: "Mercenary",
           penya: 0,
           stats: {
@@ -68,7 +69,8 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
   const createResponse = await request.post("/api/characters", {
     data: {
       slotIndex: 0,
-      name: "NewVagrant"
+      name: "NewVagrant",
+      gender: "female"
     },
     headers: {
       Authorization: `Bearer ${session.token}`
@@ -83,6 +85,7 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
       character: expect.objectContaining({
         name: "NewVagrant",
         slotIndex: 0,
+        gender: "female",
         job: "Vagrant",
         level: 1,
         exp: 0,
@@ -104,7 +107,8 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
   const duplicateResponse = await request.post("/api/characters", {
     data: {
       slotIndex: 0,
-      name: "OtherVagrant"
+      name: "OtherVagrant",
+      gender: "male"
     },
     headers: {
       Authorization: `Bearer ${session.token}`
