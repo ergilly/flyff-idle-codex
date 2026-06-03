@@ -1,0 +1,357 @@
+openapi: 3.1.0
+info:
+  title: Flyff Idle API
+  version: 0.1.0
+  description: API schema for auth and player character selection.
+servers:
+  - url: http://localhost:4000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: API status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/auth/login:
+    post:
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated player session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/register:
+    post:
+      summary: Create a player profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Created player session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/characters:
+    get:
+      summary: List characters for the authenticated player
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Character roster
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - characters
+                properties:
+                  characters:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Character"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: test@flyff-idle.local
+        password:
+          type: string
+          minLength: 8
+          example: password123
+    RegisterRequest:
+      allOf:
+        - $ref: "#/components/schemas/LoginRequest"
+        - type: object
+          required:
+            - displayName
+          properties:
+            displayName:
+              type: string
+              minLength: 2
+              maxLength: 32
+              example: Flaris Founder
+    LoginResponse:
+      type: object
+      required:
+        - token
+        - user
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - displayName
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+    Character:
+      type: object
+      required:
+        - id
+        - name
+        - job
+        - level
+        - exp
+        - penya
+        - stats
+        - equipment
+        - inventory
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        job:
+          type: string
+        level:
+          type: integer
+          minimum: 1
+        exp:
+          type: integer
+          minimum: 0
+        penya:
+          type: integer
+          minimum: 0
+        stats:
+          $ref: "#/components/schemas/CharacterStats"
+        equipment:
+          $ref: "#/components/schemas/CharacterEquipment"
+        inventory:
+          $ref: "#/components/schemas/CharacterInventory"
+    CharacterStats:
+      type: object
+      required:
+        - str
+        - sta
+        - dex
+        - int
+      properties:
+        str:
+          type: integer
+          minimum: 0
+          example: 15
+        sta:
+          type: integer
+          minimum: 0
+          example: 15
+        dex:
+          type: integer
+          minimum: 0
+          example: 15
+        int:
+          type: integer
+          minimum: 0
+          example: 15
+    CharacterEquipment:
+      type: object
+      required:
+        - helmet
+        - suit
+        - gloves
+        - boots
+        - flying
+        - csBoots
+        - csGloves
+        - csSuit
+        - csHelm
+        - mask
+        - cloak
+        - ammo
+        - offhand
+        - mainhand
+        - ringR
+        - earringR
+        - necklace
+        - earringL
+        - ringL
+      properties:
+        helmet:
+          type:
+            - string
+            - "null"
+        suit:
+          type:
+            - string
+            - "null"
+        gloves:
+          type:
+            - string
+            - "null"
+        boots:
+          type:
+            - string
+            - "null"
+        flying:
+          type:
+            - string
+            - "null"
+        csBoots:
+          type:
+            - string
+            - "null"
+        csGloves:
+          type:
+            - string
+            - "null"
+        csSuit:
+          type:
+            - string
+            - "null"
+        csHelm:
+          type:
+            - string
+            - "null"
+        mask:
+          type:
+            - string
+            - "null"
+        cloak:
+          type:
+            - string
+            - "null"
+        ammo:
+          type:
+            - string
+            - "null"
+        offhand:
+          type:
+            - string
+            - "null"
+        mainhand:
+          type:
+            - string
+            - "null"
+        ringR:
+          type:
+            - string
+            - "null"
+        earringR:
+          type:
+            - string
+            - "null"
+        necklace:
+          type:
+            - string
+            - "null"
+        earringL:
+          type:
+            - string
+            - "null"
+        ringL:
+          type:
+            - string
+            - "null"
+    CharacterInventory:
+      type: object
+      required:
+        - size
+        - items
+      properties:
+        size:
+          type: integer
+          minimum: 1
+          example: 50
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterInventoryItem"
+    CharacterInventoryItem:
+      type: object
+      required:
+        - slotIndex
+        - itemId
+        - quantity
+      properties:
+        slotIndex:
+          type: integer
+          minimum: 0
+        itemId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
