@@ -1,11 +1,20 @@
+import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
-import type { Character } from "../types.js";
+import type { Character, CharacterGender } from "../types.js";
+
+type CreateCharacterInput = {
+  playerId: string;
+  slotIndex: number;
+  name: string;
+  gender: CharacterGender;
+};
 
 type CharacterRow = {
   id: string;
   playerId: string;
   slotIndex: number;
   name: string;
+  gender: CharacterGender;
   job: string;
   level: number;
   exp: number;
@@ -44,6 +53,38 @@ type InventoryItemRow = {
 };
 
 export const characterRepository = {
+  create({ playerId, slotIndex, name, gender }: CreateCharacterInput) {
+    const now = new Date().toISOString();
+    const id = randomUUID();
+
+    db.prepare(
+      `INSERT INTO characters (
+        id,
+        player_id,
+        slot_index,
+        name,
+        gender,
+        job,
+        level,
+        exp,
+        penya,
+        inventory_size,
+        str,
+        sta,
+        dex,
+        int,
+        created_at,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(id, playerId, slotIndex, name, gender, "Vagrant", 1, 0, 0, 50, 15, 15, 15, 15, now, now);
+
+    return this.findById(id);
+  },
+  findById(id: string) {
+    const characters = this.listByIds([id]);
+
+    return characters[0] ?? null;
+  },
   listByPlayerId(playerId: string) {
     const rows = db
       .prepare(
@@ -52,6 +93,7 @@ export const characterRepository = {
           player_id AS playerId,
           slot_index AS slotIndex,
           name,
+          gender,
           job,
           level,
           exp,
@@ -85,6 +127,58 @@ export const characterRepository = {
         ORDER BY slot_index ASC`
       )
       .all(playerId) as CharacterRow[];
+    return this.mapRows(rows);
+  },
+  listByIds(ids: string[]) {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const rows = db
+      .prepare(
+        `SELECT
+          id,
+          player_id AS playerId,
+          slot_index AS slotIndex,
+          name,
+          gender,
+          job,
+          level,
+          exp,
+          penya,
+          inventory_size AS inventorySize,
+          str,
+          sta,
+          dex,
+          int,
+          helmet,
+          suit,
+          gloves,
+          boots,
+          flying,
+          cs_boots AS csBoots,
+          cs_gloves AS csGloves,
+          cs_suit AS csSuit,
+          cs_helm AS csHelm,
+          mask,
+          cloak,
+          ammo,
+          offhand,
+          mainhand,
+          ring_r AS ringR,
+          earring_r AS earringR,
+          necklace,
+          earring_l AS earringL,
+          ring_l AS ringL
+        FROM characters
+        WHERE id IN (${ids.map(() => "?").join(",")})
+        ORDER BY slot_index ASC`
+      )
+      .all(...ids) as CharacterRow[];
+
+    return this.mapRows(rows);
+  },
+  mapRows(rows: CharacterRow[]) {
     const characterIds = rows.map((row) => row.id);
     const inventoryItems =
       characterIds.length > 0

@@ -3,6 +3,7 @@ import type { Character } from "@/lib/api";
 
 type CharacterCardProps = {
   character?: Character;
+  onCreate?: () => void;
   slotNumber?: number;
 };
 
@@ -36,7 +37,7 @@ function getClassImageUrl(job: string) {
   return `/images/classes/${icon}`;
 }
 
-export function CharacterCard({ character, slotNumber }: CharacterCardProps) {
+export function CharacterCard({ character, onCreate, slotNumber }: CharacterCardProps) {
   if (!character) {
     return (
       <article className="character-card empty-character-card">
@@ -44,6 +45,7 @@ export function CharacterCard({ character, slotNumber }: CharacterCardProps) {
           className="empty-character-button"
           type="button"
           aria-label={`Create character in slot ${slotNumber}`}
+          onClick={onCreate}
         >
           <span className="plus-icon" aria-hidden="true" />
         </button>

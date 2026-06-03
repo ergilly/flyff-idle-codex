@@ -12,6 +12,7 @@ export type Character = {
   playerId: string;
   slotIndex: number;
   name: string;
+  gender: CharacterGender;
   job: string;
   level: number;
   exp: number;
@@ -20,6 +21,8 @@ export type Character = {
   equipment: CharacterEquipment;
   inventory: CharacterInventory;
 };
+
+export type CharacterGender = "male" | "female";
 
 export type CharacterStats = {
   str: number;

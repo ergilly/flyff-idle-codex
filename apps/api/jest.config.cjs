@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: "node",
   roots: ["<rootDir>/src", "<rootDir>/tests"],
   testMatch: ["**/*.test.ts"],
+  collectCoverageFrom: ["src/**/*.ts", "!src/server.ts", "!src/data/migrate.ts", "!src/data/seed.ts"],
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },

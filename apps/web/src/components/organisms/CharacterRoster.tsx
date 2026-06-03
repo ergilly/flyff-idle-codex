@@ -35,6 +35,10 @@ export function CharacterRoster() {
     router.replace("/");
   }
 
+  function handleCreate(slotIndex: number) {
+    router.push(`/characters/create?slot=${slotIndex + 1}`);
+  }
+
   if (isLoading) {
     return <p className="muted">Loading characters...</p>;
   }
@@ -49,18 +53,23 @@ export function CharacterRoster() {
       </div>
       {error ? <ErrorMessage message={error} /> : null}
       <div className="character-grid" aria-label="Character roster">
-        {Array.from({ length: characterSlotCount }, (_slot, index) => {
-          const character = characters[index];
-          const slotNumber = index + 1;
+        {(() => {
+          const charactersBySlot = new Map(characters.map((character) => [character.slotIndex, character]));
 
-          return (
-            <CharacterCard
-              key={character?.id ?? `empty-slot-${slotNumber}`}
-              character={character}
-              slotNumber={slotNumber}
-            />
-          );
-        })}
+          return Array.from({ length: characterSlotCount }, (_slot, index) => {
+            const character = charactersBySlot.get(index);
+            const slotNumber = index + 1;
+
+            return (
+              <CharacterCard
+                key={character?.id ?? `empty-slot-${slotNumber}`}
+                character={character}
+                onCreate={() => handleCreate(index)}
+                slotNumber={slotNumber}
+              />
+            );
+          });
+        })()}
       </div>
     </div>
   );

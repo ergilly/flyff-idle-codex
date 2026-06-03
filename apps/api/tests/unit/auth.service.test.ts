@@ -30,6 +30,15 @@ describe("auth service", () => {
     ).resolves.toBeNull();
   });
 
+  it("rejects login for unknown players", async () => {
+    await expect(
+      login({
+        email: "missing@flyff-idle.local",
+        password: "password123"
+      })
+    ).resolves.toBeNull();
+  });
+
   it("registers a new player profile and returns a verifiable token", async () => {
     const email = `new-player-${Date.now()}@flyff-idle.local`;
     const session = await register({
@@ -51,5 +60,9 @@ describe("auth service", () => {
         password: "password123"
       })
     ).resolves.toBeNull();
+  });
+
+  it("rejects malformed tokens", () => {
+    expect(verifyToken("not-a-token")).toBeNull();
   });
 });

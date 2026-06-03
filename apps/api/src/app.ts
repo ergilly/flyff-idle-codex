@@ -1,15 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import cors from "cors";
 import express from "express";
 import YAML from "yaml";
 import { authRouter } from "./auth/auth.routes.js";
 import { characterRouter } from "./characters/character.routes.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const openApiPath = path.resolve(__dirname, "../../../docs/api/openapi.yaml");
+const openApiPath = path.resolve(process.cwd(), "../../docs/api/openapi.yaml");
 const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
 
 export function createApp() {

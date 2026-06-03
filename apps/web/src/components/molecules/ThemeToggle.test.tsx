@@ -23,4 +23,13 @@ describe("ThemeToggle", () => {
     expect(localStorage.getItem("flyffIdleTheme")).toBe("light");
     expect(screen.getByRole("button", { name: "Switch to dark mode" })).toBeInTheDocument();
   });
+
+  it("uses a stored light mode preference", () => {
+    localStorage.setItem("flyffIdleTheme", "light");
+
+    render(<ThemeToggle />);
+
+    expect(screen.getByRole("button", { name: "Switch to dark mode" })).toBeInTheDocument();
+    expect(document.documentElement.dataset.theme).toBe("light");
+  });
 });

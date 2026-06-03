@@ -18,7 +18,11 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
       now,
       existingUser.id
     );
-    user = existingUser;
+    user = {
+      ...existingUser,
+      displayName: "Prototype Pilot",
+      passwordHash
+    };
   } else {
     user = {
       id: randomUUID(),
@@ -34,13 +38,14 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
   db.prepare("DELETE FROM characters WHERE player_id = ?").run(user.id);
 
   const insertCharacter = db.prepare(
-    "INSERT INTO characters (id, player_id, slot_index, name, job, level, exp, penya, inventory_size, str, sta, dex, int, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO characters (id, player_id, slot_index, name, gender, job, level, exp, penya, inventory_size, str, sta, dex, int, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
   insertCharacter.run(
     randomUUID(),
     user.id,
     0,
     "Saint Morning",
+    "female",
     "Mercenary",
     15,
     0,
@@ -58,6 +63,7 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
     user.id,
     1,
     "Buff Pang Jr",
+    "male",
     "Assist",
     18,
     0,

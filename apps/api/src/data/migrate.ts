@@ -15,6 +15,7 @@ db.exec(`
     player_id TEXT NOT NULL,
     slot_index INTEGER NOT NULL,
     name TEXT NOT NULL,
+    gender TEXT NOT NULL DEFAULT 'male',
     job TEXT NOT NULL,
     level INTEGER NOT NULL DEFAULT 1,
     exp INTEGER NOT NULL DEFAULT 0,
@@ -83,6 +84,7 @@ function addCharacterColumn(name: string, definition: string) {
 }
 
 addCharacterColumn("str", "INTEGER NOT NULL DEFAULT 15");
+addCharacterColumn("gender", "TEXT NOT NULL DEFAULT 'male'");
 addCharacterColumn("penya", "INTEGER NOT NULL DEFAULT 0");
 addCharacterColumn("inventory_size", "INTEGER NOT NULL DEFAULT 50");
 addCharacterColumn("sta", "INTEGER NOT NULL DEFAULT 15");
