@@ -137,6 +137,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/characters/{characterId}:
+    delete:
+      summary: Delete a character after name confirmation
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: characterId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteCharacterRequest"
+      responses:
+        "204":
+          description: Character deleted
+        "400":
+          description: Missing or mismatched name confirmation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   securitySchemes:
     bearerAuth:
@@ -222,6 +260,15 @@ components:
           example: FlarisHero
         gender:
           $ref: "#/components/schemas/CharacterGender"
+    DeleteCharacterRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: FlarisHero
     Character:
       type: object
       required:

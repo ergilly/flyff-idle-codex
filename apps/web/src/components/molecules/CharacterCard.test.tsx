@@ -1,10 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { CharacterCard } from "./CharacterCard";
 
 describe("CharacterCard", () => {
   it("renders character summary stats", () => {
+    const onDelete = jest.fn();
+
     render(
       <CharacterCard
+        onDelete={onDelete}
         character={{
           id: "char-1",
           slotIndex: 0,
@@ -52,6 +55,9 @@ describe("CharacterCard", () => {
     expect(screen.getByRole("heading", { name: "Blade Runner" })).toBeInTheDocument();
     expect(screen.getByText("Mercenary")).toBeInTheDocument();
     expect(screen.getByText("1500")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Delete Blade Runner" }));
+
+    expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ id: "char-1" }));
     expect(screen.getByRole("img", { name: "Mercenary class logo" }).getAttribute("src")).toContain(
       "%2Fimages%2Fclasses%2Fmercenary.png"
     );

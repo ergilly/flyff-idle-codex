@@ -52,10 +52,37 @@ type InventoryItemRow = {
   quantity: number;
 };
 
+const startingInventoryItems = [
+  { slotIndex: 0, itemId: "5325", quantity: 3 },
+  { slotIndex: 1, itemId: "9449", quantity: 1 },
+  { slotIndex: 2, itemId: "3896", quantity: 5 }
+];
+
+const startingEquipmentByGender: Record<
+  CharacterGender,
+  {
+    suit: string;
+    gloves: string;
+    boots: string;
+  }
+> = {
+  female: {
+    suit: "6040",
+    gloves: "5011",
+    boots: "8195"
+  },
+  male: {
+    suit: "3314",
+    gloves: "5535",
+    boots: "4750"
+  }
+};
+
 export const characterRepository = {
   create({ playerId, slotIndex, name, gender }: CreateCharacterInput) {
     const now = new Date().toISOString();
     const id = randomUUID();
+    const startingEquipment = startingEquipmentByGender[gender];
 
     db.prepare(
       `INSERT INTO characters (
@@ -73,12 +100,50 @@ export const characterRepository = {
         sta,
         dex,
         int,
+        suit,
+        gloves,
+        boots,
+        mainhand,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(id, playerId, slotIndex, name, gender, "Vagrant", 1, 0, 0, 50, 15, 15, 15, 15, now, now);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      id,
+      playerId,
+      slotIndex,
+      name,
+      gender,
+      "Vagrant",
+      1,
+      0,
+      0,
+      50,
+      15,
+      15,
+      15,
+      15,
+      startingEquipment.suit,
+      startingEquipment.gloves,
+      startingEquipment.boots,
+      "3497",
+      now,
+      now
+    );
+
+    const insertInventoryItem = db.prepare(
+      "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+
+    for (const item of startingInventoryItems) {
+      insertInventoryItem.run(randomUUID(), id, item.slotIndex, item.itemId, item.quantity, now, now);
+    }
 
     return this.findById(id);
+  },
+  deleteByIdForPlayer(id: string, playerId: string) {
+    const result = db.prepare("DELETE FROM characters WHERE id = ? AND player_id = ?").run(id, playerId);
+
+    return result.changes > 0;
   },
   findById(id: string) {
     const characters = this.listByIds([id]);

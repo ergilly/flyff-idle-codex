@@ -280,6 +280,7 @@ h2 {
 }
 
 .character-card {
+  position: relative;
   display: grid;
   min-height: 248px;
   gap: 14px;
@@ -287,6 +288,27 @@ h2 {
   border-radius: 8px;
   padding: 18px;
   background: var(--panel);
+}
+
+.delete-character-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-muted);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.delete-character-button:hover {
+  border-color: var(--danger);
+  background: var(--danger-panel);
+  color: var(--danger);
 }
 
 .class-logo-wrap {
@@ -478,6 +500,25 @@ h2 {
 .secondary-button:hover {
   border-color: var(--primary);
   background: var(--panel-elevated);
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(8, 12, 18, 0.72);
+}
+
+.modal-panel {
+  width: min(100%, 420px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-shell);
+  box-shadow: 0 22px 70px var(--shell-shadow);
+  padding: 24px;
 }
 
 @media (max-width: 920px) {

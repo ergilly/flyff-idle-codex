@@ -5,13 +5,17 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { CharacterCard } from "@/components/molecules/CharacterCard";
-import { fetchCharacters, type Character } from "@/lib/api";
+import { CharacterDeleteDialog } from "@/components/molecules/CharacterDeleteDialog";
+import { deleteCharacter, fetchCharacters, type Character } from "@/lib/api";
 
 const characterSlotCount = 8;
 
 export function CharacterRoster() {
   const router = useRouter();
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -37,6 +41,37 @@ export function CharacterRoster() {
 
   function handleCreate(slotIndex: number) {
     router.push(`/characters/create?slot=${slotIndex + 1}`);
+  }
+
+  async function handleDelete(name: string) {
+    if (!characterToDelete) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+    const characterId = characterToDelete.id;
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setDeleteError("");
+    setIsDeleting(true);
+
+    try {
+      await deleteCharacter(token, characterId, name);
+      setCharacters((currentCharacters) =>
+        currentCharacters.filter((character) => character.id !== characterId)
+      );
+      setCharacterToDelete(null);
+    } catch (deleteCharacterError) {
+      setDeleteError(
+        deleteCharacterError instanceof Error ? deleteCharacterError.message : "Unable to delete character"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   if (isLoading) {
@@ -65,12 +100,25 @@ export function CharacterRoster() {
                 key={character?.id ?? `empty-slot-${slotNumber}`}
                 character={character}
                 onCreate={() => handleCreate(index)}
+                onDelete={(selectedCharacter) => {
+                  setDeleteError("");
+                  setCharacterToDelete(selectedCharacter);
+                }}
                 slotNumber={slotNumber}
               />
             );
           });
         })()}
       </div>
+      {characterToDelete ? (
+        <CharacterDeleteDialog
+          character={characterToDelete}
+          error={deleteError}
+          isDeleting={isDeleting}
+          onCancel={() => setCharacterToDelete(null)}
+          onConfirm={handleDelete}
+        />
+      ) : null}
     </div>
   );
 }
