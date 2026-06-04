@@ -1,4 +1,4 @@
-import { createCharacter, fetchCharacters, login, register } from "./api";
+import { createCharacter, deleteCharacter, fetchCharacters, login, register } from "./api";
 
 function mockFetch(response: Partial<Response>) {
   global.fetch = jest.fn().mockResolvedValue({
@@ -56,6 +56,14 @@ describe("api client", () => {
 
     mockFetch({ ok: false, status: 500 });
     await expect(createCharacter("token", 0, "Hero", "female")).rejects.toThrow("Unable to create character");
+
+    mockFetch({ ok: false, status: 400 });
+    await expect(deleteCharacter("token", "char-1", "Hero")).rejects.toThrow(
+      "Character name confirmation does not match"
+    );
+
+    mockFetch({ ok: false, status: 500 });
+    await expect(deleteCharacter("token", "char-1", "Hero")).rejects.toThrow("Unable to delete character");
   });
 
   it("loads and creates characters with bearer tokens", async () => {
@@ -99,6 +107,17 @@ describe("api client", () => {
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ slotIndex: 2, name: "Hero", gender: "female" })
+      })
+    );
+
+    mockFetch({ ok: true });
+
+    await expect(deleteCharacter("token", "char-1", "Hero")).resolves.toBeUndefined();
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/characters/char-1",
+      expect.objectContaining({
+        method: "DELETE",
+        body: JSON.stringify({ name: "Hero" })
       })
     );
   });

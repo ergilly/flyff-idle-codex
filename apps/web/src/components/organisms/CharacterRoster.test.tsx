@@ -1,15 +1,17 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CharacterRoster } from "./CharacterRoster";
-import { fetchCharacters } from "@/lib/api";
+import { deleteCharacter, fetchCharacters } from "@/lib/api";
 
 const push = jest.fn();
 const replace = jest.fn();
+const router = { push, replace };
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push, replace })
+  useRouter: () => router
 }));
 
 jest.mock("@/lib/api", () => ({
+  deleteCharacter: jest.fn(),
   fetchCharacters: jest.fn()
 }));
 
@@ -32,6 +34,7 @@ describe("CharacterRoster", () => {
         id: "char-1",
         slotIndex: 0,
         name: "Saint Morning",
+        gender: "female",
         job: "Mercenary",
         level: 15,
         exp: 0,
@@ -48,6 +51,41 @@ describe("CharacterRoster", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create character in slot 2" }));
 
     expect(push).toHaveBeenCalledWith("/characters/create?slot=2");
+  });
+
+  it("requires name confirmation before deleting a character", async () => {
+    localStorage.setItem("flyffIdleToken", "token");
+    (fetchCharacters as jest.Mock).mockResolvedValue([
+      {
+        id: "char-1",
+        slotIndex: 0,
+        name: "Saint Morning",
+        gender: "female",
+        job: "Mercenary",
+        level: 15,
+        exp: 0,
+        penya: 0,
+        stats: { str: 15, sta: 15, dex: 15, int: 15 },
+        equipment: {},
+        inventory: { size: 50, items: [] }
+      }
+    ]);
+    (deleteCharacter as jest.Mock).mockResolvedValue(undefined);
+
+    render(<CharacterRoster />);
+
+    expect(await screen.findByText("Saint Morning")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Delete Saint Morning" }));
+
+    expect(screen.getByRole("dialog", { name: "Delete Saint Morning" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete character" })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Character name"), { target: { value: "Saint Morning" } });
+    fireEvent.click(screen.getByRole("button", { name: "Delete character" }));
+
+    await waitFor(() => expect(deleteCharacter).toHaveBeenCalledWith("token", "char-1", "Saint Morning"));
+    await waitFor(() => expect(screen.queryByText("Saint Morning")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Create character in slot 1" })).toBeInTheDocument();
   });
 
   it("shows load errors and clears storage on logout", async () => {

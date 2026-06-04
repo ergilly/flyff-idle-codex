@@ -143,8 +143,73 @@ describe("app routes", () => {
           name: "RouteHero",
           slotIndex: 3,
           gender: "male",
-          job: "Vagrant"
+          job: "Vagrant",
+          equipment: expect.objectContaining({
+            mainhand: "3497",
+            suit: "3314",
+            gloves: "5535",
+            boots: "4750"
+          }),
+          inventory: {
+            size: 50,
+            items: [
+              {
+                slotIndex: 0,
+                itemId: "5325",
+                quantity: 3
+              },
+              {
+                slotIndex: 1,
+                itemId: "9449",
+                quantity: 1
+              },
+              {
+                slotIndex: 2,
+                itemId: "3896",
+                quantity: 5
+              }
+            ]
+          }
         })
+      }
+    });
+  });
+
+  it("deletes characters only after matching name confirmation", async () => {
+    const loginResponse = await loginDemoPlayer();
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", `Bearer ${loginResponse.body.token}`)
+      .send({ slotIndex: 4, name: "DeleteHero", gender: "female" });
+
+    await expect(
+      request(app)
+        .delete(`/api/characters/${createResponse.body.character.id}`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ name: "WrongName" })
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Character name confirmation does not match" }
+    });
+
+    await expect(
+      request(app)
+        .delete(`/api/characters/${createResponse.body.character.id}`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ name: "DeleteHero" })
+    ).resolves.toMatchObject({
+      status: 204
+    });
+
+    await expect(
+      request(app).get("/api/characters").set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      body: {
+        characters: expect.not.arrayContaining([
+          expect.objectContaining({
+            name: "DeleteHero"
+          })
+        ])
       }
     });
   });

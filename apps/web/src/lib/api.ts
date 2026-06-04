@@ -136,3 +136,20 @@ export async function createCharacter(
   const data = (await response.json()) as { character: Character };
   return data.character;
 }
+
+export async function deleteCharacter(token: string, characterId: string, name: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name })
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      response.status === 400 ? "Character name confirmation does not match" : "Unable to delete character"
+    );
+  }
+}

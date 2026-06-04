@@ -1,9 +1,11 @@
 import Image from "next/image";
+import { Trash2 } from "lucide-react";
 import type { Character } from "@/lib/api";
 
 type CharacterCardProps = {
   character?: Character;
   onCreate?: () => void;
+  onDelete?: (character: Character) => void;
   slotNumber?: number;
 };
 
@@ -37,7 +39,7 @@ function getClassImageUrl(job: string) {
   return `/images/classes/${icon}`;
 }
 
-export function CharacterCard({ character, onCreate, slotNumber }: CharacterCardProps) {
+export function CharacterCard({ character, onCreate, onDelete, slotNumber }: CharacterCardProps) {
   if (!character) {
     return (
       <article className="character-card empty-character-card">
@@ -55,6 +57,14 @@ export function CharacterCard({ character, onCreate, slotNumber }: CharacterCard
 
   return (
     <article className="character-card">
+      <button
+        aria-label={`Delete ${character.name}`}
+        className="delete-character-button"
+        onClick={() => onDelete?.(character)}
+        type="button"
+      >
+        <Trash2 aria-hidden="true" size={16} strokeWidth={2.25} />
+      </button>
       <div className="class-logo-wrap">
         <Image
           className="class-logo"

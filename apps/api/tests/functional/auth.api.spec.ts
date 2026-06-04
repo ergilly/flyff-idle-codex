@@ -90,6 +90,12 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
         level: 1,
         exp: 0,
         penya: 0,
+        equipment: expect.objectContaining({
+          mainhand: "3497",
+          suit: "6040",
+          gloves: "5011",
+          boots: "8195"
+        }),
         stats: {
           str: 15,
           sta: 15,
@@ -98,7 +104,23 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
         },
         inventory: {
           size: 50,
-          items: []
+          items: [
+            {
+              slotIndex: 0,
+              itemId: "5325",
+              quantity: 3
+            },
+            {
+              slotIndex: 1,
+              itemId: "9449",
+              quantity: 1
+            },
+            {
+              slotIndex: 2,
+              itemId: "3896",
+              quantity: 5
+            }
+          ]
         }
       })
     })
@@ -116,6 +138,28 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
   });
 
   expect(duplicateResponse.status()).toBe(409);
+
+  const deleteMismatchResponse = await request.delete(`/api/characters/${createData.character.id}`, {
+    data: {
+      name: "WrongName"
+    },
+    headers: {
+      Authorization: `Bearer ${session.token}`
+    }
+  });
+
+  expect(deleteMismatchResponse.status()).toBe(400);
+
+  const deleteResponse = await request.delete(`/api/characters/${createData.character.id}`, {
+    data: {
+      name: "NewVagrant"
+    },
+    headers: {
+      Authorization: `Bearer ${session.token}`
+    }
+  });
+
+  expect(deleteResponse.status()).toBe(204);
 });
 
 test("characters require a bearer token", async ({ request }) => {

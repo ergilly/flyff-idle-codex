@@ -17,6 +17,10 @@ const createCharacterSchema = z.object({
   gender: z.enum(["male", "female"])
 });
 
+const deleteCharacterSchema = z.object({
+  name: z.string().trim().min(1)
+});
+
 function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
   return character;
 }
@@ -58,4 +62,36 @@ characterRouter.post("/", requireAuth, async (request, response) => {
 
     throw error;
   }
+});
+
+characterRouter.delete("/:characterId", requireAuth, async (request, response) => {
+  const result = deleteCharacterSchema.safeParse(request.body);
+
+  if (!result.success) {
+    response.status(400).json({ error: "Character name confirmation is required" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+
+  if (!characterIdResult.success) {
+    response.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  const character = await characterRepository.findById(characterIdResult.data);
+
+  if (!character || character.playerId !== auth.sub) {
+    response.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  if (character.name !== result.data.name) {
+    response.status(400).json({ error: "Character name confirmation does not match" });
+    return;
+  }
+
+  await characterRepository.deleteByIdForPlayer(character.id, auth.sub);
+  response.status(204).send();
 });
