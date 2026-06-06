@@ -27,7 +27,7 @@ describe("CharacterRoster", () => {
     expect(replace).toHaveBeenCalledWith("/");
   });
 
-  it("renders loaded characters and navigates from empty slots", async () => {
+  it("renders loaded characters and navigates from occupied and empty slots", async () => {
     localStorage.setItem("flyffIdleToken", "token");
     (fetchCharacters as jest.Mock).mockResolvedValue([
       {
@@ -48,6 +48,11 @@ describe("CharacterRoster", () => {
     render(<CharacterRoster />);
 
     expect(await screen.findByText("Saint Morning")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Select Saint Morning" }));
+
+    expect(localStorage.getItem("flyffIdleSelectedCharacterId")).toBe("char-1");
+    expect(push).toHaveBeenCalledWith("/game");
+
     fireEvent.click(screen.getByRole("button", { name: "Create character in slot 2" }));
 
     expect(push).toHaveBeenCalledWith("/characters/create?slot=2");

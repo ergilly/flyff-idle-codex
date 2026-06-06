@@ -127,6 +127,7 @@ a {
 
 h1,
 h2,
+h3,
 p {
   margin: 0;
 }
@@ -281,13 +282,33 @@ h2 {
 
 .character-card {
   position: relative;
-  display: grid;
   min-height: 248px;
-  gap: 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 18px;
   background: var(--panel);
+  overflow: hidden;
+}
+
+.character-select-button {
+  display: grid;
+  width: 100%;
+  min-height: 248px;
+  gap: 14px;
+  border: 0;
+  padding: 18px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.character-select-button:hover {
+  background: var(--panel-elevated);
+}
+
+.character-select-button:focus-visible {
+  outline: 2px solid rgba(88, 166, 201, 0.35);
+  outline-offset: -2px;
 }
 
 .delete-character-button {
@@ -303,6 +324,7 @@ h2 {
   background: var(--panel-muted);
   color: var(--text-muted);
   cursor: pointer;
+  z-index: 1;
 }
 
 .delete-character-button:hover {
@@ -324,6 +346,7 @@ h2 {
 }
 
 .empty-character-card {
+  display: grid;
   place-items: center;
   border-style: dashed;
   background: rgba(37, 47, 58, 0.58);
@@ -521,6 +544,359 @@ h2 {
   padding: 24px;
 }
 
+.app-shell {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.app-sidebar {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  align-content: start;
+  gap: 24px;
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+  padding: 22px 16px;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary-strong);
+}
+
+.app-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.app-sidebar-actions {
+  display: grid;
+  align-self: end;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.app-nav-button,
+.profile-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 800;
+  text-align: left;
+}
+
+.app-nav-button {
+  width: 100%;
+  padding: 0 12px;
+}
+
+.app-nav-button:hover,
+.app-nav-button.active,
+.profile-menu button:hover {
+  border-color: var(--border);
+  background: var(--panel-muted);
+  color: var(--foreground);
+}
+
+.app-main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-shell);
+  padding: 18px 22px;
+}
+
+.character-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.character-summary h1 {
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+
+.header-stat {
+  display: grid;
+  gap: 3px;
+  min-width: 88px;
+  border-left: 1px solid var(--border);
+  padding-left: 18px;
+}
+
+.header-stat span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-menu-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: var(--panel);
+  color: var(--foreground);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.profile-menu {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  width: 230px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 18px 45px var(--shell-shadow);
+  padding: 8px;
+}
+
+.profile-menu button {
+  width: 100%;
+  padding: 0 10px;
+}
+
+.app-content {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 24px;
+}
+
+.content-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 14px;
+}
+
+.dashboard-panel {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 18px;
+}
+
+.dashboard-panel strong {
+  font-size: 1.5rem;
+}
+
+.character-page-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.character-equipment-panel {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 18px;
+}
+
+.section-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.section-heading h3 {
+  font-size: 1rem;
+}
+
+.equipment-layout {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.75fr) minmax(260px, 1.35fr) minmax(170px, 0.75fr);
+  grid-template-areas:
+    "jewelry jewelry jewelry"
+    "weapons model armor"
+    "fashion fashion fashion";
+  gap: 14px;
+}
+
+.equipment-zone {
+  display: grid;
+  gap: 10px;
+}
+
+.equipment-jewelry {
+  grid-area: jewelry;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.equipment-weapons {
+  grid-area: weapons;
+}
+
+.equipment-armor {
+  grid-area: armor;
+}
+
+.equipment-fashion {
+  grid-area: fashion;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.equipment-slot {
+  display: grid;
+  min-height: 70px;
+  gap: 6px;
+  align-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-muted);
+  padding: 10px;
+}
+
+.equipment-slot span,
+.points-summary span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.equipment-slot strong {
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+}
+
+.model-viewer-reserved {
+  grid-area: model;
+  display: grid;
+  min-height: 310px;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--panel-elevated);
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.character-info-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(180px, 0.8fr) minmax(260px, 1.2fr);
+  gap: 14px;
+}
+
+.character-stat-panel {
+  align-content: start;
+}
+
+.points-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-muted);
+  padding: 10px 12px;
+}
+
+.points-summary strong {
+  font-size: 1.2rem;
+}
+
+.allocation-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.allocation-row > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.allocation-row strong {
+  font-size: 1.1rem;
+}
+
+.allocation-controls {
+  display: grid;
+  grid-template-columns: 34px 34px 34px;
+  align-items: center;
+  gap: 6px;
+}
+
+.allocation-controls button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-muted);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.allocation-controls button:disabled,
+.secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.allocation-controls span {
+  color: var(--text-muted);
+  font-weight: 800;
+  text-align: center;
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.skills-panel {
+  max-width: 720px;
+}
+
 @media (max-width: 920px) {
   .character-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -528,6 +904,39 @@ h2 {
 
   .creation-layout {
     grid-template-columns: 1fr;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .equipment-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "jewelry"
+      "weapons"
+      "model"
+      "armor"
+      "fashion";
+  }
+
+  .equipment-jewelry,
+  .equipment-fashion,
+  .character-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -553,5 +962,45 @@ h2 {
 
   .form-actions {
     display: grid;
+  }
+
+  .app-header,
+  .character-summary,
+  .profile-button {
+    align-items: stretch;
+  }
+
+  .app-header,
+  .character-summary {
+    display: grid;
+  }
+
+  .header-stat {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+    padding: 12px 0 0;
+  }
+
+  .app-nav,
+  .dashboard-grid,
+  .equipment-jewelry,
+  .equipment-fashion,
+  .character-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-actions {
+    display: grid;
+  }
+
+  .profile-menu-wrap,
+  .profile-button {
+    width: 100%;
+  }
+
+  .profile-menu {
+    left: 0;
+    right: 0;
+    width: auto;
   }
 }

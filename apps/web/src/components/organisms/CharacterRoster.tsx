@@ -43,6 +43,11 @@ export function CharacterRoster() {
     router.push(`/characters/create?slot=${slotIndex + 1}`);
   }
 
+  function handleSelect(character: Character) {
+    localStorage.setItem("flyffIdleSelectedCharacterId", character.id);
+    router.push("/game");
+  }
+
   async function handleDelete(name: string) {
     if (!characterToDelete) {
       return;
@@ -104,6 +109,7 @@ export function CharacterRoster() {
                   setDeleteError("");
                   setCharacterToDelete(selectedCharacter);
                 }}
+                onSelect={handleSelect}
                 slotNumber={slotNumber}
               />
             );

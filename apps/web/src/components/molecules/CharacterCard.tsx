@@ -6,6 +6,7 @@ type CharacterCardProps = {
   character?: Character;
   onCreate?: () => void;
   onDelete?: (character: Character) => void;
+  onSelect?: (character: Character) => void;
   slotNumber?: number;
 };
 
@@ -39,7 +40,7 @@ function getClassImageUrl(job: string) {
   return `/images/classes/${icon}`;
 }
 
-export function CharacterCard({ character, onCreate, onDelete, slotNumber }: CharacterCardProps) {
+export function CharacterCard({ character, onCreate, onDelete, onSelect, slotNumber }: CharacterCardProps) {
   if (!character) {
     return (
       <article className="character-card empty-character-card">
@@ -65,29 +66,36 @@ export function CharacterCard({ character, onCreate, onDelete, slotNumber }: Cha
       >
         <Trash2 aria-hidden="true" size={16} strokeWidth={2.25} />
       </button>
-      <div className="class-logo-wrap">
-        <Image
-          className="class-logo"
-          src={getClassImageUrl(character.job)}
-          alt={`${character.job} class logo`}
-          width={64}
-          height={64}
-        />
-      </div>
-      <div>
-        <h2>{character.name}</h2>
-        <p className="muted">{character.job}</p>
-      </div>
-      <div className="stack">
-        <div className="stat-row">
-          <span className="stat-label">Level</span>
-          <strong>{character.level}</strong>
+      <button
+        className="character-select-button"
+        type="button"
+        onClick={() => onSelect?.(character)}
+        aria-label={`Select ${character.name}`}
+      >
+        <div className="class-logo-wrap">
+          <Image
+            className="class-logo"
+            src={getClassImageUrl(character.job)}
+            alt={`${character.job} class logo`}
+            width={64}
+            height={64}
+          />
         </div>
-        <div className="stat-row">
-          <span className="stat-label">EXP</span>
-          <strong>{character.exp}</strong>
+        <div>
+          <h2>{character.name}</h2>
+          <p className="muted">{character.job}</p>
         </div>
-      </div>
+        <div className="stack">
+          <div className="stat-row">
+            <span className="stat-label">Level</span>
+            <strong>{character.level}</strong>
+          </div>
+          <div className="stat-row">
+            <span className="stat-label">EXP</span>
+            <strong>{character.exp}</strong>
+          </div>
+        </div>
+      </button>
     </article>
   );
 }
