@@ -9,7 +9,6 @@ import { MutedText } from "@/components/atoms/MutedText";
 import { Stack } from "@/components/atoms/Stack";
 import { TextField } from "@/components/atoms/TextField";
 import type { Character } from "@/lib/api";
-import { borders, colors, overlayColors, radii, shadows, spacing } from "@/styles/tokens";
 
 type CharacterDeleteDialogProps = {
   character: Character;
@@ -42,17 +41,19 @@ export function CharacterDeleteDialog({
   }
 
   return (
-    <div className="modal-backdrop" role="presentation">
+    <div className="fixed inset-0 z-20 grid place-items-center bg-[rgba(8,12,18,0.72)] p-[18px]" role="presentation">
       <section
         aria-describedby="delete-character-description"
         aria-labelledby="delete-character-title"
         aria-modal="true"
-        className="modal-panel"
+        className="w-full max-w-[420px] rounded-card border border-border bg-panel-shell p-6 shadow-shell"
         role="dialog"
       >
         <Stack as="form" onSubmit={handleSubmit}>
           <Stack>
-            <h2 id="delete-character-title">Delete {character.name}</h2>
+            <h2 className="m-0 text-[1.15rem]" id="delete-character-title">
+              Delete {character.name}
+            </h2>
             <MutedText id="delete-character-description">
               Enter the character name to permanently delete this slot.
             </MutedText>
@@ -76,26 +77,6 @@ export function CharacterDeleteDialog({
           </Actions>
         </Stack>
       </section>
-      <style>{`
-        .modal-backdrop {
-          position: fixed;
-          z-index: 20;
-          inset: 0;
-          display: grid;
-          place-items: center;
-          padding: ${spacing["3xl"]};
-          background: ${overlayColors.modalBackdrop};
-        }
-
-        .modal-panel {
-          width: min(100%, 420px);
-          border: ${borders.default};
-          border-radius: ${radii.md};
-          background: ${colors.panelShell};
-          box-shadow: ${shadows.shell};
-          padding: ${spacing["5xl"]};
-        }
-      `}</style>
     </div>
   );
 }

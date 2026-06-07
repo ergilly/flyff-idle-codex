@@ -1,56 +1,25 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { borders, colors, radii, spacing, typography } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   variant?: "primary" | "secondary";
 };
 
-export function Button({ children, variant = "primary", ...props }: ButtonProps) {
+export function Button({ children, className, variant = "primary", ...props }: ButtonProps) {
   return (
-    <>
-      <button className={`ui-button ${variant}`} {...props}>
-        {children}
-      </button>
-      <style>{`
-        .ui-button {
-          min-height: 44px;
-          border-radius: ${radii.sm};
-          padding: 0 ${spacing["3xl"]};
-          cursor: pointer;
-          font-weight: ${typography.weightHeavy};
-        }
-
-        .ui-button:disabled {
-          cursor: wait;
-          opacity: 0.68;
-        }
-
-        .ui-button.primary {
-          border: 0;
-          background: ${colors.primary};
-          color: ${colors.buttonText};
-        }
-
-        .ui-button.primary:hover {
-          background: ${colors.primaryStrong};
-        }
-
-        .ui-button.secondary {
-          border: ${borders.default};
-          background: ${colors.panelMuted};
-          color: ${colors.foreground};
-        }
-
-        .ui-button.secondary:hover {
-          border-color: ${colors.primary};
-          background: ${colors.panelElevated};
-        }
-
-        .ui-button.secondary:disabled {
-          cursor: not-allowed;
-        }
-      `}</style>
-    </>
+    <button
+      className={cx(
+        "min-h-11 cursor-pointer rounded-control px-[18px] font-extrabold disabled:opacity-[0.68]",
+        variant === "primary" &&
+          "border-0 bg-primary text-button-text hover:bg-primary-strong disabled:cursor-wait",
+        variant === "secondary" &&
+          "border border-border bg-panel-muted text-foreground hover:border-primary hover:bg-panel-elevated disabled:cursor-not-allowed",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }

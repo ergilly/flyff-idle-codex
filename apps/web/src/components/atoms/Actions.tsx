@@ -1,27 +1,15 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
-import { spacing } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type ActionsProps = HTMLAttributes<HTMLDivElement> & {
   children: ReactNode;
   gap?: CSSProperties["gap"];
 };
 
-export function Actions({ children, gap = spacing.lg, style, ...props }: ActionsProps) {
+export function Actions({ children, className, gap = "12px", style, ...props }: ActionsProps) {
   return (
-    <div className="ui-actions" style={{ gap, ...style }} {...props}>
+    <div className={cx("flex justify-end max-[560px]:grid", className)} style={{ gap, ...style }} {...props}>
       {children}
-      <style>{`
-        .ui-actions {
-          display: flex;
-          justify-content: flex-end;
-        }
-
-        @media (max-width: 560px) {
-          .ui-actions {
-            display: grid;
-          }
-        }
-      `}</style>
     </div>
   );
 }

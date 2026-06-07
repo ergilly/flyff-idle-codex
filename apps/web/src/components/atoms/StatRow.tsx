@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { colors, spacing, typography } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type StatRowProps = HTMLAttributes<HTMLDivElement> & {
   label: ReactNode;
@@ -10,17 +10,17 @@ type StatLabelProps = HTMLAttributes<HTMLSpanElement> & {
   children: ReactNode;
 };
 
-export function StatLabel({ children, style, ...props }: StatLabelProps) {
+export function StatLabel({ children, className, ...props }: StatLabelProps) {
   return (
-    <span style={{ color: colors.textMuted, fontSize: typography.labelSize, ...style }} {...props}>
+    <span className={cx("text-[0.85rem] text-text-muted", className)} {...props}>
       {children}
     </span>
   );
 }
 
-export function StatRow({ label, value, style, ...props }: StatRowProps) {
+export function StatRow({ label, value, className, ...props }: StatRowProps) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: spacing.lg, ...style }} {...props}>
+    <div className={cx("flex justify-between gap-3", className)} {...props}>
       <StatLabel>{label}</StatLabel>
       <strong>{value}</strong>
     </div>

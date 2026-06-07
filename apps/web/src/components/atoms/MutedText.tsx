@@ -1,13 +1,13 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { colors, typography } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type MutedTextProps = HTMLAttributes<HTMLParagraphElement> & {
   children: ReactNode;
 };
 
-export function MutedText({ children, style, ...props }: MutedTextProps) {
+export function MutedText({ children, className, ...props }: MutedTextProps) {
   return (
-    <p style={{ color: colors.textMuted, lineHeight: typography.bodyLineHeight, ...style }} {...props}>
+    <p className={cx("m-0 leading-[1.55] text-text-muted", className)} {...props}>
       {children}
     </p>
   );

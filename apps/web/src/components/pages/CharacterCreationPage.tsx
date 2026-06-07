@@ -13,7 +13,7 @@ import { TextField } from "@/components/atoms/TextField";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { GameTemplate } from "@/components/templates/GameTemplate";
 import { createCharacter, type CharacterGender } from "@/lib/api";
-import { borders, colors, outlines, radii, spacing, typography } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type CharacterCreationPageProps = {
   slot?: string;
@@ -75,10 +75,10 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
         title={`Slot ${slotNumber}`}
         description="Create the adventurer who will start your idle journey."
       />
-      <div className="creation-layout">
-        <section className="creation-preview" aria-label="New character preview">
+      <div className="grid grid-cols-[minmax(240px,0.85fr)_minmax(0,1.15fr)] gap-5 max-[920px]:grid-cols-1">
+        <section className="grid min-h-[312px] content-center gap-[18px] rounded-card border border-border bg-panel p-[22px] text-center [&_h2]:m-0 [&_h2]:text-[1.15rem]" aria-label="New character preview">
           <Image
-            className="creation-class-logo"
+            className="h-24 w-24 justify-self-center object-contain"
             src="/images/classes/vagrant.png"
             alt="Vagrant class logo"
             width={96}
@@ -88,7 +88,7 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             <h2>{name.trim() || "New Vagrant"}</h2>
             <MutedText>Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</MutedText>
           </Stack>
-          <div className="stat-pill-grid" aria-label="Starting stats">
+          <div className="grid grid-cols-2 gap-2.5 [&_span]:rounded-control [&_span]:border [&_span]:border-border [&_span]:bg-panel-muted [&_span]:px-2.5 [&_span]:py-[9px] [&_span]:text-[0.88rem] [&_span]:font-extrabold [&_span]:text-text-muted" aria-label="Starting stats">
             <span>STR 15</span>
             <span>STA 15</span>
             <span>DEX 15</span>
@@ -96,7 +96,11 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
           </div>
         </section>
 
-        <Stack as="form" className="creation-form" onSubmit={handleSubmit}>
+        <Stack
+          as="form"
+          className="rounded-card border border-border bg-panel p-[22px]"
+          onSubmit={handleSubmit}
+        >
           {error ? <ErrorMessage message={error} /> : null}
           <TextField
             id="character-name"
@@ -109,28 +113,42 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             required
             value={name}
           />
-          <div className="field">
-            <span className="field-label">Gender</span>
-            <div className="gender-options" role="radiogroup" aria-label="Gender">
-              <label className="gender-option">
+          <div className="grid gap-2">
+            <span className="text-[0.9rem] font-bold">Gender</span>
+            <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Gender">
+              <label
+                className={cx(
+                  "relative grid min-h-11 cursor-pointer place-items-center rounded-control border border-border bg-panel-muted font-extrabold text-text-muted has-focus-visible:outline-[2px_solid_rgba(88,166,201,0.28)] has-focus-visible:outline-offset-[2px]",
+                  gender === "male" &&
+                    "border-primary bg-panel-elevated text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+                )}
+              >
                 <input
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   checked={gender === "male"}
                   name="gender"
                   onChange={() => setGender("male")}
                   type="radio"
                   value="male"
                 />
-                <span>Male</span>
+                <span className="pointer-events-none">Male</span>
               </label>
-              <label className="gender-option">
+              <label
+                className={cx(
+                  "relative grid min-h-11 cursor-pointer place-items-center rounded-control border border-border bg-panel-muted font-extrabold text-text-muted has-focus-visible:outline-[2px_solid_rgba(88,166,201,0.28)] has-focus-visible:outline-offset-[2px]",
+                  gender === "female" &&
+                    "border-primary bg-panel-elevated text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+                )}
+              >
                 <input
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   checked={gender === "female"}
                   name="gender"
                   onChange={() => setGender("female")}
                   type="radio"
                   value="female"
                 />
-                <span>Female</span>
+                <span className="pointer-events-none">Female</span>
               </label>
             </div>
           </div>
@@ -144,112 +162,6 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
           </Actions>
         </Stack>
       </div>
-      <style>{`
-        .creation-layout {
-          display: grid;
-          grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
-          gap: 20px;
-        }
-
-        .creation-preview,
-        .creation-form {
-          border: ${borders.default};
-          border-radius: ${radii.md};
-          background: ${colors.panel};
-          padding: ${spacing["4xl"]};
-        }
-
-        .creation-preview {
-          display: grid;
-          align-content: center;
-          gap: ${spacing["3xl"]};
-          min-height: 312px;
-          text-align: center;
-        }
-
-        .creation-class-logo {
-          justify-self: center;
-          width: 96px;
-          height: 96px;
-          object-fit: contain;
-        }
-
-        .stat-pill-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: ${spacing.md};
-        }
-
-        .stat-pill-grid span {
-          border: ${borders.default};
-          border-radius: ${radii.sm};
-          background: ${colors.panelMuted};
-          padding: 9px ${spacing.md};
-          color: ${colors.textMuted};
-          font-size: 0.88rem;
-          font-weight: ${typography.weightHeavy};
-        }
-
-        .field {
-          display: grid;
-          gap: ${spacing.sm};
-        }
-
-        .field-label {
-          font-size: ${typography.fieldLabelSize};
-          font-weight: ${typography.weightBold};
-        }
-
-        .gender-options {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: ${spacing.md};
-        }
-
-        .gender-option {
-          position: relative;
-          display: grid;
-          min-height: 44px;
-          place-items: center;
-          border: ${borders.default};
-          border-radius: ${radii.sm};
-          background: ${colors.panelMuted};
-          color: ${colors.textMuted};
-          cursor: pointer;
-          font-weight: ${typography.weightHeavy};
-        }
-
-        .gender-option input {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          opacity: 0;
-          cursor: pointer;
-        }
-
-        .gender-option span {
-          pointer-events: none;
-        }
-
-        .gender-option:has(input:checked) {
-          border-color: ${colors.primary};
-          background: ${colors.panelElevated};
-          color: ${colors.foreground};
-          box-shadow: inset 0 0 0 1px ${colors.primary};
-        }
-
-        .gender-option:has(input:focus-visible) {
-          outline: ${outlines.focusPrimary};
-          outline-offset: ${spacing.px1};
-        }
-
-        @media (max-width: 920px) {
-          .creation-layout {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </GameTemplate>
   );
 }

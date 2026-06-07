@@ -7,7 +7,7 @@ import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { Stack } from "@/components/atoms/Stack";
 import { TextField } from "@/components/atoms/TextField";
 import { login, register } from "@/lib/api";
-import { borders, colors, radii, typography } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type AuthMode = "login" | "register";
 
@@ -47,9 +47,14 @@ export function LoginForm() {
 
   return (
     <Stack>
-      <div className="auth-switch" role="group" aria-label="Auth mode">
+      <div className="grid grid-cols-2 overflow-hidden rounded-control border border-border bg-panel-muted" role="group" aria-label="Auth mode">
         <button
-          className={mode === "login" ? "switch-button active" : "switch-button"}
+          className={cx(
+            "min-h-10 cursor-pointer border-0 font-extrabold",
+            mode === "login"
+              ? "bg-panel text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+              : "bg-transparent text-text-muted"
+          )}
           type="button"
           onClick={() => {
             setMode("login");
@@ -61,7 +66,12 @@ export function LoginForm() {
           Login
         </button>
         <button
-          className={mode === "register" ? "switch-button active" : "switch-button"}
+          className={cx(
+            "min-h-10 cursor-pointer border-0 font-extrabold",
+            mode === "register"
+              ? "bg-panel text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+              : "bg-transparent text-text-muted"
+          )}
           type="button"
           onClick={() => {
             setMode("register");
@@ -114,31 +124,6 @@ export function LoginForm() {
           {isSubmitting ? "Working..." : isRegistering ? "Create profile" : "Log in"}
         </Button>
       </Stack>
-      <style>{`
-        .auth-switch {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          overflow: hidden;
-          border: ${borders.default};
-          border-radius: ${radii.sm};
-          background: ${colors.panelMuted};
-        }
-
-        .switch-button {
-          min-height: 40px;
-          border: 0;
-          background: ${colors.transparent};
-          color: ${colors.textMuted};
-          cursor: pointer;
-          font-weight: ${typography.weightHeavy};
-        }
-
-        .switch-button.active {
-          background: ${colors.panel};
-          color: ${colors.foreground};
-          box-shadow: inset 0 0 0 1px ${colors.primary};
-        }
-      `}</style>
     </Stack>
   );
 }

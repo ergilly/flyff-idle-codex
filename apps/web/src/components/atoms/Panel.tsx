@@ -1,31 +1,19 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { borders, colors, radii, spacing } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type PanelProps = HTMLAttributes<HTMLElement> & {
   as?: "article" | "section" | "aside";
   children: ReactNode;
 };
 
-export function Panel({ as: Component = "article", children, style, ...props }: PanelProps) {
-  const className = props.className ? `ui-panel ${props.className}` : "ui-panel";
-
+export function Panel({ as: Component = "article", children, className, style, ...props }: PanelProps) {
   return (
-    <Component {...props} className={className} style={style}>
+    <Component
+      className={cx("grid gap-2 rounded-card border border-border bg-panel p-[18px] [&_strong]:text-2xl", className)}
+      {...props}
+      style={style}
+    >
       {children}
-      <style>{`
-        .ui-panel {
-          display: grid;
-          gap: ${spacing.sm};
-          border: ${borders.default};
-          border-radius: ${radii.md};
-          background: ${colors.panel};
-          padding: ${spacing["3xl"]};
-        }
-
-        .ui-panel strong {
-          font-size: 1.5rem;
-        }
-      `}</style>
     </Component>
   );
 }

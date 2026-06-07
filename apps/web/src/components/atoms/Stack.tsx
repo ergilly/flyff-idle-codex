@@ -1,5 +1,5 @@
 import type { CSSProperties, FormHTMLAttributes, HTMLAttributes, ReactNode } from "react";
-import { spacing } from "@/styles/tokens";
+import { cx } from "@/lib/classNames";
 
 type StackBaseProps = {
   children: ReactNode;
@@ -20,33 +20,33 @@ type SectionStackProps = HTMLAttributes<HTMLElement> & StackBaseProps & {
 
 type StackProps = DivStackProps | FormStackProps | SectionStackProps;
 
-export function Stack({ children, gap = spacing["2xl"], style, ...props }: StackProps) {
-  const stackStyle = { display: "grid", gap, ...style };
+export function Stack({ children, gap = "16px", style, ...props }: StackProps) {
+  const stackStyle = { gap, ...style };
 
   if (props.as === "form") {
-    const { as: _as, ...formProps } = props;
+    const { as: _as, className, ...formProps } = props;
 
     return (
-      <form style={stackStyle} {...formProps}>
+      <form className={cx("grid", className)} style={stackStyle} {...formProps}>
         {children}
       </form>
     );
   }
 
   if (props.as === "section") {
-    const { as: _as, ...sectionProps } = props;
+    const { as: _as, className, ...sectionProps } = props;
 
     return (
-      <section style={stackStyle} {...sectionProps}>
+      <section className={cx("grid", className)} style={stackStyle} {...sectionProps}>
         {children}
       </section>
     );
   }
 
-  const { as: _as, ...divProps } = props;
+  const { as: _as, className, ...divProps } = props;
 
   return (
-    <div style={stackStyle} {...divProps}>
+    <div className={cx("grid", className)} style={stackStyle} {...divProps}>
       {children}
     </div>
   );

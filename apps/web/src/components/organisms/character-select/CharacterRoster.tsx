@@ -6,10 +6,9 @@ import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Stack } from "@/components/atoms/Stack";
-import { CharacterCard } from "@/components/molecules/CharacterCard";
-import { CharacterDeleteDialog } from "@/components/molecules/CharacterDeleteDialog";
+import { CharacterCard } from "@/components/molecules/character-select/CharacterCard";
+import { CharacterDeleteDialog } from "@/components/molecules/character-select/CharacterDeleteDialog";
 import { deleteCharacter, fetchCharacters, type Character } from "@/lib/api";
-import { spacing } from "@/styles/tokens";
 
 const characterSlotCount = 8;
 
@@ -87,16 +86,15 @@ export function CharacterRoster() {
   }
 
   return (
-    <>
-      <Stack>
-      <div className="character-roster-topbar">
+    <Stack>
+      <div className="mb-[22px] flex items-start justify-between gap-4 max-[560px]:grid">
         <MutedText>Choose who will begin the grind.</MutedText>
         <Button type="button" onClick={handleLogout}>
           Log out
         </Button>
       </div>
       {error ? <ErrorMessage message={error} /> : null}
-      <div className="character-roster-grid" aria-label="Character roster">
+      <div className="grid grid-cols-4 gap-4 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1" aria-label="Character roster">
         {(() => {
           const charactersBySlot = new Map(characters.map((character) => [character.slotIndex, character]));
 
@@ -129,38 +127,6 @@ export function CharacterRoster() {
           onConfirm={handleDelete}
         />
       ) : null}
-      </Stack>
-      <style>{`
-        .character-roster-topbar {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: ${spacing["2xl"]};
-          margin-bottom: ${spacing["4xl"]};
-        }
-
-        .character-roster-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: ${spacing["2xl"]};
-        }
-
-        @media (max-width: 920px) {
-          .character-roster-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-
-        @media (max-width: 560px) {
-          .character-roster-topbar {
-            display: grid;
-          }
-
-          .character-roster-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-    </>
+    </Stack>
   );
 }
