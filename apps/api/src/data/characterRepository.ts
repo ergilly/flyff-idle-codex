@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
+import { startingEquipmentByGender, startingInventoryItems, startingMainhand } from "./starterLoadout.js";
 import type { Character, CharacterGender } from "../types.js";
 
 type CreateCharacterInput = {
@@ -52,32 +53,6 @@ type InventoryItemRow = {
   quantity: number;
 };
 
-const startingInventoryItems = [
-  { slotIndex: 0, itemId: "5325", quantity: 3 },
-  { slotIndex: 1, itemId: "9449", quantity: 1 },
-  { slotIndex: 2, itemId: "3896", quantity: 5 }
-];
-
-const startingEquipmentByGender: Record<
-  CharacterGender,
-  {
-    suit: string;
-    gloves: string;
-    boots: string;
-  }
-> = {
-  female: {
-    suit: "6040",
-    gloves: "5011",
-    boots: "8195"
-  },
-  male: {
-    suit: "3314",
-    gloves: "5535",
-    boots: "4750"
-  }
-};
-
 export const characterRepository = {
   create({ playerId, slotIndex, name, gender }: CreateCharacterInput) {
     const now = new Date().toISOString();
@@ -125,7 +100,7 @@ export const characterRepository = {
       startingEquipment.suit,
       startingEquipment.gloves,
       startingEquipment.boots,
-      "3497",
+      startingMainhand,
       now,
       now
     );

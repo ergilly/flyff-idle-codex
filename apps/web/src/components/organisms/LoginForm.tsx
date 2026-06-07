@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
+import { Stack } from "@/components/atoms/Stack";
 import { TextField } from "@/components/atoms/TextField";
 import { login, register } from "@/lib/api";
+import { borders, colors, radii, typography } from "@/styles/tokens";
 
 type AuthMode = "login" | "register";
 
@@ -44,7 +46,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="stack">
+    <Stack>
       <div className="auth-switch" role="group" aria-label="Auth mode">
         <button
           className={mode === "login" ? "switch-button active" : "switch-button"}
@@ -71,7 +73,7 @@ export function LoginForm() {
           Register
         </button>
       </div>
-      <form className="stack" onSubmit={handleSubmit}>
+      <Stack as="form" onSubmit={handleSubmit}>
         {isRegistering ? (
           <TextField
             id="displayName"
@@ -111,7 +113,32 @@ export function LoginForm() {
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Working..." : isRegistering ? "Create profile" : "Log in"}
         </Button>
-      </form>
-    </div>
+      </Stack>
+      <style>{`
+        .auth-switch {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          overflow: hidden;
+          border: ${borders.default};
+          border-radius: ${radii.sm};
+          background: ${colors.panelMuted};
+        }
+
+        .switch-button {
+          min-height: 40px;
+          border: 0;
+          background: ${colors.transparent};
+          color: ${colors.textMuted};
+          cursor: pointer;
+          font-weight: ${typography.weightHeavy};
+        }
+
+        .switch-button.active {
+          background: ${colors.panel};
+          color: ${colors.foreground};
+          box-shadow: inset 0 0 0 1px ${colors.primary};
+        }
+      `}</style>
+    </Stack>
   );
 }

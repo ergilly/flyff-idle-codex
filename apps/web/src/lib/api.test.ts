@@ -1,4 +1,12 @@
-import { createCharacter, deleteCharacter, fetchCharacters, login, register } from "./api";
+import {
+  createCharacter,
+  deleteCharacter,
+  fetchCharacters,
+  fetchItems,
+  getItemIconUrl,
+  login,
+  register
+} from "./api";
 
 function mockFetch(response: Partial<Response>) {
   global.fetch = jest.fn().mockResolvedValue({
@@ -120,5 +128,32 @@ describe("api client", () => {
         body: JSON.stringify({ name: "Hero" })
       })
     );
+  });
+
+  it("loads item icon metadata for unique equipped ids", async () => {
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        items: [{ id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }]
+      })
+    });
+
+    await expect(fetchItems("token", ["3497", "3497", "3314"])).resolves.toEqual([
+      { id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }
+    ]);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/items?ids=3497,3314",
+      expect.objectContaining({
+        headers: {
+          Authorization: "Bearer token"
+        }
+      })
+    );
+  });
+
+  it("skips empty item icon requests and builds Flyff icon URLs", async () => {
+    await expect(fetchItems("token", [])).resolves.toEqual([]);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(getItemIconUrl("mkin04foot.png")).toBe("https://api.flyff.com/image/item/mkin04foot.png");
   });
 });

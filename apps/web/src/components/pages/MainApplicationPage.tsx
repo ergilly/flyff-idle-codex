@@ -18,9 +18,17 @@ import {
   UserPlus
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Actions } from "@/components/atoms/Actions";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
-import { fetchCharacters, type Character } from "@/lib/api";
+import { MutedText } from "@/components/atoms/MutedText";
+import { Panel } from "@/components/atoms/Panel";
+import { Stack } from "@/components/atoms/Stack";
+import { StatLabel, StatRow } from "@/components/atoms/StatRow";
+import { ItemDetailsPanel } from "@/components/molecules/ItemDetailsPanel";
+import { SectionHeading } from "@/components/molecules/SectionHeading";
+import { fetchCharacters, fetchItems, getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
+import { borders, colors, radii, shadows, spacing } from "@/styles/tokens";
 
 type Theme = "dark" | "light";
 type StatKey = "str" | "sta" | "dex" | "int";
@@ -36,35 +44,31 @@ const navItems = [
 const storageKey = "flyffIdleTheme";
 const statKeys: StatKey[] = ["str", "sta", "dex", "int"];
 
-const equipmentGroups = {
-  jewelry: [
-    ["ringL", "Left Ring"],
-    ["earringL", "Left Earring"],
-    ["necklace", "Necklace"],
-    ["earringR", "Right Earring"],
-    ["ringR", "Right Ring"]
-  ],
-  weapons: [
-    ["mainhand", "Main Hand"],
-    ["offhand", "Off Hand"],
-    ["ammo", "Ammo"]
-  ],
-  armor: [
-    ["helmet", "Helmet"],
-    ["suit", "Suit"],
-    ["gloves", "Gloves"],
-    ["boots", "Boots"]
-  ],
-  fashion: [
-    ["csHelm", "Fashion Helm"],
-    ["csSuit", "Fashion Suit"],
-    ["csGloves", "Fashion Gloves"],
-    ["csBoots", "Fashion Boots"],
-    ["mask", "Mask"],
-    ["cloak", "Cloak"],
-    ["flying", "Flying"]
-  ]
-} as const;
+const equipmentSlots: {
+  slot: keyof Character["equipment"];
+  label: string;
+  frame: string;
+}[] = [
+  { slot: "mainhand", label: "Main Hand", frame: "left-1" },
+  { slot: "offhand", label: "Off Hand", frame: "left-2" },
+  { slot: "ammo", label: "Ammo", frame: "left-3" },
+  { slot: "cloak", label: "Cloak", frame: "left-4" },
+  { slot: "mask", label: "Mask", frame: "left-5" },
+  { slot: "ringL", label: "Left Ring", frame: "jewel-1" },
+  { slot: "earringL", label: "Left Earring", frame: "jewel-2" },
+  { slot: "necklace", label: "Necklace", frame: "jewel-3" },
+  { slot: "earringR", label: "Right Earring", frame: "jewel-4" },
+  { slot: "ringR", label: "Right Ring", frame: "jewel-5" },
+  { slot: "helmet", label: "Helmet", frame: "right-1" },
+  { slot: "suit", label: "Suit", frame: "right-2" },
+  { slot: "gloves", label: "Gloves", frame: "right-3" },
+  { slot: "boots", label: "Boots", frame: "right-4" },
+  { slot: "flying", label: "Flying", frame: "right-5" },
+  { slot: "csHelm", label: "Fashion Helm", frame: "bottom-1" },
+  { slot: "csSuit", label: "Fashion Suit", frame: "bottom-2" },
+  { slot: "csGloves", label: "Fashion Gloves", frame: "bottom-3" },
+  { slot: "csBoots", label: "Fashion Boots", frame: "bottom-4" }
+];
 
 function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
@@ -73,6 +77,10 @@ function applyTheme(theme: Theme) {
 
 function getEquipmentValue(character: Character, slot: keyof Character["equipment"]) {
   return character.equipment[slot] ?? "Empty";
+}
+
+function getEquippedItemIds(character: Character) {
+  return Object.values(character.equipment).filter((itemId): itemId is string => Boolean(itemId));
 }
 
 function getDetailStats(character: Character) {
@@ -108,6 +116,8 @@ export function MainApplicationPage() {
   const [availableStatPoints, setAvailableStatPoints] = useState(0);
   const [pendingSkillPoints, setPendingSkillPoints] = useState(0);
   const [availableSkillPoints, setAvailableSkillPoints] = useState(0);
+  const [itemsById, setItemsById] = useState<Record<string, ItemMetadata>>({});
+  const [selectedEquipmentItemId, setSelectedEquipmentItemId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -145,6 +155,50 @@ export function MainApplicationPage() {
     () => (selectedCharacter ? getDetailStats(selectedCharacter) : []),
     [selectedCharacter]
   );
+
+  useEffect(() => {
+    if (!selectedCharacter) {
+      setItemsById({});
+      setSelectedEquipmentItemId(null);
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+    const equippedItemIds = getEquippedItemIds(selectedCharacter);
+    let ignoreResult = false;
+
+    if (!token || equippedItemIds.length === 0) {
+      setItemsById({});
+      setSelectedEquipmentItemId(null);
+      return;
+    }
+
+    fetchItems(token, equippedItemIds)
+      .then((items) => {
+        if (!ignoreResult) {
+          setItemsById(Object.fromEntries(items.map((item) => [item.id, item])));
+        }
+      })
+      .catch(() => {
+        if (!ignoreResult) {
+          setItemsById({});
+        }
+      });
+
+    return () => {
+      ignoreResult = true;
+    };
+  }, [selectedCharacter]);
+
+  useEffect(() => {
+    if (!selectedCharacter || !selectedEquipmentItemId) {
+      return;
+    }
+
+    if (!getEquippedItemIds(selectedCharacter).includes(selectedEquipmentItemId)) {
+      setSelectedEquipmentItemId(null);
+    }
+  }, [selectedCharacter, selectedEquipmentItemId]);
 
   function handleAddStat(stat: StatKey) {
     if (availableStatPoints <= 0) {
@@ -211,7 +265,7 @@ export function MainApplicationPage() {
   if (isLoading) {
     return (
       <main className="app-shell">
-        <p className="muted">Loading character...</p>
+        <MutedText>Loading character...</MutedText>
       </main>
     );
   }
@@ -219,15 +273,33 @@ export function MainApplicationPage() {
   if (error || !selectedCharacter) {
     return (
       <main className="app-shell">
-        <section className="selection-panel stack">
+        <Stack as="section" className="app-error-panel">
           <ErrorMessage message={error || "That character is no longer available."} />
           <Button type="button" onClick={handleChangeCharacter}>
             Change character
           </Button>
-        </section>
+          <style>{`
+            .app-error-panel {
+              width: min(100%, 1040px);
+              border: ${borders.default};
+              border-radius: ${radii.md};
+              background: ${colors.panelShell};
+              box-shadow: ${shadows.shell};
+              padding: ${spacing["6xl"]};
+            }
+          `}</style>
+        </Stack>
       </main>
     );
   }
+
+  const selectedEquipmentSlot = equipmentSlots.find(
+    ({ slot }) => selectedCharacter.equipment[slot] === selectedEquipmentItemId
+  );
+  const selectedItem = selectedEquipmentItemId ? itemsById[selectedEquipmentItemId] : null;
+  const mainhandItemId = selectedCharacter.equipment.mainhand;
+  const mainhandItem = mainhandItemId ? itemsById[mainhandItemId] : null;
+  const hasTwoHandedMainhand = mainhandItem?.category === "weapon" && mainhandItem.twoHanded === true;
 
   return (
     <main className="app-shell">
@@ -255,11 +327,7 @@ export function MainApplicationPage() {
             <span>Settings</span>
           </button>
           <button className="app-nav-button" type="button" onClick={handleThemeToggle}>
-            {theme === "dark" ? (
-              <Sun aria-hidden="true" size={18} />
-            ) : (
-              <Moon aria-hidden="true" size={18} />
-            )}
+            {theme === "dark" ? <Sun aria-hidden="true" size={18} /> : <Moon aria-hidden="true" size={18} />}
             <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
           </button>
         </div>
@@ -320,87 +388,74 @@ export function MainApplicationPage() {
           </div>
           {activeNavItem === "Character Page" ? (
             <div className="character-page-layout">
-              <section className="character-equipment-panel">
-                <div className="section-heading">
-                  <h3>Character Equipment</h3>
-                </div>
-                <div className="equipment-layout">
-                  <div className="equipment-zone equipment-jewelry" aria-label="Jewelry equipment">
-                    {equipmentGroups.jewelry.map(([slot, label]) => (
-                      <div className="equipment-slot" key={slot}>
-                        <span>{label}</span>
-                        <strong>{getEquipmentValue(selectedCharacter, slot)}</strong>
-                      </div>
-                    ))}
+              <div className="character-equipment-row">
+                <section className="character-equipment-panel">
+                  <SectionHeading title="Character Equipment" />
+                  <div className="equipment-layout" aria-label="Character equipment slots">
+                    {equipmentSlots.map(({ frame, label, slot }) => {
+                      const isOffhandBlockedByTwoHander = slot === "offhand" && hasTwoHandedMainhand;
+                      const itemId = isOffhandBlockedByTwoHander
+                        ? mainhandItemId
+                        : selectedCharacter.equipment[slot];
+                      const item = itemId ? itemsById[itemId] : null;
+                      const value = item?.name ?? getEquipmentValue(selectedCharacter, slot);
+                      const iconUrl = item?.icon ? getItemIconUrl(item.icon) : null;
+                      const isSelected = itemId !== null && itemId === selectedEquipmentItemId;
+                      const slotLabel = isOffhandBlockedByTwoHander
+                        ? `${label}: ${value} occupies this slot`
+                        : `${label}: ${value}`;
+
+                      return (
+                        <button
+                          className={`equipment-slot equipment-slot-${frame} ${
+                            itemId ? "equipped" : "empty"
+                          } ${isSelected ? "selected" : ""} ${
+                            isOffhandBlockedByTwoHander ? "two-handed-occupied" : ""
+                          }`}
+                          key={slot}
+                          type="button"
+                          aria-label={slotLabel}
+                          aria-pressed={isSelected}
+                          title={slotLabel}
+                          onClick={() => (itemId ? setSelectedEquipmentItemId(itemId) : undefined)}
+                          disabled={!itemId}
+                        >
+                          <span>{label}</span>
+                          {iconUrl ? (
+                            <img className="equipment-slot-icon" src={iconUrl} alt={value} loading="lazy" />
+                          ) : (
+                            <strong>{value}</strong>
+                          )}
+                        </button>
+                      );
+                    })}
+                    <div
+                      className="model-viewer-reserved"
+                      aria-label={`${selectedCharacter.name} model preview`}
+                    />
                   </div>
-                  <div className="equipment-zone equipment-weapons" aria-label="Weapon equipment">
-                    {equipmentGroups.weapons.map(([slot, label]) => (
-                      <div className="equipment-slot" key={slot}>
-                        <span>{label}</span>
-                        <strong>{getEquipmentValue(selectedCharacter, slot)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="model-viewer-reserved">
-                    <span>Model Viewer</span>
-                  </div>
-                  <div className="equipment-zone equipment-armor" aria-label="Armor equipment">
-                    {equipmentGroups.armor.map(([slot, label]) => (
-                      <div className="equipment-slot" key={slot}>
-                        <span>{label}</span>
-                        <strong>{getEquipmentValue(selectedCharacter, slot)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="equipment-zone equipment-fashion" aria-label="Fashion equipment">
-                    {equipmentGroups.fashion.map(([slot, label]) => (
-                      <div className="equipment-slot" key={slot}>
-                        <span>{label}</span>
-                        <strong>{getEquipmentValue(selectedCharacter, slot)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
+                </section>
+
+                <ItemDetailsPanel item={selectedItem} slotLabel={selectedEquipmentSlot?.label ?? null} />
+              </div>
 
               <section className="character-info-grid">
-                <article className="dashboard-panel character-stat-panel">
-                  <div className="section-heading">
-                    <p className="eyebrow">Base</p>
-                    <h3>Character Stats</h3>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">Name</span>
-                    <strong>{selectedCharacter.name}</strong>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">Job</span>
-                    <strong>{selectedCharacter.job}</strong>
-                  </div>
-                  <div className="stat-row">
-                    <span className="stat-label">Level</span>
-                    <strong>{selectedCharacter.level}</strong>
-                  </div>
-                </article>
+                <Panel style={{ alignContent: "start" }}>
+                  <SectionHeading eyebrow="Base" title="Character Stats" />
+                  <StatRow label="Name" value={selectedCharacter.name} />
+                  <StatRow label="Job" value={selectedCharacter.job} />
+                  <StatRow label="Level" value={selectedCharacter.level} />
+                </Panel>
 
-                <article className="dashboard-panel character-stat-panel">
-                  <div className="section-heading">
-                    <p className="eyebrow">Detail</p>
-                    <h3>Combat Detail</h3>
-                  </div>
+                <Panel style={{ alignContent: "start" }}>
+                  <SectionHeading eyebrow="Detail" title="Combat Detail" />
                   {detailStats.map((stat) => (
-                    <div className="stat-row" key={stat.label}>
-                      <span className="stat-label">{stat.label}</span>
-                      <strong>{stat.value}</strong>
-                    </div>
+                    <StatRow key={stat.label} label={stat.label} value={stat.value} />
                   ))}
-                </article>
+                </Panel>
 
-                <article className="dashboard-panel character-stat-panel stats-allocation-panel">
-                  <div className="section-heading">
-                    <p className="eyebrow">Stats</p>
-                    <h3>Point Allocation</h3>
-                  </div>
+                <Panel style={{ alignContent: "start" }}>
+                  <SectionHeading eyebrow="Stats" title="Point Allocation" />
                   <div className="points-summary">
                     <span>Available stat points</span>
                     <strong>{availableStatPoints}</strong>
@@ -408,7 +463,7 @@ export function MainApplicationPage() {
                   {statKeys.map((stat) => (
                     <div className="allocation-row" key={stat}>
                       <div>
-                        <span className="stat-label">{stat.toUpperCase()}</span>
+                        <StatLabel>{stat.toUpperCase()}</StatLabel>
                         <strong>
                           {selectedCharacter.stats[stat] + appliedStats[stat] + pendingStats[stat]}
                         </strong>
@@ -434,7 +489,7 @@ export function MainApplicationPage() {
                       </div>
                     </div>
                   ))}
-                  <div className="panel-actions">
+                  <Actions gap={10}>
                     <Button
                       type="button"
                       onClick={handleApplyStats}
@@ -442,61 +497,58 @@ export function MainApplicationPage() {
                     >
                       Apply
                     </Button>
-                    <button
-                      className="secondary-button"
+                    <Button
+                      variant="secondary"
                       type="button"
                       onClick={handleResetStats}
                       disabled={statKeys.every((stat) => pendingStats[stat] === 0)}
                     >
                       Reset
-                    </button>
-                  </div>
-                </article>
+                    </Button>
+                  </Actions>
+                </Panel>
               </section>
 
-              <section className="dashboard-panel skills-panel">
-                <div className="section-heading">
-                  <p className="eyebrow">Skills</p>
-                  <h3>Character Skills</h3>
-                </div>
+              <Panel as="section" style={{ maxWidth: 720 }}>
+                <SectionHeading eyebrow="Skills" title="Character Skills" />
                 <div className="points-summary">
                   <span>Available skill points</span>
                   <strong>{availableSkillPoints}</strong>
                 </div>
-                <p className="muted">Skill trees and learned abilities will be added here later.</p>
-                <div className="panel-actions">
+                <MutedText>Skill trees and learned abilities will be added here later.</MutedText>
+                <Actions gap={10}>
                   <Button type="button" onClick={handleApplySkills} disabled={pendingSkillPoints === 0}>
                     Apply
                   </Button>
-                  <button
-                    className="secondary-button"
+                  <Button
+                    variant="secondary"
                     type="button"
                     onClick={handleResetSkills}
                     disabled={pendingSkillPoints === 0}
                   >
                     Reset
-                  </button>
-                </div>
-              </section>
+                  </Button>
+                </Actions>
+              </Panel>
             </div>
           ) : (
             <div className="dashboard-grid">
-              <article className="dashboard-panel">
-                <span className="stat-label">STR</span>
+              <Panel>
+                <StatLabel>STR</StatLabel>
                 <strong>{selectedCharacter.stats.str}</strong>
-              </article>
-              <article className="dashboard-panel">
-                <span className="stat-label">STA</span>
+              </Panel>
+              <Panel>
+                <StatLabel>STA</StatLabel>
                 <strong>{selectedCharacter.stats.sta}</strong>
-              </article>
-              <article className="dashboard-panel">
-                <span className="stat-label">DEX</span>
+              </Panel>
+              <Panel>
+                <StatLabel>DEX</StatLabel>
                 <strong>{selectedCharacter.stats.dex}</strong>
-              </article>
-              <article className="dashboard-panel">
-                <span className="stat-label">INT</span>
+              </Panel>
+              <Panel>
+                <StatLabel>INT</StatLabel>
                 <strong>{selectedCharacter.stats.int}</strong>
-              </article>
+              </Panel>
             </div>
           )}
         </section>

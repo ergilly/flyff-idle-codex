@@ -4,12 +4,16 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { Actions } from "@/components/atoms/Actions";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
+import { MutedText } from "@/components/atoms/MutedText";
+import { Stack } from "@/components/atoms/Stack";
 import { TextField } from "@/components/atoms/TextField";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { GameTemplate } from "@/components/templates/GameTemplate";
 import { createCharacter, type CharacterGender } from "@/lib/api";
+import { borders, colors, outlines, radii, spacing, typography } from "@/styles/tokens";
 
 type CharacterCreationPageProps = {
   slot?: string;
@@ -80,10 +84,10 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             width={96}
             height={96}
           />
-          <div className="stack">
+          <Stack>
             <h2>{name.trim() || "New Vagrant"}</h2>
-            <p className="muted">Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</p>
-          </div>
+            <MutedText>Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</MutedText>
+          </Stack>
           <div className="stat-pill-grid" aria-label="Starting stats">
             <span>STR 15</span>
             <span>STA 15</span>
@@ -92,7 +96,7 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
           </div>
         </section>
 
-        <form className="creation-form stack" onSubmit={handleSubmit}>
+        <Stack as="form" className="creation-form" onSubmit={handleSubmit}>
           {error ? <ErrorMessage message={error} /> : null}
           <TextField
             id="character-name"
@@ -130,16 +134,122 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
               </label>
             </div>
           </div>
-          <div className="form-actions">
-            <button className="secondary-button" type="button" onClick={() => router.push("/characters")}>
+          <Actions>
+            <Button variant="secondary" type="button" onClick={() => router.push("/characters")}>
               Cancel
-            </button>
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Create character"}
             </Button>
-          </div>
-        </form>
+          </Actions>
+        </Stack>
       </div>
+      <style>{`
+        .creation-layout {
+          display: grid;
+          grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
+          gap: 20px;
+        }
+
+        .creation-preview,
+        .creation-form {
+          border: ${borders.default};
+          border-radius: ${radii.md};
+          background: ${colors.panel};
+          padding: ${spacing["4xl"]};
+        }
+
+        .creation-preview {
+          display: grid;
+          align-content: center;
+          gap: ${spacing["3xl"]};
+          min-height: 312px;
+          text-align: center;
+        }
+
+        .creation-class-logo {
+          justify-self: center;
+          width: 96px;
+          height: 96px;
+          object-fit: contain;
+        }
+
+        .stat-pill-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: ${spacing.md};
+        }
+
+        .stat-pill-grid span {
+          border: ${borders.default};
+          border-radius: ${radii.sm};
+          background: ${colors.panelMuted};
+          padding: 9px ${spacing.md};
+          color: ${colors.textMuted};
+          font-size: 0.88rem;
+          font-weight: ${typography.weightHeavy};
+        }
+
+        .field {
+          display: grid;
+          gap: ${spacing.sm};
+        }
+
+        .field-label {
+          font-size: ${typography.fieldLabelSize};
+          font-weight: ${typography.weightBold};
+        }
+
+        .gender-options {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: ${spacing.md};
+        }
+
+        .gender-option {
+          position: relative;
+          display: grid;
+          min-height: 44px;
+          place-items: center;
+          border: ${borders.default};
+          border-radius: ${radii.sm};
+          background: ${colors.panelMuted};
+          color: ${colors.textMuted};
+          cursor: pointer;
+          font-weight: ${typography.weightHeavy};
+        }
+
+        .gender-option input {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .gender-option span {
+          pointer-events: none;
+        }
+
+        .gender-option:has(input:checked) {
+          border-color: ${colors.primary};
+          background: ${colors.panelElevated};
+          color: ${colors.foreground};
+          box-shadow: inset 0 0 0 1px ${colors.primary};
+        }
+
+        .gender-option:has(input:focus-visible) {
+          outline: ${outlines.focusPrimary};
+          outline-offset: ${spacing.px1};
+        }
+
+        @media (max-width: 920px) {
+          .creation-layout {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </GameTemplate>
   );
 }

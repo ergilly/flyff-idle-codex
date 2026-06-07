@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
+import { startingEquipmentByGender, startingMainhand } from "./starterLoadout.js";
 import type { User } from "../types.js";
 
 export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
@@ -38,8 +39,9 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
   db.prepare("DELETE FROM characters WHERE player_id = ?").run(user.id);
 
   const insertCharacter = db.prepare(
-    "INSERT INTO characters (id, player_id, slot_index, name, gender, job, level, exp, penya, inventory_size, str, sta, dex, int, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO characters (id, player_id, slot_index, name, gender, job, level, exp, penya, inventory_size, str, sta, dex, int, suit, gloves, boots, mainhand, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
+  const femaleEquipment = startingEquipmentByGender.female;
   insertCharacter.run(
     randomUUID(),
     user.id,
@@ -55,9 +57,14 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
     15,
     15,
     15,
+    femaleEquipment.suit,
+    femaleEquipment.gloves,
+    femaleEquipment.boots,
+    startingMainhand,
     now,
     now
   );
+  const maleEquipment = startingEquipmentByGender.male;
   insertCharacter.run(
     randomUUID(),
     user.id,
@@ -73,6 +80,10 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
     15,
     15,
     15,
+    maleEquipment.suit,
+    maleEquipment.gloves,
+    maleEquipment.boots,
+    startingMainhand,
     now,
     now
   );

@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { Actions } from "@/components/atoms/Actions";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
+import { MutedText } from "@/components/atoms/MutedText";
+import { Stack } from "@/components/atoms/Stack";
 import { TextField } from "@/components/atoms/TextField";
 import type { Character } from "@/lib/api";
+import { borders, colors, overlayColors, radii, shadows, spacing } from "@/styles/tokens";
 
 type CharacterDeleteDialogProps = {
   character: Character;
@@ -46,13 +50,13 @@ export function CharacterDeleteDialog({
         className="modal-panel"
         role="dialog"
       >
-        <form className="stack" onSubmit={handleSubmit}>
-          <div className="stack">
+        <Stack as="form" onSubmit={handleSubmit}>
+          <Stack>
             <h2 id="delete-character-title">Delete {character.name}</h2>
-            <p className="muted" id="delete-character-description">
+            <MutedText id="delete-character-description">
               Enter the character name to permanently delete this slot.
-            </p>
-          </div>
+            </MutedText>
+          </Stack>
           {error ? <ErrorMessage message={error} /> : null}
           <TextField
             autoComplete="off"
@@ -62,16 +66,36 @@ export function CharacterDeleteDialog({
             required
             value={name}
           />
-          <div className="form-actions">
-            <button className="secondary-button" type="button" onClick={onCancel}>
+          <Actions>
+            <Button variant="secondary" type="button" onClick={onCancel}>
               Cancel
-            </button>
+            </Button>
             <Button type="submit" disabled={!canConfirm}>
               {isDeleting ? "Deleting..." : "Delete character"}
             </Button>
-          </div>
-        </form>
+          </Actions>
+        </Stack>
       </section>
+      <style>{`
+        .modal-backdrop {
+          position: fixed;
+          z-index: 20;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          padding: ${spacing["3xl"]};
+          background: ${overlayColors.modalBackdrop};
+        }
+
+        .modal-panel {
+          width: min(100%, 420px);
+          border: ${borders.default};
+          border-radius: ${radii.md};
+          background: ${colors.panelShell};
+          box-shadow: ${shadows.shell};
+          padding: ${spacing["5xl"]};
+        }
+      `}</style>
     </div>
   );
 }

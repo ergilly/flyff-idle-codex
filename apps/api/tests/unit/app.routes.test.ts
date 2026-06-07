@@ -175,6 +175,31 @@ describe("app routes", () => {
     });
   });
 
+  it("returns item icon metadata for authenticated players", async () => {
+    const loginResponse = await loginDemoPlayer();
+
+    await expect(
+      request(app)
+        .get("/api/items?ids=3497,3314,missing")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Item ids are required" }
+    });
+
+    await expect(
+      request(app).get("/api/items?ids=3497,3314").set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        items: expect.arrayContaining([
+          expect.objectContaining({ id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }),
+          expect.objectContaining({ id: "3314", name: "Cotton Suit", icon: "mvag01upper.png" })
+        ])
+      }
+    });
+  });
+
   it("deletes characters only after matching name confirmation", async () => {
     const loginResponse = await loginDemoPlayer();
     const createResponse = await request(app)
