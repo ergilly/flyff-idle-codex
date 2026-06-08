@@ -16,6 +16,7 @@ describe("CharacterCard", () => {
           name: "Blade Runner",
           gender: "male",
           job: "Mercenary",
+          progressionRank: "normal",
           level: 20,
           exp: 1500,
           penya: 0,
@@ -25,6 +26,7 @@ describe("CharacterCard", () => {
             dex: 15,
             int: 15
           },
+          skillLevels: {},
           equipment: {
             helmet: null,
             suit: null,
@@ -83,6 +85,7 @@ describe("CharacterCard", () => {
           name: "Mystery",
           gender: "female",
           job: "Unknown",
+          progressionRank: "normal",
           level: 1,
           exp: 0,
           penya: 0,
@@ -92,6 +95,7 @@ describe("CharacterCard", () => {
             dex: 15,
             int: 15
           },
+          skillLevels: {},
           equipment: {
             helmet: null,
             suit: null,

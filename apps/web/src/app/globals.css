@@ -24,18 +24,18 @@
 
 :root {
   color-scheme: dark;
-  --background: #101318;
-  --foreground: #edf2f7;
-  --panel: #171d24;
-  --panel-elevated: #1f2730;
-  --panel-muted: #252f3a;
-  --primary: #58a6c9;
-  --primary-strong: #7fc4e6;
-  --accent: #f0a35f;
-  --border: #354251;
+  --background: #050504;
+  --foreground: #f2e8c8;
+  --panel: #090a08;
+  --panel-elevated: #15140f;
+  --panel-muted: #1d1a12;
+  --primary: #e2b33f;
+  --primary-strong: #ffe07a;
+  --accent: #f7d56f;
+  --border: #8a7441;
   --danger: #ff8a8a;
   --danger-panel: #351d22;
-  --text-muted: #a9b5c4;
+  --text-muted: #a89c78;
 }
 
 [data-theme="light"] {
@@ -62,6 +62,7 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
+    radial-gradient(circle at 50% 10%, var(--page-highlight), transparent 42%),
     linear-gradient(var(--page-overlay-start), var(--page-overlay-end)),
     url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80");
   background-attachment: fixed;
@@ -79,14 +80,16 @@ body {
 }
 
 :root {
-  --page-overlay-start: rgba(16, 19, 24, 0.9);
-  --page-overlay-end: rgba(16, 19, 24, 0.94);
-  --panel-shell: rgba(23, 29, 36, 0.96);
-  --shell-shadow: rgba(0, 0, 0, 0.42);
-  --button-text: #081018;
+  --page-highlight: rgba(255, 218, 88, 0.1);
+  --page-overlay-start: rgba(5, 5, 4, 0.9);
+  --page-overlay-end: rgba(3, 3, 3, 0.96);
+  --panel-shell: rgba(8, 8, 7, 0.96);
+  --shell-shadow: rgba(0, 0, 0, 0.62);
+  --button-text: #120e05;
 }
 
 [data-theme="light"] {
+  --page-highlight: rgba(255, 218, 88, 0.18);
   --page-overlay-start: rgba(247, 245, 239, 0.88);
   --page-overlay-end: rgba(247, 245, 239, 0.92);
   --panel-shell: rgba(255, 255, 255, 0.95);

@@ -85,6 +85,18 @@ describe("app routes", () => {
     });
   }
 
+  async function registerFreshPlayer(label: string) {
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    return request(app)
+      .post("/api/auth/register")
+      .send({
+        displayName: `${label} Pilot`,
+        email: `${label.toLowerCase()}-${uniqueSuffix}@flyff-idle.local`,
+        password: "password123"
+      });
+  }
+
   it("protects character routes", async () => {
     await expect(request(app).get("/api/characters")).resolves.toMatchObject({
       status: 401,
@@ -120,7 +132,7 @@ describe("app routes", () => {
         characters: expect.arrayContaining([
           expect.objectContaining({
             name: "Saint Morning",
-            slotIndex: 0,
+            slotIndex: 1,
             gender: "female"
           })
         ])
@@ -129,21 +141,22 @@ describe("app routes", () => {
   });
 
   it("creates characters for authenticated players", async () => {
-    const loginResponse = await loginDemoPlayer();
+    const registerResponse = await registerFreshPlayer("Route");
 
     await expect(
       request(app)
         .post("/api/characters")
-        .set("Authorization", `Bearer ${loginResponse.body.token}`)
-        .send({ slotIndex: 3, name: "RouteHero", gender: "male" })
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({ slotIndex: 0, name: "RouteHero", gender: "male" })
     ).resolves.toMatchObject({
       status: 201,
       body: {
         character: expect.objectContaining({
           name: "RouteHero",
-          slotIndex: 3,
+          slotIndex: 0,
           gender: "male",
           job: "Vagrant",
+          progressionRank: "normal",
           equipment: expect.objectContaining({
             mainhand: "3497",
             suit: "3314",
@@ -200,17 +213,123 @@ describe("app routes", () => {
     });
   });
 
-  it("deletes characters only after matching name confirmation", async () => {
-    const loginResponse = await loginDemoPlayer();
+  it("returns JSON-backed game data with filters", async () => {
+    await expect(request(app).get("/api/data")).resolves.toMatchObject({
+      status: 200,
+      body: {
+        dataSets: expect.arrayContaining([
+          { name: "items", href: "/api/data/items" },
+          { name: "skills", href: "/api/data/skills" }
+        ])
+      }
+    });
+
+    await expect(request(app).get("/api/data/jobs/764")).resolves.toMatchObject({
+      status: 200,
+      body: {
+        dataSet: "jobs",
+        item: expect.objectContaining({
+          id: 764,
+          name: "Mercenary"
+        })
+      }
+    });
+
+    await expect(request(app).get("/api/data/skills?class=Mercenary&limit=5")).resolves.toMatchObject({
+      status: 200,
+      body: {
+        dataSet: "skills",
+        total: expect.any(Number),
+        limit: 5,
+        offset: 0,
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            class: 764
+          })
+        ])
+      }
+    });
+
+    await expect(request(app).get("/api/data/items?category=weapon&maxLevel=15")).resolves.toMatchObject({
+      status: 200,
+      body: {
+        dataSet: "items",
+        results: expect.arrayContaining([
+          expect.objectContaining({
+            category: "weapon"
+          })
+        ])
+      }
+    });
+  });
+
+  it("persists stat and skill point allocation for authenticated players", async () => {
+    const registerResponse = await registerFreshPlayer("Progression");
     const createResponse = await request(app)
       .post("/api/characters")
-      .set("Authorization", `Bearer ${loginResponse.body.token}`)
-      .send({ slotIndex: 4, name: "DeleteHero", gender: "female" });
+      .set("Authorization", `Bearer ${registerResponse.body.token}`)
+      .send({ slotIndex: 0, name: "PointHero", gender: "male" });
+
+    await expect(
+      request(app)
+        .patch(`/api/characters/${createResponse.body.character.id}/progression`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({
+          stats: {
+            str: 17,
+            sta: 16,
+            dex: 15,
+            int: 15
+          },
+          skillLevels: {
+            "vagrant-clean-hit": 2
+          }
+        })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          name: "PointHero",
+          stats: {
+            str: 17,
+            sta: 16,
+            dex: 15,
+            int: 15
+          },
+          skillLevels: {
+            "vagrant-clean-hit": 2
+          }
+        })
+      }
+    });
+
+    await expect(
+      request(app).get("/api/characters").set("Authorization", `Bearer ${registerResponse.body.token}`)
+    ).resolves.toMatchObject({
+      body: {
+        characters: [
+          expect.objectContaining({
+            name: "PointHero",
+            skillLevels: {
+              "vagrant-clean-hit": 2
+            }
+          })
+        ]
+      }
+    });
+  });
+
+  it("deletes characters only after matching name confirmation", async () => {
+    const registerResponse = await registerFreshPlayer("Delete");
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", `Bearer ${registerResponse.body.token}`)
+      .send({ slotIndex: 0, name: "DeleteHero", gender: "female" });
 
     await expect(
       request(app)
         .delete(`/api/characters/${createResponse.body.character.id}`)
-        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
         .send({ name: "WrongName" })
     ).resolves.toMatchObject({
       status: 400,
@@ -220,14 +339,14 @@ describe("app routes", () => {
     await expect(
       request(app)
         .delete(`/api/characters/${createResponse.body.character.id}`)
-        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
         .send({ name: "DeleteHero" })
     ).resolves.toMatchObject({
       status: 204
     });
 
     await expect(
-      request(app).get("/api/characters").set("Authorization", `Bearer ${loginResponse.body.token}`)
+      request(app).get("/api/characters").set("Authorization", `Bearer ${registerResponse.body.token}`)
     ).resolves.toMatchObject({
       body: {
         characters: expect.not.arrayContaining([

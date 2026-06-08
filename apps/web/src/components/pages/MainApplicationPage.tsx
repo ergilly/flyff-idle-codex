@@ -6,7 +6,10 @@ import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { ContentHeading } from "@/components/molecules/main-application/ContentHeading";
-import { getEquippedItemIds, getEquipmentItems } from "@/components/molecules/main-application/CharacterEquipmentPanel";
+import {
+  getEquippedItemIds,
+  getEquipmentItems
+} from "@/components/molecules/main-application/CharacterEquipmentPanel";
 import { type StatKey } from "@/components/molecules/main-application/StatAllocationPanel";
 import { CharacterPageContent } from "@/components/organisms/main-application/CharacterPageContent";
 import { DashboardStatsGrid } from "@/components/organisms/main-application/DashboardStatsGrid";
@@ -23,7 +26,23 @@ import {
   MainApplicationErrorPanel,
   MainApplicationTemplate
 } from "@/components/templates/main-application/MainApplicationTemplate";
-import { fetchCharacters, type Character, type ItemMetadata } from "@/lib/api";
+import { getAvailableStatPoints, getTotalSkillPoints } from "@/lib/characterProgression";
+import {
+  fetchCharacters,
+  type Character,
+  type CharacterSkillLevels,
+  type ItemMetadata,
+  updateCharacterProgression
+} from "@/lib/api";
+import {
+  areSkillRequirementsMet,
+  canRemovePendingSkillLevel,
+  fetchUnlockedSkillTabs,
+  getSpentSkillPointsForSkills,
+  getUnlockedSkills,
+  type SkillDefinition,
+  type SkillTreeTab
+} from "@/lib/skillTrees";
 
 const storageKey = "flyffIdleTheme";
 const statKeys: StatKey[] = ["str", "sta", "dex", "int"];
@@ -65,8 +84,9 @@ export function MainApplicationPage() {
     int: 0
   });
   const [availableStatPoints, setAvailableStatPoints] = useState(0);
-  const [pendingSkillPoints, setPendingSkillPoints] = useState(0);
+  const [pendingSkillLevels, setPendingSkillLevels] = useState<CharacterSkillLevels>({});
   const [availableSkillPoints, setAvailableSkillPoints] = useState(0);
+  const [skillTabs, setSkillTabs] = useState<SkillTreeTab[]>([]);
   const [itemsById, setItemsById] = useState<Record<string, ItemMetadata>>({});
   const [selectedEquipmentItemId, setSelectedEquipmentItemId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -106,6 +126,64 @@ export function MainApplicationPage() {
     () => (selectedCharacter ? getDetailStats(selectedCharacter) : []),
     [selectedCharacter]
   );
+
+  useEffect(() => {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    setAppliedStats({ str: 0, sta: 0, dex: 0, int: 0 });
+    setPendingStats({ str: 0, sta: 0, dex: 0, int: 0 });
+    setAvailableStatPoints(getAvailableStatPoints(selectedCharacter));
+    setPendingSkillLevels({});
+    setAvailableSkillPoints(0);
+    setSkillTabs([]);
+
+    let ignoreResult = false;
+    const refreshSkillTabs = () => {
+      fetchUnlockedSkillTabs(selectedCharacter)
+        .then((loadedSkillTabs) => {
+          if (!ignoreResult) {
+            setSkillTabs(loadedSkillTabs);
+          }
+        })
+        .catch(() => {
+          if (!ignoreResult) {
+            setSkillTabs([]);
+            setError("Unable to load skill data.");
+          }
+        });
+    };
+
+    refreshSkillTabs();
+
+    const refreshInterval =
+      process.env.NODE_ENV === "development" ? window.setInterval(refreshSkillTabs, 2500) : undefined;
+
+    return () => {
+      ignoreResult = true;
+      if (refreshInterval) {
+        window.clearInterval(refreshInterval);
+      }
+    };
+  }, [selectedCharacter]);
+
+  useEffect(() => {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const unlockedSkills = getUnlockedSkills(skillTabs);
+
+    setAvailableSkillPoints(
+      Math.max(
+        0,
+        getTotalSkillPoints(selectedCharacter) -
+          getSpentSkillPointsForSkills(unlockedSkills, selectedCharacter.skillLevels) -
+          getSpentSkillPointsForSkills(unlockedSkills, pendingSkillLevels)
+      )
+    );
+  }, [pendingSkillLevels, selectedCharacter, skillTabs]);
 
   useEffect(() => {
     if (!selectedCharacter) {
@@ -169,14 +247,36 @@ export function MainApplicationPage() {
     setAvailableStatPoints((currentPoints) => currentPoints + 1);
   }
 
-  function handleApplyStats() {
-    setAppliedStats((currentStats) =>
-      statKeys.reduce(
-        (nextStats, stat) => ({ ...nextStats, [stat]: currentStats[stat] + pendingStats[stat] }),
-        currentStats
-      )
+  async function handleApplyStats() {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      return;
+    }
+
+    const nextStats = statKeys.reduce(
+      (stats, stat) => ({ ...stats, [stat]: selectedCharacter.stats[stat] + pendingStats[stat] }),
+      selectedCharacter.stats
     );
-    setPendingStats({ str: 0, sta: 0, dex: 0, int: 0 });
+
+    try {
+      const updatedCharacter = await updateCharacterProgression(token, selectedCharacter.id, {
+        stats: nextStats
+      });
+      setCharacters((currentCharacters) =>
+        currentCharacters.map((character) =>
+          character.id === updatedCharacter.id ? updatedCharacter : character
+        )
+      );
+      setAppliedStats({ str: 0, sta: 0, dex: 0, int: 0 });
+      setPendingStats({ str: 0, sta: 0, dex: 0, int: 0 });
+    } catch {
+      setError("Unable to save stat points.");
+    }
   }
 
   function handleResetStats() {
@@ -186,13 +286,88 @@ export function MainApplicationPage() {
     setPendingStats({ str: 0, sta: 0, dex: 0, int: 0 });
   }
 
-  function handleApplySkills() {
-    setPendingSkillPoints(0);
+  function handleAddSkillLevel(skill: SkillDefinition) {
+    const currentLevel =
+      (selectedCharacter?.skillLevels[skill.id] ?? 0) + (pendingSkillLevels[skill.id] ?? 0);
+    const displayedSkillLevels = { ...(selectedCharacter?.skillLevels ?? {}) };
+
+    Object.entries(pendingSkillLevels).forEach(([skillId, level]) => {
+      displayedSkillLevels[skillId] = (displayedSkillLevels[skillId] ?? 0) + level;
+    });
+
+    if (
+      !selectedCharacter ||
+      !areSkillRequirementsMet(selectedCharacter, displayedSkillLevels, skill) ||
+      availableSkillPoints < skill.costPerLevel ||
+      currentLevel >= skill.maxLevel
+    ) {
+      return;
+    }
+
+    setPendingSkillLevels((currentLevels) => ({
+      ...currentLevels,
+      [skill.id]: (currentLevels[skill.id] ?? 0) + 1
+    }));
+  }
+
+  function handleRemoveSkillLevel(skill: SkillDefinition) {
+    if (
+      !selectedCharacter ||
+      !canRemovePendingSkillLevel(selectedCharacter, pendingSkillLevels, skillTabs, skill)
+    ) {
+      return;
+    }
+
+    setPendingSkillLevels((currentLevels) => {
+      const nextLevel = (currentLevels[skill.id] ?? 0) - 1;
+      const { [skill.id]: _removedSkill, ...otherLevels } = currentLevels;
+
+      return nextLevel > 0 ? { ...otherLevels, [skill.id]: nextLevel } : otherLevels;
+    });
+  }
+
+  function handleCanRemoveSkillLevel(skill: SkillDefinition) {
+    return selectedCharacter
+      ? canRemovePendingSkillLevel(selectedCharacter, pendingSkillLevels, skillTabs, skill)
+      : false;
+  }
+
+  async function handleApplySkills() {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      return;
+    }
+
+    const nextSkillLevels = Object.entries(pendingSkillLevels).reduce(
+      (skillLevels, [skillId, pendingLevel]) => ({
+        ...skillLevels,
+        [skillId]: (skillLevels[skillId] ?? 0) + pendingLevel
+      }),
+      selectedCharacter.skillLevels
+    );
+
+    try {
+      const updatedCharacter = await updateCharacterProgression(token, selectedCharacter.id, {
+        skillLevels: nextSkillLevels
+      });
+      setCharacters((currentCharacters) =>
+        currentCharacters.map((character) =>
+          character.id === updatedCharacter.id ? updatedCharacter : character
+        )
+      );
+      setPendingSkillLevels({});
+    } catch {
+      setError("Unable to save skill points.");
+    }
   }
 
   function handleResetSkills() {
-    setAvailableSkillPoints((currentPoints) => currentPoints + pendingSkillPoints);
-    setPendingSkillPoints(0);
+    setPendingSkillLevels({});
   }
 
   function handleSelectNavItem(label: MainApplicationNavItem) {
@@ -277,16 +452,20 @@ export function MainApplicationPage() {
             character={selectedCharacter}
             detailStats={detailStats}
             itemsById={itemsById}
+            onAddSkillLevel={handleAddSkillLevel}
             onAddStat={handleAddStat}
             onApplySkills={handleApplySkills}
+            onCanRemoveSkillLevel={handleCanRemoveSkillLevel}
             onApplyStats={handleApplyStats}
+            onRemoveSkillLevel={handleRemoveSkillLevel}
             onRemoveStat={handleRemoveStat}
             onResetSkills={handleResetSkills}
             onResetStats={handleResetStats}
             onSelectEquipmentItem={setSelectedEquipmentItemId}
-            pendingSkillPoints={pendingSkillPoints}
+            pendingSkillLevels={pendingSkillLevels}
             pendingStats={pendingStats}
             selectedEquipmentItemId={selectedEquipmentItemId}
+            skillTabs={skillTabs}
             statKeys={statKeys}
           />
         ) : (

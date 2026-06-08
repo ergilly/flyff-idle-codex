@@ -175,7 +175,120 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/data:
+    get:
+      summary: List JSON-backed data sets
+      responses:
+        "200":
+          description: Available JSON data sets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataSetIndexResponse"
+  /api/data/{dataSet}:
+    get:
+      summary: Query a JSON-backed data set
+      parameters:
+        - $ref: "#/components/parameters/DataSetPath"
+        - in: query
+          name: ids
+          schema:
+            type: string
+          description: Comma-separated record ids.
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Text search across id, name, and description.
+        - in: query
+          name: fields
+          schema:
+            type: string
+          description: Comma-separated fields to include in each result.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: minLevel
+          schema:
+            type: number
+          description: Minimum level, or upgrade level for upgrades.
+        - in: query
+          name: maxLevel
+          schema:
+            type: number
+          description: Maximum level, or upgrade level for upgrades.
+        - in: query
+          name: class
+          schema:
+            type: string
+          description: Skill class name filter, for example Mercenary.
+        - in: query
+          name: classId
+          schema:
+            type: integer
+          description: Skill class id filter.
+      responses:
+        "200":
+          description: Filtered data records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataSetQueryResponse"
+        "404":
+          description: Data set not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/data/{dataSet}/{id}:
+    get:
+      summary: Get a JSON-backed data record by id
+      parameters:
+        - $ref: "#/components/parameters/DataSetPath"
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Data record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataSetRecordResponse"
+        "404":
+          description: Data set or record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  parameters:
+    DataSetPath:
+      in: path
+      name: dataSet
+      required: true
+      schema:
+        type: string
+        enum:
+          - items
+          - jobs
+          - monsters
+          - sets
+          - skills
+          - upgrades
   securitySchemes:
     bearerAuth:
       type: http
@@ -449,6 +562,69 @@ components:
       enum:
         - male
         - female
+    DataSetIndexResponse:
+      type: object
+      required:
+        - dataSets
+      properties:
+        dataSets:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - href
+            properties:
+              name:
+                type: string
+                enum:
+                  - items
+                  - jobs
+                  - monsters
+                  - sets
+                  - skills
+                  - upgrades
+              href:
+                type: string
+                example: /api/data/skills
+    DataSetQueryResponse:
+      type: object
+      required:
+        - dataSet
+        - total
+        - limit
+        - offset
+        - results
+      properties:
+        dataSet:
+          type: string
+          example: skills
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+        offset:
+          type: integer
+          minimum: 0
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    DataSetRecordResponse:
+      type: object
+      required:
+        - dataSet
+        - item
+      properties:
+        dataSet:
+          type: string
+          example: jobs
+        item:
+          type: object
+          additionalProperties: true
     ErrorResponse:
       type: object
       required:

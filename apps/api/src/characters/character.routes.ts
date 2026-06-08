@@ -21,6 +21,22 @@ const deleteCharacterSchema = z.object({
   name: z.string().trim().min(1)
 });
 
+const updateCharacterProgressionSchema = z
+  .object({
+    stats: z
+      .object({
+        str: z.number().int().min(15).max(999),
+        sta: z.number().int().min(15).max(999),
+        dex: z.number().int().min(15).max(999),
+        int: z.number().int().min(15).max(999)
+      })
+      .optional(),
+    skillLevels: z.record(z.string().min(1).max(80), z.number().int().min(0).max(20)).optional()
+  })
+  .refine((progression) => progression.stats || progression.skillLevels, {
+    message: "Stats or skill levels are required"
+  });
+
 function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
   return character;
 }
@@ -62,6 +78,40 @@ characterRouter.post("/", requireAuth, async (request, response) => {
 
     throw error;
   }
+});
+
+characterRouter.patch("/:characterId/progression", requireAuth, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+
+  if (!characterIdResult.success) {
+    response.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  const result = updateCharacterProgressionSchema.safeParse(request.body);
+
+  if (!result.success) {
+    response.status(400).json({ error: "Stats or skill levels are required" });
+    return;
+  }
+
+  const character = await characterRepository.updateProgressionForPlayer(
+    characterIdResult.data,
+    (response.locals.auth as AuthTokenPayload).sub,
+    {
+      stats: result.data.stats,
+      skillLevels: result.data.skillLevels
+        ? Object.fromEntries(Object.entries(result.data.skillLevels).filter(([, level]) => level > 0))
+        : undefined
+    }
+  );
+
+  if (!character) {
+    response.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(character) });
 });
 
 characterRouter.delete("/:characterId", requireAuth, async (request, response) => {

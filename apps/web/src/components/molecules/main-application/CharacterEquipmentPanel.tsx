@@ -101,16 +101,18 @@ export function CharacterEquipmentPanel({
   onSelectEquipmentItem,
   selectedEquipmentItemId
 }: CharacterEquipmentPanelProps) {
-  const selectedEquipmentSlot = equipmentSlots.find(({ slot }) => character.equipment[slot] === selectedEquipmentItemId);
+  const selectedEquipmentSlot = equipmentSlots.find(
+    ({ slot }) => character.equipment[slot] === selectedEquipmentItemId
+  );
   const selectedItem = selectedEquipmentItemId ? itemsById[selectedEquipmentItemId] : null;
   const mainhandItemId = character.equipment.mainhand;
   const mainhandItem = mainhandItemId ? itemsById[mainhandItemId] : null;
   const hasTwoHandedMainhand = mainhandItem?.category === "weapon" && mainhandItem.twoHanded === true;
 
   return (
-    <CharacterEquipmentRow>
-      <EquipmentPanelFrame>
-        <SectionHeading title="Character Equipment" />
+    <EquipmentPanelFrame>
+      <SectionHeading eyebrow="Equipment" />
+      <EquipmentPanelContent>
         <EquipmentLayout aria-label="Character equipment slots">
           {equipmentSlots.map(({ frame, label, slot }) => {
             const isOffhandBlockedByTwoHander = slot === "offhand" && hasTwoHandedMainhand;
@@ -148,33 +150,32 @@ export function CharacterEquipmentPanel({
           })}
           <ModelViewerReserved aria-label={`${character.name} model preview`} />
         </EquipmentLayout>
-      </EquipmentPanelFrame>
-
-      <ItemDetailsPanel item={selectedItem} slotLabel={selectedEquipmentSlot?.label ?? null} />
-    </CharacterEquipmentRow>
-  );
-}
-
-function CharacterEquipmentRow({ children }: { children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-[minmax(0,1fr)_minmax(260px,340px)] items-start gap-4 max-[920px]:grid-cols-1">
-      {children}
-    </div>
+        <ItemDetailsPanel item={selectedItem} slotLabel={selectedEquipmentSlot?.label ?? null} />
+      </EquipmentPanelContent>
+    </EquipmentPanelFrame>
   );
 }
 
 function EquipmentPanelFrame({ children }: { children: ReactNode }) {
   return (
-    <section className="grid gap-4 rounded-card border border-border bg-[linear-gradient(180deg,rgba(13,13,11,0.94),rgba(5,6,5,0.98)),var(--panel)] p-[18px]">
+    <section className="grid h-full content-start gap-4 rounded-card border-[3px] border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(5,6,5,0.98)),var(--panel)] p-[18px] shadow-[inset_0_0_0_2px_rgba(255,225,115,0.16),inset_0_16px_30px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.38)]">
       {children}
     </section>
+  );
+}
+
+function EquipmentPanelContent({ children }: { children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[minmax(280px,1fr)_minmax(220px,0.72fr)] items-start justify-start gap-4 max-[1500px]:grid-cols-1">
+      {children}
+    </div>
   );
 }
 
 function EquipmentLayout({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className="relative aspect-[8/9] w-[min(100%,512px)] justify-self-center bg-[image-set(url('/images/ui/wnd-query-equip.png')_1x)] bg-[length:100%_100%] bg-center bg-no-repeat [filter:drop-shadow(0_18px_30px_rgba(0,0,0,0.34))] [image-rendering:pixelated]"
+      className="relative aspect-[8/9] w-full max-w-[560px] justify-self-center overflow-hidden rounded-card border-[3px] border-border bg-[radial-gradient(circle_at_50%_35%,rgba(255,230,119,0.08),transparent_30%),linear-gradient(180deg,rgba(26,25,19,0.98)_0%,rgba(4,4,3,0.99)_13%,rgba(0,0,0,1)_100%)] shadow-[inset_0_8px_0_rgba(255,255,255,0.08),inset_0_-8px_18px_rgba(0,0,0,0.72),0_18px_30px_rgba(0,0,0,0.34)]"
       {...props}
     >
       {children}
@@ -202,7 +203,7 @@ function EquipmentSlot({
   return (
     <button
       className={cx(
-        "absolute grid rounded-[3px] border-0 bg-transparent text-center text-[#f3d676] disabled:opacity-100",
+        "absolute grid rounded-[5px] border-2 border-[rgba(118,107,73,0.72)] bg-[linear-gradient(180deg,rgba(12,12,10,0.94),rgba(0,0,0,0.98))] text-center text-[#f3d676] shadow-[inset_0_0_0_2px_rgba(0,0,0,0.9),inset_0_0_12px_rgba(214,199,119,0.12),0_0_8px_rgba(0,0,0,0.56)] disabled:opacity-100",
         $equipped ? "cursor-pointer place-items-center p-0.5" : "cursor-default place-items-end p-[5px]",
         $selected &&
           "outline outline-1 -outline-offset-4 outline-[rgba(255,222,91,0.74)] shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",

@@ -19,7 +19,7 @@ describe("character repository", () => {
 
     const created = characterRepository.create({
       playerId: user!.id,
-      slotIndex: 3,
+      slotIndex: 8,
       name: "Fresh Vagrant",
       gender: "female"
     });
@@ -27,9 +27,10 @@ describe("character repository", () => {
     expect(created).toEqual(
       expect.objectContaining({
         name: "Fresh Vagrant",
-        slotIndex: 3,
+        slotIndex: 8,
         gender: "female",
         job: "Vagrant",
+        progressionRank: "normal",
         level: 1,
         exp: 0,
         penya: 0,
@@ -39,6 +40,7 @@ describe("character repository", () => {
           dex: 15,
           int: 15
         },
+        skillLevels: {},
         equipment: expect.objectContaining({
           mainhand: "3497",
           suit: "6040",
@@ -70,8 +72,14 @@ describe("character repository", () => {
 
     expect(created?.playerId).toBe(user!.id);
     expect(characterRepository.listByPlayerId(user!.id).map((character) => character.name)).toEqual([
+      "Fresh Vagrant",
       "Saint Morning",
       "Buff Pang Jr",
+      "Madrigal Mage",
+      "Darkon Archer",
+      "Clockworks Blade",
+      "Master Guardian",
+      "Hero Seraph",
       "Fresh Vagrant"
     ]);
   });
@@ -80,7 +88,7 @@ describe("character repository", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({
       playerId: user!.id,
-      slotIndex: 4,
+      slotIndex: 9,
       name: "Collector",
       gender: "male"
     });
@@ -131,11 +139,54 @@ describe("character repository", () => {
     ]);
   });
 
+  it("updates persisted stats and skill levels for the owning player", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 11,
+      name: "Builder",
+      gender: "male"
+    });
+
+    const updated = characterRepository.updateProgressionForPlayer(character!.id, user!.id, {
+      stats: {
+        str: 18,
+        sta: 17,
+        dex: 15,
+        int: 15
+      },
+      skillLevels: {
+        "vagrant-clean-hit": 3,
+        "vagrant-brandish": 1
+      }
+    });
+
+    expect(updated).toEqual(
+      expect.objectContaining({
+        stats: {
+          str: 18,
+          sta: 17,
+          dex: 15,
+          int: 15
+        },
+        skillLevels: {
+          "vagrant-clean-hit": 3,
+          "vagrant-brandish": 1
+        }
+      })
+    );
+    expect(characterRepository.updateProgressionForPlayer(character!.id, "other-player", { skillLevels: {} })).toBeNull();
+    expect(characterRepository.findById(character!.id)?.skillLevels).toEqual({
+      "vagrant-clean-hit": 3,
+      "vagrant-brandish": 1
+    });
+  });
+
   it("deletes characters by id and player", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({
       playerId: user!.id,
-      slotIndex: 5,
+      slotIndex: 10,
       name: "Delete Me",
       gender: "female"
     });

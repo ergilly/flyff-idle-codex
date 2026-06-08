@@ -10,3 +10,4 @@ test-results
 .env
 .env.local
 npm-debug.log*
+docs/json

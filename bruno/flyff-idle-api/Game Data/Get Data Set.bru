@@ -1,0 +1,22 @@
+meta {
+  name: Get Data Set
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/data/{{dataSet}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  dataSet: items
+}
+
+query {
+  q: sword
+  limit: 25
+  offset: 0
+  fields: id,name,level,category,requiredJob
+}

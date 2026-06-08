@@ -21,13 +21,13 @@ const rarityClassByName: Record<string, string> = {
 };
 
 const panelClassName =
-  "grid min-h-[260px] content-start gap-3.5 rounded-card border border-[rgba(187,161,89,0.45)] bg-[linear-gradient(180deg,rgba(13,13,11,0.94),rgba(5,6,5,0.98)),var(--panel)] p-4 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.08)]";
+  "grid min-h-[260px] w-full max-w-[340px] content-start gap-3.5 justify-self-start rounded-card border-[3px] border-[rgba(226,179,63,0.58)] bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(5,6,5,0.98)),var(--panel)] p-4 shadow-[inset_0_0_0_2px_rgba(255,225,115,0.16),inset_0_16px_30px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.34)]";
 
 const detailsListClassName =
   "m-0 grid gap-2 [&_div:last-child]:border-b-0 [&_div:last-child]:pb-0 [&_div]:flex [&_div]:justify-between [&_div]:gap-3 [&_div]:border-b [&_div]:border-[rgba(187,161,89,0.18)] [&_div]:pb-[7px] [&_dd]:m-0 [&_dd]:text-right [&_dd]:font-extrabold [&_dd]:text-foreground [&_dt]:text-[0.78rem] [&_dt]:font-extrabold [&_dt]:uppercase [&_dt]:text-text-muted";
 
 const effectListClassName =
-  "grid gap-2 [&_strong]:rounded-control [&_strong]:border [&_strong]:border-[rgba(88,166,201,0.34)] [&_strong]:bg-[rgba(88,166,201,0.12)] [&_strong]:px-2.5 [&_strong]:py-2 [&_strong]:text-[0.9rem] [&_strong]:text-primary-strong";
+  "grid gap-2 [&_strong]:rounded-control [&_strong]:border-2 [&_strong]:border-[rgba(226,179,63,0.42)] [&_strong]:bg-[linear-gradient(180deg,rgba(255,225,115,0.14),rgba(13,13,11,0.72))] [&_strong]:px-2.5 [&_strong]:py-2 [&_strong]:text-[0.9rem] [&_strong]:text-primary-strong [&_strong]:shadow-[inset_0_0_12px_rgba(255,216,76,0.08)]";
 
 function formatLabel(value: string) {
   return value
@@ -119,7 +119,7 @@ export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemD
       data-slot={slotLabel ?? undefined}
     >
       <div className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-3">
-        <div className="grid h-[54px] w-[54px] place-items-center rounded-control border border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]">
+        <div className="grid h-[54px] w-[54px] place-items-center rounded-control border-2 border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]">
           {iconUrl ? (
             <Image
               className="h-[88%] w-[88%] object-contain"

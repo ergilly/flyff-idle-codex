@@ -19,7 +19,7 @@ export function MainApplicationHeader({
   onProfileMenuToggle
 }: MainApplicationHeaderProps) {
   return (
-    <header className="flex items-center justify-between gap-[18px] border-b border-border bg-panel-shell px-[22px] py-[18px] max-[560px]:grid max-[560px]:items-stretch max-[560px]:gap-3 max-[560px]:px-4 max-[560px]:py-3">
+    <header className="relative z-[1000] flex items-center justify-between gap-[18px] border-b-[3px] border-border bg-[linear-gradient(180deg,rgba(24,23,17,0.96),rgba(8,8,7,0.96)),var(--panel-shell)] px-[22px] py-[18px] shadow-[inset_0_-2px_0_rgba(255,225,115,0.14)] max-[560px]:grid max-[560px]:items-stretch max-[560px]:gap-3 max-[560px]:px-4 max-[560px]:py-3">
       <CharacterSummary>
         <div>
           <Eyebrow>Current character</Eyebrow>
@@ -60,7 +60,7 @@ function CharacterSummary({ children }: { children: ReactNode }) {
 
 function HeaderStat({ children }: { children: ReactNode }) {
   return (
-    <div className="grid min-w-[88px] gap-[3px] border-l border-border pl-[18px] max-[560px]:min-w-0 max-[560px]:rounded-control max-[560px]:border max-[560px]:border-border max-[560px]:bg-panel-muted max-[560px]:p-2 [&_span]:text-[0.78rem] [&_span]:font-extrabold [&_span]:uppercase [&_span]:text-text-muted max-[560px]:[&_span]:text-[0.68rem] max-[560px]:[&_strong]:text-sm">
+    <div className="grid min-w-[88px] gap-[3px] border-l-2 border-border pl-[18px] max-[560px]:min-w-0 max-[560px]:rounded-control max-[560px]:border-2 max-[560px]:border-border max-[560px]:bg-panel-muted max-[560px]:p-2 [&_span]:text-[0.78rem] [&_span]:font-extrabold [&_span]:uppercase [&_span]:text-text-muted max-[560px]:[&_span]:text-[0.68rem] [&_strong]:text-[#fff1ba] max-[560px]:[&_strong]:text-sm">
       {children}
     </div>
   );

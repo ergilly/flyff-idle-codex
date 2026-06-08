@@ -23,7 +23,7 @@ type StatAllocationPanelProps = {
   statKeys: StatKey[];
 };
 
-export function StatAllocationPanel({
+export function StatAllocationContent({
   appliedStats,
   availableStatPoints,
   character,
@@ -37,8 +37,8 @@ export function StatAllocationPanel({
   const hasPendingStats = statKeys.some((stat) => pendingStats[stat] > 0);
 
   return (
-    <Panel className="[&_strong]:text-base" style={{ alignContent: "start" }}>
-      <SectionHeading eyebrow="Stats" title="Point Allocation" />
+    <>
+      <SectionHeading eyebrow="Stats" />
       {statKeys.map((stat) => (
         <AllocationRow key={stat}>
           <AllocationStatValue>
@@ -78,13 +78,21 @@ export function StatAllocationPanel({
           Reset
         </Button>
       </Actions>
+    </>
+  );
+}
+
+export function StatAllocationPanel(props: StatAllocationPanelProps) {
+  return (
+    <Panel className="[&_strong]:text-base" style={{ alignContent: "start" }}>
+      <StatAllocationContent {...props} />
     </Panel>
   );
 }
 
 function AllocationRow({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-control border border-border bg-panel-muted px-2.5 py-2 [&_strong]:text-[1rem]">
+    <div className="flex items-center justify-between gap-2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(9,9,7,0.96))] px-2.5 py-2 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] [&_strong]:text-[1rem]">
       {children}
     </div>
   );

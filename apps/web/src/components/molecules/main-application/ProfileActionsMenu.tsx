@@ -20,7 +20,7 @@ export function ProfileActionsMenu({
   variant = "desktop"
 }: ProfileActionsMenuProps) {
   const menu = isOpen ? (
-    <ProfileMenu role="menu">
+    <ProfileMenu role="menu" variant={variant}>
       <ProfileMenuButton type="button" role="menuitem" onClick={onChangeCharacter}>
         <UserPlus aria-hidden="true" size={17} />
         Change character
@@ -62,35 +62,43 @@ export function ProfileActionsMenu({
 }
 
 function ProfileMenuWrap({ children }: { children: ReactNode }) {
-  return <div className="relative flex-none max-[560px]:hidden">{children}</div>;
+  return <div className="relative z-[1001] flex-none max-[560px]:hidden">{children}</div>;
 }
 
 function ProfileButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-control border border-border bg-panel px-3 font-extrabold text-foreground max-[560px]:w-full max-[560px]:items-stretch"
+      className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.9),rgba(9,10,8,0.96))] px-3 font-extrabold text-foreground shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[560px]:w-full max-[560px]:items-stretch"
       {...props}
     />
   );
 }
 
 function MobileProfileMenu({ children }: { children: ReactNode }) {
-  return <div className="relative hidden flex-none max-[560px]:block">{children}</div>;
+  return <div className="relative z-40 hidden flex-none max-[560px]:block">{children}</div>;
 }
 
 function ProfileIconButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className="grid h-[42px] w-[42px] cursor-pointer place-items-center rounded-control border border-border bg-panel-muted text-foreground"
+      className="grid h-[42px] w-[42px] cursor-pointer place-items-center rounded-control border-2 border-border bg-panel-muted text-foreground shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)]"
       {...props}
     />
   );
 }
 
-function ProfileMenu(props: HTMLAttributes<HTMLDivElement>) {
+type ProfileMenuProps = HTMLAttributes<HTMLDivElement> & {
+  variant: "desktop" | "mobile";
+};
+
+function ProfileMenu({ variant, ...props }: ProfileMenuProps) {
   return (
     <div
-      className="absolute right-0 top-[calc(100%+8px)] z-10 grid w-[230px] rounded-card border border-border bg-panel p-2 shadow-menu max-[560px]:w-[220px]"
+      className={
+        variant === "mobile"
+          ? "absolute right-0 top-[calc(100%+8px)] z-[1002] grid w-[220px] rounded-card border-2 border-border bg-panel p-2 shadow-menu"
+          : "absolute right-0 top-[calc(100%+8px)] z-[1002] grid w-[230px] rounded-card border-2 border-border bg-panel p-2 shadow-menu"
+      }
       {...props}
     />
   );

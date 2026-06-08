@@ -36,10 +36,12 @@ describe("CharacterRoster", () => {
         name: "Saint Morning",
         gender: "female",
         job: "Mercenary",
+        progressionRank: "normal",
         level: 15,
         exp: 0,
         penya: 0,
         stats: { str: 15, sta: 15, dex: 15, int: 15 },
+        skillLevels: {},
         equipment: {},
         inventory: { size: 50, items: [] }
       }
@@ -67,10 +69,12 @@ describe("CharacterRoster", () => {
         name: "Saint Morning",
         gender: "female",
         job: "Mercenary",
+        progressionRank: "normal",
         level: 15,
         exp: 0,
         penya: 0,
         stats: { str: 15, sta: 15, dex: 15, int: 15 },
+        skillLevels: {},
         equipment: {},
         inventory: { size: 50, items: [] }
       }

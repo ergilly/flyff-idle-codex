@@ -98,7 +98,7 @@ export function MainApplicationSidebar({
 function AppSidebar(props: HTMLAttributes<HTMLElement>) {
   return (
     <aside
-      className="grid content-start gap-6 border-r border-border bg-panel px-4 py-[22px] max-[920px]:border-b max-[920px]:border-r-0 max-[560px]:gap-3 max-[560px]:py-3 [grid-template-rows:auto_auto_1fr_auto]"
+      className="grid content-start gap-6 border-r-[3px] border-border bg-[linear-gradient(180deg,rgba(23,22,16,0.98),rgba(5,5,4,0.98)),var(--panel)] px-4 py-[22px] shadow-[inset_-2px_0_0_rgba(255,225,115,0.14)] max-[920px]:border-b-[3px] max-[920px]:border-r-0 max-[920px]:shadow-[inset_0_-2px_0_rgba(255,225,115,0.14)] max-[560px]:gap-3 max-[560px]:py-3 [grid-template-rows:auto_auto_1fr_auto]"
       {...props}
     />
   );
@@ -114,9 +114,9 @@ function AppBrand({
   onToggle: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2.5 text-primary-strong max-[560px]:flex-1">
+    <div className="flex items-center gap-2.5 text-primary-strong [text-shadow:0_1px_2px_#000] max-[560px]:flex-1">
       <button
-        className="hidden min-h-[42px] w-full cursor-pointer items-center justify-between rounded-control border border-border bg-panel-muted px-3 text-left font-extrabold text-primary-strong max-[560px]:flex"
+        className="hidden min-h-[42px] w-full cursor-pointer items-center justify-between rounded-control border-2 border-border bg-panel-muted px-3 text-left font-extrabold text-primary-strong shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[560px]:flex"
         type="button"
         aria-expanded={isOpen}
         aria-controls="mobile-primary-nav"
@@ -149,7 +149,7 @@ function AppSidebarActions({ children, isOpen }: { children: ReactNode; isOpen: 
   return (
     <div
       className={cx(
-        "grid self-end gap-2 border-t border-border pt-3.5 max-[560px]:self-auto max-[560px]:pt-3",
+        "grid self-end gap-2 border-t border-border pt-3.5 shadow-[inset_0_1px_0_rgba(255,225,115,0.08)] max-[560px]:self-auto max-[560px]:pt-3",
         !isOpen && "max-[560px]:hidden"
       )}
     >
@@ -166,8 +166,10 @@ function AppNavButton({ $active, children, className, ...props }: AppNavButtonPr
   return (
     <button
       className={cx(
-        "flex min-h-[42px] w-full cursor-pointer items-center gap-2.5 rounded-control border px-3 text-left font-extrabold hover:border-border hover:bg-panel-muted hover:text-foreground",
-        $active ? "border-border bg-panel-muted text-foreground" : "border-transparent bg-transparent text-text-muted",
+        "flex min-h-[42px] w-full cursor-pointer items-center gap-2.5 rounded-control border-2 px-3 text-left font-extrabold transition-colors hover:border-border hover:bg-panel-muted hover:text-foreground",
+        $active
+          ? "border-border bg-[linear-gradient(180deg,rgba(255,225,115,0.18),rgba(29,26,18,0.88))] text-foreground shadow-[inset_0_0_0_1px_rgba(255,225,115,0.18),0_0_14px_rgba(226,179,63,0.12)]"
+          : "border-transparent bg-transparent text-text-muted",
         className
       )}
       {...props}

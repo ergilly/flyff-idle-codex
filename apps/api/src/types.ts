@@ -14,15 +14,18 @@ export type Character = {
   name: string;
   gender: CharacterGender;
   job: string;
+  progressionRank: CharacterProgressionRank;
   level: number;
   exp: number;
   penya: number;
   stats: CharacterStats;
+  skillLevels: CharacterSkillLevels;
   equipment: CharacterEquipment;
   inventory: CharacterInventory;
 };
 
 export type CharacterGender = "male" | "female";
+export type CharacterProgressionRank = "normal" | "master" | "hero";
 
 export type CharacterStats = {
   str: number;
@@ -30,6 +33,8 @@ export type CharacterStats = {
   dex: number;
   int: number;
 };
+
+export type CharacterSkillLevels = Record<string, number>;
 
 export type CharacterEquipment = {
   helmet: string | null;

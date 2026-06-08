@@ -17,6 +17,7 @@ type CharacterRow = {
   name: string;
   gender: CharacterGender;
   job: string;
+  progressionRank: Character["progressionRank"];
   level: number;
   exp: number;
   penya: number;
@@ -25,6 +26,7 @@ type CharacterRow = {
   sta: number;
   dex: number;
   int: number;
+  skillLevels: string;
   helmet: string | null;
   suit: string | null;
   gloves: string | null;
@@ -67,6 +69,7 @@ export const characterRepository = {
         name,
         gender,
         job,
+        progression_rank,
         level,
         exp,
         penya,
@@ -81,7 +84,7 @@ export const characterRepository = {
         mainhand,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       playerId,
@@ -89,6 +92,7 @@ export const characterRepository = {
       name,
       gender,
       "Vagrant",
+      "normal",
       1,
       0,
       0,
@@ -120,6 +124,43 @@ export const characterRepository = {
 
     return result.changes > 0;
   },
+  updateProgressionForPlayer(
+    id: string,
+    playerId: string,
+    progression: { skillLevels?: Character["skillLevels"]; stats?: Character["stats"] }
+  ) {
+    const character = this.findById(id);
+
+    if (!character || character.playerId !== playerId) {
+      return null;
+    }
+
+    const nextStats = progression.stats ?? character.stats;
+    const nextSkillLevels = progression.skillLevels ?? character.skillLevels;
+    const now = new Date().toISOString();
+
+    db.prepare(
+      `UPDATE characters
+        SET str = ?,
+            sta = ?,
+            dex = ?,
+            int = ?,
+            skill_levels = ?,
+            updated_at = ?
+        WHERE id = ? AND player_id = ?`
+    ).run(
+      nextStats.str,
+      nextStats.sta,
+      nextStats.dex,
+      nextStats.int,
+      JSON.stringify(nextSkillLevels),
+      now,
+      id,
+      playerId
+    );
+
+    return this.findById(id);
+  },
   findById(id: string) {
     const characters = this.listByIds([id]);
 
@@ -135,6 +176,7 @@ export const characterRepository = {
           name,
           gender,
           job,
+          progression_rank AS progressionRank,
           level,
           exp,
           penya,
@@ -143,6 +185,7 @@ export const characterRepository = {
           sta,
           dex,
           int,
+          skill_levels AS skillLevels,
           helmet,
           suit,
           gloves,
@@ -183,6 +226,7 @@ export const characterRepository = {
           name,
           gender,
           job,
+          progression_rank AS progressionRank,
           level,
           exp,
           penya,
@@ -191,6 +235,7 @@ export const characterRepository = {
           sta,
           dex,
           int,
+          skill_levels AS skillLevels,
           helmet,
           suit,
           gloves,
@@ -251,6 +296,7 @@ export const characterRepository = {
         sta,
         dex,
         int,
+        skillLevels,
         helmet,
         suit,
         gloves,
@@ -281,6 +327,7 @@ export const characterRepository = {
           dex,
           int
         },
+        skillLevels: parseSkillLevels(skillLevels),
         equipment: {
           helmet,
           suit,
@@ -312,3 +359,21 @@ export const characterRepository = {
     );
   }
 };
+
+function parseSkillLevels(skillLevels: string) {
+  try {
+    const parsed = JSON.parse(skillLevels) as unknown;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([skillId, level]) => typeof skillId === "string" && Number.isInteger(level) && level > 0
+      )
+    ) as Character["skillLevels"];
+  } catch {
+    return {};
+  }
+}

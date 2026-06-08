@@ -12,7 +12,7 @@ type StatLabelProps = HTMLAttributes<HTMLSpanElement> & {
 
 export function StatLabel({ children, className, ...props }: StatLabelProps) {
   return (
-    <span className={cx("text-[0.85rem] text-text-muted", className)} {...props}>
+    <span className={cx("text-[0.85rem] font-bold text-text-muted", className)} {...props}>
       {children}
     </span>
   );
@@ -20,7 +20,7 @@ export function StatLabel({ children, className, ...props }: StatLabelProps) {
 
 export function StatRow({ label, value, className, ...props }: StatRowProps) {
   return (
-    <div className={cx("flex justify-between gap-3", className)} {...props}>
+    <div className={cx("flex justify-between gap-3 [&_strong]:text-[#fff1ba]", className)} {...props}>
       <StatLabel>{label}</StatLabel>
       <strong>{value}</strong>
     </div>
