@@ -29,11 +29,14 @@ type CharacterPageContentProps = {
   onApplySkills: () => void;
   onCanRemoveSkillLevel: (skill: SkillDefinition) => boolean;
   onApplyStats: () => void;
+  onUnequipEquipmentSlot?: (equipmentSlot: keyof Character["equipment"]) => void;
   onRemoveSkillLevel: (skill: SkillDefinition) => void;
   onRemoveStat: (stat: StatKey) => void;
   onResetSkills: () => void;
   onResetStats: () => void;
   onSelectEquipmentItem: (itemId: string) => void;
+  equipmentActionError?: string;
+  isEquipmentActionPending?: boolean;
   pendingSkillLevels: Character["skillLevels"];
   pendingStats: Record<StatKey, number>;
   selectedEquipmentItemId: string | null;
@@ -53,11 +56,14 @@ export function CharacterPageContent({
   onApplySkills,
   onCanRemoveSkillLevel,
   onApplyStats,
+  onUnequipEquipmentSlot,
   onRemoveSkillLevel,
   onRemoveStat,
   onResetSkills,
   onResetStats,
   onSelectEquipmentItem,
+  equipmentActionError = "",
+  isEquipmentActionPending = false,
   pendingSkillLevels,
   pendingStats,
   selectedEquipmentItemId,
@@ -95,8 +101,11 @@ export function CharacterPageContent({
         </Panel>
 
         <CharacterEquipmentPanel
+          actionError={equipmentActionError}
           character={character}
+          isActionPending={isEquipmentActionPending}
           itemsById={itemsById}
+          onUnequipEquipmentSlot={onUnequipEquipmentSlot}
           onSelectEquipmentItem={onSelectEquipmentItem}
           selectedEquipmentItemId={selectedEquipmentItemId}
         />

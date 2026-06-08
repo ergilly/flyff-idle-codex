@@ -1,5 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { Button } from "@/components/atoms/Button";
+import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { StatLabel } from "@/components/atoms/StatRow";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
@@ -7,8 +9,14 @@ import { getItemIconUrl, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 
 type ItemDetailsPanelProps = {
+  actionDisabled?: boolean;
+  actionError?: string;
+  actionLabel?: string;
   awakeningStats?: ItemMetadata["abilities"];
+  className?: string;
+  emptyDescription?: string;
   item?: ItemMetadata | null;
+  onAction?: () => void;
   slotLabel?: string | null;
 };
 
@@ -75,12 +83,22 @@ function renderDescription(description: string, itemName: string): ReactNode {
   ));
 }
 
-export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemDetailsPanelProps) {
+export function ItemDetailsPanel({
+  actionDisabled = false,
+  actionError = "",
+  actionLabel,
+  awakeningStats = [],
+  className,
+  emptyDescription = "Select an equipped item to inspect its stats.",
+  item,
+  onAction,
+  slotLabel
+}: ItemDetailsPanelProps) {
   if (!item) {
     return (
-      <aside className={cx(panelClassName, "border-dashed")} aria-label="Item details">
+      <aside className={cx(panelClassName, className)} aria-label="Item details">
         <SectionHeading title="No item selected" />
-        <MutedText>Select an equipped item to inspect its stats.</MutedText>
+        <MutedText>{emptyDescription}</MutedText>
       </aside>
     );
   }
@@ -108,7 +126,11 @@ export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemD
   const hasAwakeningStats = awakeningStats.length > 0;
 
   return (
-    <aside className={panelClassName} aria-label={`${item.name} details`} data-slot={slotLabel ?? undefined}>
+    <aside
+      className={cx(panelClassName, className)}
+      aria-label={`${item.name} details`}
+      data-slot={slotLabel ?? undefined}
+    >
       <div className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-3">
         <div className="grid h-[54px] w-[54px] place-items-center rounded-control border-2 border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]">
           {iconUrl ? (
@@ -163,6 +185,14 @@ export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemD
             Awakening Available
           </strong>
         </div>
+      ) : null}
+
+      {actionError ? <ErrorMessage message={actionError} /> : null}
+
+      {actionLabel && onAction ? (
+        <Button type="button" onClick={onAction} disabled={actionDisabled}>
+          {actionLabel}
+        </Button>
       ) : null}
     </aside>
   );

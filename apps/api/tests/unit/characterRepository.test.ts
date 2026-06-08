@@ -184,6 +184,58 @@ describe("character repository", () => {
     });
   });
 
+  it("refunds stats and skills independently for the owning player", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 12,
+      name: "RefundHero",
+      gender: "male"
+    });
+
+    characterRepository.updateProgressionForPlayer(character!.id, user!.id, {
+      stats: {
+        str: 22,
+        sta: 18,
+        dex: 17,
+        int: 16
+      },
+      skillLevels: {
+        "vagrant-clean-hit": 3,
+        "vagrant-brandish": 1
+      }
+    });
+
+    expect(characterRepository.refundStatsForPlayer(character!.id, user!.id)).toEqual(
+      expect.objectContaining({
+        stats: {
+          str: 15,
+          sta: 15,
+          dex: 15,
+          int: 15
+        },
+        skillLevels: {
+          "vagrant-clean-hit": 3,
+          "vagrant-brandish": 1
+        }
+      })
+    );
+    expect(characterRepository.refundStatsForPlayer(character!.id, "other-player")).toBeNull();
+
+    expect(characterRepository.refundSkillsForPlayer(character!.id, user!.id)).toEqual(
+      expect.objectContaining({
+        stats: {
+          str: 15,
+          sta: 15,
+          dex: 15,
+          int: 15
+        },
+        skillLevels: {}
+      })
+    );
+    expect(characterRepository.refundSkillsForPlayer(character!.id, "other-player")).toBeNull();
+  });
+
   it("deletes characters by id and player", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({

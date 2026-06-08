@@ -105,3 +105,28 @@ input {
 a {
   color: inherit;
 }
+
+.themed-scrollbar {
+  scrollbar-color: var(--border) color-mix(in srgb, var(--panel-muted) 72%, transparent);
+  scrollbar-width: thin;
+}
+
+.themed-scrollbar::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.themed-scrollbar::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--panel-muted) 72%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.themed-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 2px solid var(--panel);
+  border-radius: var(--radius-control);
+}
+
+.themed-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}

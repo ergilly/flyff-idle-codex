@@ -3,6 +3,7 @@ import {
   ChevronDown,
   CircleUserRound,
   Cog,
+  ShieldCheck,
   Map,
   Moon,
   Shield,
@@ -22,12 +23,13 @@ export const navItems = [
   { label: "Upgrading", icon: Sparkles }
 ];
 
-export type MainApplicationNavItem = (typeof navItems)[number]["label"] | "Settings";
+export type MainApplicationNavItem = (typeof navItems)[number]["label"] | "Admin" | "Settings";
 export type MainApplicationTheme = "dark" | "light";
 
 type MainApplicationSidebarProps = {
   activeNavItem: string;
   characterName: string;
+  isAdmin: boolean;
   isMobileNavOpen: boolean;
   isProfileMenuOpen: boolean;
   onChangeCharacter: () => void;
@@ -42,6 +44,7 @@ type MainApplicationSidebarProps = {
 export function MainApplicationSidebar({
   activeNavItem,
   characterName,
+  isAdmin,
   isMobileNavOpen,
   isProfileMenuOpen,
   onChangeCharacter,
@@ -82,6 +85,16 @@ export function MainApplicationSidebar({
         ))}
       </AppNav>
       <AppSidebarActions isOpen={isMobileNavOpen}>
+        {isAdmin ? (
+          <AppNavButton
+            $active={activeNavItem === "Admin"}
+            type="button"
+            onClick={() => onSelectNavItem("Admin")}
+          >
+            <ShieldCheck aria-hidden="true" size={18} />
+            <span>Admin</span>
+          </AppNavButton>
+        ) : null}
         <AppNavButton $active={false} type="button" onClick={() => onSelectNavItem("Settings")}>
           <Cog aria-hidden="true" size={18} />
           <span>Settings</span>

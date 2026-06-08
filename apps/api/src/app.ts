@@ -3,6 +3,7 @@ import path from "node:path";
 import cors from "cors";
 import express from "express";
 import YAML from "yaml";
+import { adminRouter } from "./admin/admin.routes.js";
 import { authRouter } from "./auth/auth.routes.js";
 import { characterRouter } from "./characters/character.routes.js";
 import { gameDataRouter } from "./gameData/gameData.routes.js";
@@ -22,6 +23,7 @@ export function createApp() {
   });
 
   app.use("/api/auth", authRouter);
+  app.use("/api/admin", adminRouter);
   app.use("/api/characters", characterRouter);
   app.use("/api/data", gameDataRouter);
   app.use("/api/items", itemRouter);

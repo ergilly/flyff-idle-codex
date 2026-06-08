@@ -27,7 +27,7 @@ function upsertSeedUser({
     .prepare(
       "SELECT id, email, display_name AS displayName, password_hash AS passwordHash FROM users WHERE email = ?"
     )
-    .get(email) as User | undefined;
+    .get(email) as Omit<User, "isAdmin"> | undefined;
 
   if (existingUser) {
     db.prepare("UPDATE users SET display_name = ?, password_hash = ?, updated_at = ? WHERE id = ?").run(
@@ -58,7 +58,7 @@ function upsertSeedUser({
   return user;
 }
 
-function replaceSeedCharacters(user: User, characters: readonly SeedCharacter[], now: string) {
+function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly SeedCharacter[], now: string) {
   db.prepare("DELETE FROM characters WHERE player_id = ?").run(user.id);
 
   const insertCharacter = db.prepare(
