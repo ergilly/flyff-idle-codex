@@ -1,0 +1,19 @@
+meta {
+  name: Get Monsters By Filters
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/data/monsters
+  body: none
+  auth: none
+}
+
+query {
+  rank: captain
+  element: electricity
+  minLevel: 100
+  maxLevel: 130
+  limit: 25
+}

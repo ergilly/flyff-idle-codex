@@ -2,11 +2,11 @@ import { render, screen } from "@testing-library/react";
 import { CharacterSelectionPage } from "./CharacterSelectionPage";
 import { LoginPage } from "./LoginPage";
 
-jest.mock("@/components/organisms/CharacterRoster", () => ({
+jest.mock("@/components/organisms/character-select/CharacterRoster", () => ({
   CharacterRoster: () => <div>Roster content</div>
 }));
 
-jest.mock("@/components/organisms/LoginForm", () => ({
+jest.mock("@/components/organisms/login/LoginForm", () => ({
   LoginForm: () => <form>Login form content</form>
 }));
 

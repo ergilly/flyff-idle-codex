@@ -27,9 +27,10 @@ test("login returns a token and the token can load characters", async ({ request
       characters: expect.arrayContaining([
         expect.objectContaining({
           name: "Saint Morning",
-          slotIndex: 0,
+          slotIndex: 1,
           gender: "female",
           job: "Mercenary",
+          progressionRank: "normal",
           penya: 0,
           stats: {
             str: 15,
@@ -87,6 +88,7 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
         slotIndex: 0,
         gender: "female",
         job: "Vagrant",
+        progressionRank: "normal",
         level: 1,
         exp: 0,
         penya: 0,

@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Flyff Idle API",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

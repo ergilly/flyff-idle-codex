@@ -1,0 +1,16 @@
+meta {
+  name: Get Record By Id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/data/{{dataSet}}/{{id}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  dataSet: jobs
+  id: 764
+}

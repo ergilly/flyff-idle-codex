@@ -4,12 +4,16 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { Actions } from "@/components/atoms/Actions";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
+import { MutedText } from "@/components/atoms/MutedText";
+import { Stack } from "@/components/atoms/Stack";
 import { TextField } from "@/components/atoms/TextField";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { GameTemplate } from "@/components/templates/GameTemplate";
 import { createCharacter, type CharacterGender } from "@/lib/api";
+import { cx } from "@/lib/classNames";
 
 type CharacterCreationPageProps = {
   slot?: string;
@@ -71,20 +75,26 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
         title={`Slot ${slotNumber}`}
         description="Create the adventurer who will start your idle journey."
       />
-      <div className="creation-layout">
-        <section className="creation-preview" aria-label="New character preview">
+      <div className="grid grid-cols-[minmax(240px,0.85fr)_minmax(0,1.15fr)] gap-5 max-[920px]:grid-cols-1">
+        <section
+          className="grid min-h-[312px] content-center gap-[18px] rounded-card border border-border bg-panel p-[22px] text-center [&_h2]:m-0 [&_h2]:text-[1.15rem]"
+          aria-label="New character preview"
+        >
           <Image
-            className="creation-class-logo"
+            className="h-24 w-24 justify-self-center object-contain"
             src="/images/classes/vagrant.png"
             alt="Vagrant class logo"
             width={96}
             height={96}
           />
-          <div className="stack">
+          <Stack>
             <h2>{name.trim() || "New Vagrant"}</h2>
-            <p className="muted">Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</p>
-          </div>
-          <div className="stat-pill-grid" aria-label="Starting stats">
+            <MutedText>Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</MutedText>
+          </Stack>
+          <div
+            className="grid grid-cols-2 gap-2.5 [&_span]:rounded-control [&_span]:border [&_span]:border-border [&_span]:bg-panel-muted [&_span]:px-2.5 [&_span]:py-[9px] [&_span]:text-[0.88rem] [&_span]:font-extrabold [&_span]:text-text-muted"
+            aria-label="Starting stats"
+          >
             <span>STR 15</span>
             <span>STA 15</span>
             <span>DEX 15</span>
@@ -92,7 +102,11 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
           </div>
         </section>
 
-        <form className="creation-form stack" onSubmit={handleSubmit}>
+        <Stack
+          as="form"
+          className="rounded-card border border-border bg-panel p-[22px]"
+          onSubmit={handleSubmit}
+        >
           {error ? <ErrorMessage message={error} /> : null}
           <TextField
             id="character-name"
@@ -105,40 +119,54 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             required
             value={name}
           />
-          <div className="field">
-            <span className="field-label">Gender</span>
-            <div className="gender-options" role="radiogroup" aria-label="Gender">
-              <label className="gender-option">
+          <div className="grid gap-2">
+            <span className="text-[0.9rem] font-bold">Gender</span>
+            <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Gender">
+              <label
+                className={cx(
+                  "relative grid min-h-11 cursor-pointer place-items-center rounded-control border border-border bg-panel-muted font-extrabold text-text-muted has-focus-visible:outline-[2px_solid_rgba(88,166,201,0.28)] has-focus-visible:outline-offset-[2px]",
+                  gender === "male" &&
+                    "border-primary bg-panel-elevated text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+                )}
+              >
                 <input
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   checked={gender === "male"}
                   name="gender"
                   onChange={() => setGender("male")}
                   type="radio"
                   value="male"
                 />
-                <span>Male</span>
+                <span className="pointer-events-none">Male</span>
               </label>
-              <label className="gender-option">
+              <label
+                className={cx(
+                  "relative grid min-h-11 cursor-pointer place-items-center rounded-control border border-border bg-panel-muted font-extrabold text-text-muted has-focus-visible:outline-[2px_solid_rgba(88,166,201,0.28)] has-focus-visible:outline-offset-[2px]",
+                  gender === "female" &&
+                    "border-primary bg-panel-elevated text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
+                )}
+              >
                 <input
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   checked={gender === "female"}
                   name="gender"
                   onChange={() => setGender("female")}
                   type="radio"
                   value="female"
                 />
-                <span>Female</span>
+                <span className="pointer-events-none">Female</span>
               </label>
             </div>
           </div>
-          <div className="form-actions">
-            <button className="secondary-button" type="button" onClick={() => router.push("/characters")}>
+          <Actions>
+            <Button variant="secondary" type="button" onClick={() => router.push("/characters")}>
               Cancel
-            </button>
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Create character"}
             </Button>
-          </div>
-        </form>
+          </Actions>
+        </Stack>
       </div>
     </GameTemplate>
   );

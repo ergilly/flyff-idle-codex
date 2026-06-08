@@ -1,4 +1,14 @@
-import { createCharacter, deleteCharacter, fetchCharacters, login, register } from "./api";
+import {
+  createCharacter,
+  deleteCharacter,
+  fetchCharacters,
+  fetchDataSet,
+  fetchItems,
+  getItemIconUrl,
+  login,
+  register,
+  updateCharacterProgression
+} from "./api";
 
 function mockFetch(response: Partial<Response>) {
   global.fetch = jest.fn().mockResolvedValue({
@@ -73,10 +83,12 @@ describe("api client", () => {
       name: "Hero",
       gender: "male",
       job: "Vagrant",
+      progressionRank: "normal",
       level: 1,
       exp: 0,
       penya: 0,
       stats: { str: 15, sta: 15, dex: 15, int: 15 },
+      skillLevels: {},
       equipment: {},
       inventory: { size: 50, items: [] }
     };
@@ -120,5 +132,74 @@ describe("api client", () => {
         body: JSON.stringify({ name: "Hero" })
       })
     );
+
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        character: { ...character, stats: { str: 16, sta: 15, dex: 15, int: 15 } }
+      })
+    });
+
+    await expect(
+      updateCharacterProgression("token", "char-1", {
+        stats: { str: 16, sta: 15, dex: 15, int: 15 },
+        skillLevels: { "vagrant-clean-hit": 1 }
+      })
+    ).resolves.toEqual({ ...character, stats: { str: 16, sta: 15, dex: 15, int: 15 } });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/characters/char-1/progression",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({
+          stats: { str: 16, sta: 15, dex: 15, int: 15 },
+          skillLevels: { "vagrant-clean-hit": 1 }
+        })
+      })
+    );
+  });
+
+  it("loads item icon metadata for unique equipped ids", async () => {
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        items: [{ id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }]
+      })
+    });
+
+    await expect(fetchItems("token", ["3497", "3497", "3314"])).resolves.toEqual([
+      { id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }
+    ]);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/items?ids=3497,3314",
+      expect.objectContaining({
+        headers: {
+          Authorization: "Bearer token"
+        }
+      })
+    );
+  });
+
+  it("loads filtered JSON data sets from the API", async () => {
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        dataSet: "skills",
+        total: 1,
+        limit: 50,
+        offset: 0,
+        results: [{ id: 115, name: "Clean Hit", class: 9686 }]
+      })
+    });
+
+    await expect(fetchDataSet("skills", { classId: 9686, limit: 50 })).resolves.toEqual([
+      { id: 115, name: "Clean Hit", class: 9686 }
+    ]);
+    expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/data/skills?classId=9686&limit=50");
+  });
+
+  it("skips empty item icon requests and builds Flyff icon URLs", async () => {
+    await expect(fetchItems("token", [])).resolves.toEqual([]);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(getItemIconUrl("mkin04foot.png")).toBe("https://api.flyff.com/image/item/mkin04foot.png");
   });
 });

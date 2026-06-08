@@ -5,6 +5,8 @@ import express from "express";
 import YAML from "yaml";
 import { authRouter } from "./auth/auth.routes.js";
 import { characterRouter } from "./characters/character.routes.js";
+import { gameDataRouter } from "./gameData/gameData.routes.js";
+import { itemRouter } from "./items/item.routes.js";
 
 const openApiPath = path.resolve(process.cwd(), "../../docs/api/openapi.yaml");
 const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
@@ -21,6 +23,8 @@ export function createApp() {
 
   app.use("/api/auth", authRouter);
   app.use("/api/characters", characterRouter);
+  app.use("/api/data", gameDataRouter);
+  app.use("/api/items", itemRouter);
   app.get("/docs/openapi.yaml", (_request, response) => {
     response.type("text/yaml").send(fs.readFileSync(openApiPath, "utf8"));
   });

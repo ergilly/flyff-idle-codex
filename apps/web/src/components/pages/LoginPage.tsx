@@ -1,6 +1,6 @@
-import { LoginForm } from "@/components/organisms/LoginForm";
+import { LoginForm } from "@/components/organisms/login/LoginForm";
 import { PageHeader } from "@/components/molecules/PageHeader";
-import { AuthTemplate } from "@/components/templates/AuthTemplate";
+import { AuthTemplate } from "@/components/templates/login/AuthTemplate";
 
 export function LoginPage() {
   return (

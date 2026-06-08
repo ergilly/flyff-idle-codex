@@ -1,4 +1,4 @@
-import { CharacterRoster } from "@/components/organisms/CharacterRoster";
+import { CharacterRoster } from "@/components/organisms/character-select/CharacterRoster";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { GameTemplate } from "@/components/templates/GameTemplate";
 

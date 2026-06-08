@@ -3,9 +3,11 @@ import { ThemeToggle } from "@/components/molecules/ThemeToggle";
 
 export function GameTemplate({ children }: { children: ReactNode }) {
   return (
-    <main className="shell">
+    <main className="relative grid min-h-screen place-items-center px-4 py-8">
       <ThemeToggle />
-      <section className="selection-panel">{children}</section>
+      <section className="w-full max-w-[1040px] rounded-card border border-border bg-panel-shell p-7 shadow-shell max-[560px]:p-[22px]">
+        {children}
+      </section>
     </main>
   );
 }
