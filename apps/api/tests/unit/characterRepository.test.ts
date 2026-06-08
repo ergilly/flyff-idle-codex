@@ -175,7 +175,9 @@ describe("character repository", () => {
         }
       })
     );
-    expect(characterRepository.updateProgressionForPlayer(character!.id, "other-player", { skillLevels: {} })).toBeNull();
+    expect(
+      characterRepository.updateProgressionForPlayer(character!.id, "other-player", { skillLevels: {} })
+    ).toBeNull();
     expect(characterRepository.findById(character!.id)?.skillLevels).toEqual({
       "vagrant-clean-hit": 3,
       "vagrant-brandish": 1

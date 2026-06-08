@@ -69,9 +69,7 @@ function renderDescription(description: string, itemName: string): ReactNode {
 
   return descriptionParts.map((part, index) => (
     <span key={`${part}-${index}`}>
-      {index > 0 ? (
-        <strong className="text-[#fff1ba] [font-weight:900]">{itemName}</strong>
-      ) : null}
+      {index > 0 ? <strong className="text-[#fff1ba] [font-weight:900]">{itemName}</strong> : null}
       {part}
     </span>
   ));
@@ -80,10 +78,7 @@ function renderDescription(description: string, itemName: string): ReactNode {
 export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemDetailsPanelProps) {
   if (!item) {
     return (
-      <aside
-        className={cx(panelClassName, "border-dashed")}
-        aria-label="Item details"
-      >
+      <aside className={cx(panelClassName, "border-dashed")} aria-label="Item details">
         <SectionHeading title="No item selected" />
         <MutedText>Select an equipped item to inspect its stats.</MutedText>
       </aside>
@@ -113,11 +108,7 @@ export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemD
   const hasAwakeningStats = awakeningStats.length > 0;
 
   return (
-    <aside
-      className={panelClassName}
-      aria-label={`${item.name} details`}
-      data-slot={slotLabel ?? undefined}
-    >
+    <aside className={panelClassName} aria-label={`${item.name} details`} data-slot={slotLabel ?? undefined}>
       <div className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-3">
         <div className="grid h-[54px] w-[54px] place-items-center rounded-control border-2 border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]">
           {iconUrl ? (
@@ -145,9 +136,7 @@ export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemD
           {metadataRows.map(([label, value]) => (
             <div
               className={
-                label
-                  ? undefined
-                  : "justify-start [&_dd]:text-left [&_dd]:uppercase [&_dd]:text-text-muted"
+                label ? undefined : "justify-start [&_dd]:text-left [&_dd]:uppercase [&_dd]:text-text-muted"
               }
               key={`${label}-${value}`}
             >
@@ -164,9 +153,7 @@ export function ItemDetailsPanel({ awakeningStats = [], item, slotLabel }: ItemD
         </p>
       ) : null}
 
-      {item.abilities.length > 0 ? (
-        <ItemEffectList label="Effects" abilities={item.abilities} />
-      ) : null}
+      {item.abilities.length > 0 ? <ItemEffectList label="Effects" abilities={item.abilities} /> : null}
 
       {hasAwakeningStats ? <ItemEffectList label="Awakening" abilities={awakeningStats} /> : null}
 

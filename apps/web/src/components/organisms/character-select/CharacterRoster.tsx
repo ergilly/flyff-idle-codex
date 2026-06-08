@@ -94,7 +94,10 @@ export function CharacterRoster() {
         </Button>
       </div>
       {error ? <ErrorMessage message={error} /> : null}
-      <div className="grid grid-cols-4 gap-4 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1" aria-label="Character roster">
+      <div
+        className="grid grid-cols-4 gap-4 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1"
+        aria-label="Character roster"
+      >
         {(() => {
           const charactersBySlot = new Map(characters.map((character) => [character.slotIndex, character]));
 

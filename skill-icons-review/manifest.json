@@ -1,20 +1,20 @@
 ﻿{
-    "source":  "https://api.flyff.com/image/skill/colored/{fileName}",
-    "generatedAt":  "2026-06-08T10:52:06.5603003+01:00",
-    "uniqueIcons":  337,
-    "downloadedThisRun":  334,
-    "failed":  [
-                   {
-                       "icon":  "paralyze.png",
-                       "error":  "The remote server returned an error: (404) Not Found."
-                   },
-                   {
-                       "icon":  "petrify.png",
-                       "error":  "The remote server returned an error: (404) Not Found."
-                   },
-                   {
-                       "icon":  "sleep.png",
-                       "error":  "The remote server returned an error: (404) Not Found."
-                   }
-               ]
+  "source": "https://api.flyff.com/image/skill/colored/{fileName}",
+  "generatedAt": "2026-06-08T10:52:06.5603003+01:00",
+  "uniqueIcons": 337,
+  "downloadedThisRun": 334,
+  "failed": [
+    {
+      "icon": "paralyze.png",
+      "error": "The remote server returned an error: (404) Not Found."
+    },
+    {
+      "icon": "petrify.png",
+      "error": "The remote server returned an error: (404) Not Found."
+    },
+    {
+      "icon": "sleep.png",
+      "error": "The remote server returned an error: (404) Not Found."
+    }
+  ]
 }

@@ -4,7 +4,9 @@ import { seedDemoData } from "../../src/data/seedDemoData.js";
 
 function ensureCharacterProgressionColumns() {
   const characterColumns = new Set(
-    (db.prepare("PRAGMA table_info(characters)").all() as Array<{ name: string }>).map((column) => column.name)
+    (db.prepare("PRAGMA table_info(characters)").all() as Array<{ name: string }>).map(
+      (column) => column.name
+    )
   );
 
   if (!characterColumns.has("progression_rank")) {

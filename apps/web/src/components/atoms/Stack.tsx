@@ -6,17 +6,20 @@ type StackBaseProps = {
   gap?: CSSProperties["gap"];
 };
 
-type DivStackProps = HTMLAttributes<HTMLDivElement> & StackBaseProps & {
-  as?: "div";
-};
+type DivStackProps = HTMLAttributes<HTMLDivElement> &
+  StackBaseProps & {
+    as?: "div";
+  };
 
-type FormStackProps = FormHTMLAttributes<HTMLFormElement> & StackBaseProps & {
-  as: "form";
-};
+type FormStackProps = FormHTMLAttributes<HTMLFormElement> &
+  StackBaseProps & {
+    as: "form";
+  };
 
-type SectionStackProps = HTMLAttributes<HTMLElement> & StackBaseProps & {
-  as: "section";
-};
+type SectionStackProps = HTMLAttributes<HTMLElement> &
+  StackBaseProps & {
+    as: "section";
+  };
 
 type StackProps = DivStackProps | FormStackProps | SectionStackProps;
 

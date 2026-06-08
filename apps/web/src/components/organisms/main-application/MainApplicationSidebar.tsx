@@ -123,7 +123,11 @@ function AppBrand({
         onClick={onToggle}
       >
         <span className="flex items-center gap-2.5">{children}</span>
-        <ChevronDown aria-hidden="true" className={cx("transition-transform", isOpen && "rotate-180")} size={17} />
+        <ChevronDown
+          aria-hidden="true"
+          className={cx("transition-transform", isOpen && "rotate-180")}
+          size={17}
+        />
       </button>
       <div className="flex items-center gap-2.5 max-[560px]:hidden">{children}</div>
     </div>
@@ -131,13 +135,18 @@ function AppBrand({
 }
 
 function MobileSidebarTop({ children }: { children: ReactNode }) {
-  return <div className="contents max-[560px]:flex max-[560px]:items-start max-[560px]:gap-2">{children}</div>;
+  return (
+    <div className="contents max-[560px]:flex max-[560px]:items-start max-[560px]:gap-2">{children}</div>
+  );
 }
 
 function AppNav({ children, isOpen }: { children: ReactNode; isOpen: boolean }) {
   return (
     <nav
-      className={cx("grid gap-2 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1", !isOpen && "max-[560px]:hidden")}
+      className={cx(
+        "grid gap-2 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1",
+        !isOpen && "max-[560px]:hidden"
+      )}
       id="mobile-primary-nav"
     >
       {children}

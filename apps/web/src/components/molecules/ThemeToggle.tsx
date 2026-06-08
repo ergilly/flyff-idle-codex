@@ -43,7 +43,10 @@ export function ThemeToggle() {
       aria-pressed={theme === "light"}
       onClick={handleToggle}
     >
-      <span className="h-[26px] w-12 rounded-full border border-border bg-panel-muted p-0.5" aria-hidden="true">
+      <span
+        className="h-[26px] w-12 rounded-full border border-border bg-panel-muted p-0.5"
+        aria-hidden="true"
+      >
         <span
           className={cx(
             "block h-5 w-5 rounded-full bg-accent transition-transform duration-150",

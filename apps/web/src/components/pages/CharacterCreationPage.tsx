@@ -76,7 +76,10 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
         description="Create the adventurer who will start your idle journey."
       />
       <div className="grid grid-cols-[minmax(240px,0.85fr)_minmax(0,1.15fr)] gap-5 max-[920px]:grid-cols-1">
-        <section className="grid min-h-[312px] content-center gap-[18px] rounded-card border border-border bg-panel p-[22px] text-center [&_h2]:m-0 [&_h2]:text-[1.15rem]" aria-label="New character preview">
+        <section
+          className="grid min-h-[312px] content-center gap-[18px] rounded-card border border-border bg-panel p-[22px] text-center [&_h2]:m-0 [&_h2]:text-[1.15rem]"
+          aria-label="New character preview"
+        >
           <Image
             className="h-24 w-24 justify-self-center object-contain"
             src="/images/classes/vagrant.png"
@@ -88,7 +91,10 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             <h2>{name.trim() || "New Vagrant"}</h2>
             <MutedText>Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</MutedText>
           </Stack>
-          <div className="grid grid-cols-2 gap-2.5 [&_span]:rounded-control [&_span]:border [&_span]:border-border [&_span]:bg-panel-muted [&_span]:px-2.5 [&_span]:py-[9px] [&_span]:text-[0.88rem] [&_span]:font-extrabold [&_span]:text-text-muted" aria-label="Starting stats">
+          <div
+            className="grid grid-cols-2 gap-2.5 [&_span]:rounded-control [&_span]:border [&_span]:border-border [&_span]:bg-panel-muted [&_span]:px-2.5 [&_span]:py-[9px] [&_span]:text-[0.88rem] [&_span]:font-extrabold [&_span]:text-text-muted"
+            aria-label="Starting stats"
+          >
             <span>STR 15</span>
             <span>STA 15</span>
             <span>DEX 15</span>

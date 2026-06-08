@@ -41,7 +41,10 @@ export function CharacterDeleteDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-20 grid place-items-center bg-[rgba(8,12,18,0.72)] p-[18px]" role="presentation">
+    <div
+      className="fixed inset-0 z-20 grid place-items-center bg-[rgba(8,12,18,0.72)] p-[18px]"
+      role="presentation"
+    >
       <section
         aria-describedby="delete-character-description"
         aria-labelledby="delete-character-title"

@@ -47,7 +47,11 @@ export function LoginForm() {
 
   return (
     <Stack>
-      <div className="grid grid-cols-2 overflow-hidden rounded-control border border-border bg-panel-muted" role="group" aria-label="Auth mode">
+      <div
+        className="grid grid-cols-2 overflow-hidden rounded-control border border-border bg-panel-muted"
+        role="group"
+        aria-label="Auth mode"
+      >
         <button
           className={cx(
             "min-h-10 cursor-pointer border-0 font-extrabold",
