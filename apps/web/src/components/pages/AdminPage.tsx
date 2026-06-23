@@ -45,6 +45,13 @@ export function AdminPage({
   const nextOpenSlot = Array.from({ length: 100 }, (_slot, index) => index).find(
     (index) => !character.inventory.items.some((item) => item.slotIndex === index)
   );
+  const selectedItemStackSize = selectedItem?.stack && selectedItem.stack > 0 ? selectedItem.stack : 1;
+  const hasAvailableStackSpace = Boolean(
+    selectedItem &&
+    character.inventory.items.some(
+      (item) => item.itemId === String(selectedItem.id) && item.quantity < selectedItemStackSize
+    )
+  );
 
   async function handleSearchItems(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,7 +67,7 @@ export function AdminPage({
 
     try {
       const results = await fetchDataSet<ItemMetadata>("items", {
-        fields: "id,name,icon,category,level,rarity",
+        fields: "id,name,icon,category,level,rarity,stack",
         limit: 12,
         q: itemQuery.trim()
       });
@@ -119,7 +126,11 @@ export function AdminPage({
       <Panel as="section" className="content-start gap-5">
         <SectionHeading eyebrow="Creative inventory" title="Add item" />
         <div className="grid grid-cols-[minmax(280px,0.9fr)_minmax(320px,1.1fr)] gap-4 max-[920px]:grid-cols-1">
-          <Stack as="form" onSubmit={handleSearchItems}>
+          <Stack
+            as="form"
+            className="self-start rounded-card border-2 border-border bg-panel-muted p-4 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.08)]"
+            onSubmit={handleSearchItems}
+          >
             <TextField
               id="adminItemSearch"
               label="Item search"
@@ -133,25 +144,37 @@ export function AdminPage({
               {isSearching ? "Searching..." : "Search items"}
             </Button>
             {searchError ? <ErrorMessage message={searchError} /> : null}
-            <div className="themed-scrollbar grid max-h-[320px] gap-2 overflow-y-auto pr-2">
-              {itemResults.map((item) => (
-                <ItemResultButton
-                  item={item}
-                  isSelected={String(selectedItem?.id) === String(item.id)}
-                  key={String(item.id)}
-                  onClick={() => setSelectedItem(item)}
-                />
-              ))}
+            <div className="themed-scrollbar grid h-[360px] content-start gap-2 overflow-y-auto pr-2">
+              {itemResults.length > 0 ? (
+                itemResults.map((item) => (
+                  <ItemResultButton
+                    item={item}
+                    isSelected={String(selectedItem?.id) === String(item.id)}
+                    key={String(item.id)}
+                    onClick={() => setSelectedItem(item)}
+                  />
+                ))
+              ) : (
+                <div className="grid h-full place-items-center rounded-control border border-dashed border-border bg-panel text-center text-sm font-bold text-text-muted">
+                  Search results will appear here.
+                </div>
+              )}
             </div>
           </Stack>
 
-          <Stack as="form" onSubmit={handleAddInventoryItem}>
+          <Stack as="form" className="self-start" onSubmit={handleAddInventoryItem}>
             <div className="grid gap-2 rounded-card border-2 border-border bg-panel-muted p-4">
               <StatRow label="Selected item" value={selectedItem ? selectedItem.name : "None"} />
               <StatRow label="Item id" value={selectedItem ? String(selectedItem.id) : "-"} />
               <StatRow
                 label="Next open slot"
-                value={nextOpenSlot !== undefined ? nextOpenSlot + 1 : "Full"}
+                value={
+                  nextOpenSlot !== undefined
+                    ? nextOpenSlot + 1
+                    : hasAvailableStackSpace
+                      ? "Existing stack"
+                      : "Full"
+                }
               />
             </div>
             <TextField
@@ -165,7 +188,11 @@ export function AdminPage({
             />
             <Button
               type="submit"
-              disabled={!selectedItem || addingInventoryItem || nextOpenSlot === undefined}
+              disabled={
+                !selectedItem ||
+                addingInventoryItem ||
+                (nextOpenSlot === undefined && !hasAvailableStackSpace)
+              }
             >
               {addingInventoryItem ? "Adding..." : "Add to inventory"}
             </Button>
@@ -190,21 +217,32 @@ function ItemResultButton({
   return (
     <button
       className={cx(
-        "grid min-h-[58px] cursor-pointer grid-cols-[44px_minmax(0,1fr)] items-center gap-3 rounded-control border-2 bg-panel-muted p-2 text-left transition-colors hover:border-primary",
+        "flex min-h-[72px] w-full cursor-pointer items-center gap-3 rounded-control border-2 bg-panel-muted p-2.5 text-left transition-colors hover:border-primary",
         isSelected ? "border-primary text-foreground" : "border-border text-text-muted"
       )}
       type="button"
       onClick={onClick}
     >
-      <span className="grid h-11 w-11 place-items-center rounded-control border border-border bg-panel">
+      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-control border border-border bg-panel">
         {iconUrl ? (
-          <Image src={iconUrl} alt="" aria-hidden="true" width={36} height={36} loading="lazy" unoptimized />
+          <Image
+            className="max-h-10 max-w-10 object-contain"
+            src={iconUrl}
+            alt=""
+            aria-hidden="true"
+            width={40}
+            height={40}
+            loading="lazy"
+            unoptimized
+          />
         ) : null}
       </span>
-      <span className="grid min-w-0 gap-1">
-        <strong className="truncate text-sm text-foreground">{item.name}</strong>
-        <span className="text-xs font-bold uppercase">
-          #{String(item.id)} {item.category ? `- ${item.category}` : ""}
+      <span className="grid min-w-0 flex-1 gap-1">
+        <strong className="line-clamp-2 text-sm leading-snug text-foreground">{item.name}</strong>
+        <span className="break-words text-xs font-bold uppercase leading-snug">
+          #{String(item.id)}
+          {item.category ? ` - ${item.category}` : ""}
+          {item.level !== null ? ` - Lv. ${item.level}` : ""}
         </span>
       </span>
     </button>

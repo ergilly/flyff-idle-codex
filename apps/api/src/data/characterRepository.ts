@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
 import { startingEquipmentByGender, startingInventoryItems, startingMainhand } from "./starterLoadout.js";
 import type { Character, CharacterGender } from "../types.js";
+import { findDataRecord, type JsonDataRecord } from "../gameData/gameData.service.js";
 import { findItemsByIds } from "../items/itemIconRepository.js";
 import type { ItemMetadata } from "../data/generated/itemIconIndex.js";
 
@@ -51,11 +52,14 @@ type CharacterRow = {
 };
 
 type InventoryItemRow = {
+  id: string;
   characterId: string;
   slotIndex: number;
   itemId: string;
   quantity: number;
 };
+
+type InventorySortOption = "name" | "level" | "job" | "category";
 
 const equipmentColumnBySlot = {
   helmet: "helmet",
@@ -212,38 +216,96 @@ export const characterRepository = {
       return null;
     }
 
-    const usedSlotIndexes = new Set(character.inventory.items.map((item) => item.slotIndex));
-    const slotIndex =
-      inventoryItem.slotIndex ??
-      Array.from({ length: 100 }, (_slot, index) => index).find((index) => !usedSlotIndexes.has(index));
+    const now = new Date().toISOString();
 
-    if (slotIndex === undefined) {
+    if (inventoryItem.slotIndex !== undefined) {
+      setInventorySlot(id, playerId, { ...inventoryItem, slotIndex: inventoryItem.slotIndex }, now);
+      return this.findById(id);
+    }
+
+    const added = addInventoryQuantity(id, character, inventoryItem.itemId, inventoryItem.quantity, now);
+
+    if (!added) {
       return null;
     }
 
-    const now = new Date().toISOString();
-    const inventorySize = Math.max(character.inventory.size, 100, slotIndex + 1);
+    return this.findById(id);
+  },
+  moveInventoryItemForPlayer(id: string, playerId: string, fromSlotIndex: number, toSlotIndex: number) {
+    const character = this.findById(id);
 
-    db.prepare("UPDATE characters SET inventory_size = ?, updated_at = ? WHERE id = ? AND player_id = ?").run(
-      inventorySize,
-      now,
-      id,
-      playerId
-    );
-
-    const existingItem = db
-      .prepare("SELECT id FROM character_inventory_items WHERE character_id = ? AND slot_index = ?")
-      .get(id, slotIndex) as { id: string } | undefined;
-
-    if (existingItem) {
-      db.prepare(
-        "UPDATE character_inventory_items SET item_id = ?, quantity = ?, updated_at = ? WHERE id = ?"
-      ).run(inventoryItem.itemId, inventoryItem.quantity, now, existingItem.id);
-    } else {
-      db.prepare(
-        "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-      ).run(randomUUID(), id, slotIndex, inventoryItem.itemId, inventoryItem.quantity, now, now);
+    if (!character || character.playerId !== playerId) {
+      return { character: null, error: "Character not found" };
     }
+
+    if (fromSlotIndex === toSlotIndex) {
+      return { character, error: null };
+    }
+
+    const sourceItem = character.inventory.items.find((item) => item.slotIndex === fromSlotIndex);
+
+    if (!sourceItem) {
+      return { character: null, error: "Inventory item not found" };
+    }
+
+    const targetItem = character.inventory.items.find((item) => item.slotIndex === toSlotIndex);
+    const now = new Date().toISOString();
+
+    if (!targetItem) {
+      db.prepare(
+        "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+      ).run(toSlotIndex, now, id, fromSlotIndex);
+      updateInventorySize(id, toSlotIndex, now);
+      return { character: this.findById(id), error: null };
+    }
+
+    if (targetItem.itemId === sourceItem.itemId) {
+      const maxStackSize = getMaxStackSize(sourceItem.itemId);
+      const availableQuantity = maxStackSize - targetItem.quantity;
+
+      if (availableQuantity > 0) {
+        const movedQuantity = Math.min(availableQuantity, sourceItem.quantity);
+        const remainingQuantity = sourceItem.quantity - movedQuantity;
+
+        db.prepare(
+          "UPDATE character_inventory_items SET quantity = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+        ).run(targetItem.quantity + movedQuantity, now, id, toSlotIndex);
+
+        if (remainingQuantity > 0) {
+          db.prepare(
+            "UPDATE character_inventory_items SET quantity = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+          ).run(remainingQuantity, now, id, fromSlotIndex);
+        } else {
+          db.prepare("DELETE FROM character_inventory_items WHERE character_id = ? AND slot_index = ?").run(
+            id,
+            fromSlotIndex
+          );
+        }
+
+        return { character: this.findById(id), error: null };
+      }
+    }
+
+    swapInventorySlots(id, fromSlotIndex, toSlotIndex, now);
+    return { character: this.findById(id), error: null };
+  },
+  sortInventoryForPlayer(id: string, playerId: string, sortBy: InventorySortOption) {
+    const character = this.findById(id);
+
+    if (!character || character.playerId !== playerId) {
+      return null;
+    }
+
+    const sortedItems = [...character.inventory.items].sort((first, second) =>
+      compareInventoryItems(first, second, sortBy)
+    );
+    const now = new Date().toISOString();
+
+    reassignInventorySlots(
+      id,
+      sortedItems.map((item, index) => ({ fromSlotIndex: item.slotIndex, toSlotIndex: index })),
+      now
+    );
 
     return this.findById(id);
   },
@@ -487,6 +549,7 @@ export const characterRepository = {
         ? (db
             .prepare(
               `SELECT
+                id,
                 character_id AS characterId,
                 slot_index AS slotIndex,
                 item_id AS itemId,
@@ -569,7 +632,7 @@ export const characterRepository = {
         inventory: {
           size: inventorySize,
           items: (inventoryItemsByCharacterId.get(id) ?? []).map(
-            ({ characterId: _characterId, ...item }) => item
+            ({ characterId: _characterId, id: _id, ...item }) => item
           )
         }
       })
@@ -617,19 +680,21 @@ function canEquipRequiredJob(character: Character, requiredJob: string | null) {
 }
 
 function getEquipmentRequirementError(character: Character, item: ItemMetadata) {
+  const missingRequirements: string[] = [];
+
   if (item.level !== null && character.level < item.level) {
-    return `Requires level ${item.level}`;
+    missingRequirements.push(`Level: ${item.level}`);
   }
 
   if (item.sex && item.sex !== character.gender) {
-    return `Requires ${item.sex} character`;
+    missingRequirements.push(`Gender: ${item.sex}`);
   }
 
   if (!canEquipRequiredJob(character, item.requiredJob)) {
-    return `Requires ${item.requiredJob}`;
+    missingRequirements.push(`Job: ${item.requiredJob}`);
   }
 
-  return null;
+  return missingRequirements.length > 0 ? `Missing requirements:\n${missingRequirements.join("\n")}` : null;
 }
 
 function getOpenInventorySlots(character: Character, additionalOpenSlots: number[] = []) {
@@ -640,6 +705,206 @@ function getOpenInventorySlots(character: Character, additionalOpenSlots: number
   }
 
   return Array.from({ length: 100 }, (_slot, index) => index).filter((index) => !usedSlotIndexes.has(index));
+}
+
+function getItemData(itemId: string) {
+  return findDataRecord("items", itemId);
+}
+
+function getStringField(item: JsonDataRecord | undefined, field: string) {
+  const value = item?.[field];
+
+  return typeof value === "string" ? value : "";
+}
+
+function getNumberField(item: JsonDataRecord | undefined, field: string) {
+  const value = item?.[field];
+
+  return typeof value === "number" ? value : null;
+}
+
+function getMaxStackSize(itemId: string) {
+  const stack = getNumberField(getItemData(itemId), "stack");
+
+  return stack && stack > 0 ? stack : 1;
+}
+
+function updateInventorySize(characterId: string, slotIndex: number, now: string) {
+  db.prepare(
+    "UPDATE characters SET inventory_size = MAX(inventory_size, ?), updated_at = ? WHERE id = ?"
+  ).run(slotIndex + 1, now, characterId);
+}
+
+function setInventorySlot(
+  characterId: string,
+  playerId: string,
+  inventoryItem: { itemId: string; quantity: number; slotIndex: number },
+  now: string
+) {
+  const inventorySize = Math.max(100, inventoryItem.slotIndex + 1);
+
+  db.prepare(
+    "UPDATE characters SET inventory_size = MAX(inventory_size, ?), updated_at = ? WHERE id = ? AND player_id = ?"
+  ).run(inventorySize, now, characterId, playerId);
+
+  const existingItem = db
+    .prepare("SELECT id FROM character_inventory_items WHERE character_id = ? AND slot_index = ?")
+    .get(characterId, inventoryItem.slotIndex) as { id: string } | undefined;
+
+  if (existingItem) {
+    db.prepare(
+      "UPDATE character_inventory_items SET item_id = ?, quantity = ?, updated_at = ? WHERE id = ?"
+    ).run(inventoryItem.itemId, inventoryItem.quantity, now, existingItem.id);
+    return;
+  }
+
+  db.prepare(
+    "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(
+    randomUUID(),
+    characterId,
+    inventoryItem.slotIndex,
+    inventoryItem.itemId,
+    inventoryItem.quantity,
+    now,
+    now
+  );
+}
+
+function addInventoryQuantity(
+  characterId: string,
+  character: Character,
+  itemId: string,
+  quantity: number,
+  now: string
+) {
+  let remainingQuantity = quantity;
+  const maxStackSize = getMaxStackSize(itemId);
+  const matchingStacks = character.inventory.items
+    .filter((item) => item.itemId === itemId && item.quantity < maxStackSize)
+    .sort((first, second) => first.slotIndex - second.slotIndex);
+  const openSlots = getOpenInventorySlots(character);
+  const availableStackQuantity = matchingStacks.reduce(
+    (total, stack) => total + maxStackSize - stack.quantity,
+    0
+  );
+
+  if (availableStackQuantity + openSlots.length * maxStackSize < quantity) {
+    return false;
+  }
+
+  for (const stack of matchingStacks) {
+    const addedQuantity = Math.min(maxStackSize - stack.quantity, remainingQuantity);
+
+    db.prepare(
+      "UPDATE character_inventory_items SET quantity = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+    ).run(stack.quantity + addedQuantity, now, characterId, stack.slotIndex);
+    remainingQuantity -= addedQuantity;
+
+    if (remainingQuantity === 0) {
+      return true;
+    }
+  }
+
+  const requiredOpenSlots = Math.ceil(remainingQuantity / maxStackSize);
+
+  if (openSlots.length < requiredOpenSlots) {
+    return false;
+  }
+
+  const insertInventoryItem = db.prepare(
+    "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  );
+
+  for (const slotIndex of openSlots.slice(0, requiredOpenSlots)) {
+    const stackQuantity = Math.min(maxStackSize, remainingQuantity);
+
+    insertInventoryItem.run(randomUUID(), characterId, slotIndex, itemId, stackQuantity, now, now);
+    updateInventorySize(characterId, slotIndex, now);
+    remainingQuantity -= stackQuantity;
+  }
+
+  return remainingQuantity === 0;
+}
+
+function swapInventorySlots(characterId: string, fromSlotIndex: number, toSlotIndex: number, now: string) {
+  const temporarySlotIndex = -1;
+
+  db.prepare(
+    "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+  ).run(temporarySlotIndex, now, characterId, fromSlotIndex);
+  db.prepare(
+    "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+  ).run(fromSlotIndex, now, characterId, toSlotIndex);
+  db.prepare(
+    "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+  ).run(toSlotIndex, now, characterId, temporarySlotIndex);
+  updateInventorySize(characterId, Math.max(fromSlotIndex, toSlotIndex), now);
+}
+
+function reassignInventorySlots(
+  characterId: string,
+  slotMoves: Array<{ fromSlotIndex: number; toSlotIndex: number }>,
+  now: string
+) {
+  const offset = 1000;
+  const updateSlot = db.prepare(
+    "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+  );
+
+  for (const { fromSlotIndex } of slotMoves) {
+    updateSlot.run(fromSlotIndex + offset, now, characterId, fromSlotIndex);
+  }
+
+  for (const { fromSlotIndex, toSlotIndex } of slotMoves) {
+    updateSlot.run(toSlotIndex, now, characterId, fromSlotIndex + offset);
+  }
+
+  if (slotMoves.length > 0) {
+    updateInventorySize(characterId, Math.max(...slotMoves.map((move) => move.toSlotIndex)), now);
+  }
+}
+
+function compareText(first: string, second: string) {
+  return first.localeCompare(second, undefined, { sensitivity: "base", numeric: true });
+}
+
+function compareInventoryItems(
+  first: Character["inventory"]["items"][number],
+  second: Character["inventory"]["items"][number],
+  sortBy: InventorySortOption
+) {
+  const firstItem = getItemData(first.itemId);
+  const secondItem = getItemData(second.itemId);
+  const fallback = first.slotIndex - second.slotIndex;
+
+  if (sortBy === "level") {
+    return (
+      (getNumberField(firstItem, "level") ?? Number.MAX_SAFE_INTEGER) -
+        (getNumberField(secondItem, "level") ?? Number.MAX_SAFE_INTEGER) ||
+      compareText(getStringField(firstItem, "name"), getStringField(secondItem, "name")) ||
+      fallback
+    );
+  }
+
+  if (sortBy === "job") {
+    return (
+      compareText(getStringField(firstItem, "requiredJob"), getStringField(secondItem, "requiredJob")) ||
+      compareText(getStringField(firstItem, "name"), getStringField(secondItem, "name")) ||
+      fallback
+    );
+  }
+
+  if (sortBy === "category") {
+    return (
+      compareText(getStringField(firstItem, "category"), getStringField(secondItem, "category")) ||
+      compareText(getStringField(firstItem, "subcategory"), getStringField(secondItem, "subcategory")) ||
+      compareText(getStringField(firstItem, "name"), getStringField(secondItem, "name")) ||
+      fallback
+    );
+  }
+
+  return compareText(getStringField(firstItem, "name"), getStringField(secondItem, "name")) || fallback;
 }
 
 function getFirstOpenPairSlot(

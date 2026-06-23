@@ -139,6 +139,89 @@ describe("character repository", () => {
     ]);
   });
 
+  it("adds stackable items to existing stacks before using new slots", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 13,
+      name: "Stacker",
+      gender: "male"
+    });
+    const now = new Date().toISOString();
+
+    db.prepare(
+      "UPDATE character_inventory_items SET quantity = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+    ).run(9998, now, character!.id, 0);
+
+    const updated = characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      itemId: "5325",
+      quantity: 3
+    });
+
+    expect(updated?.inventory.items).toEqual(
+      expect.arrayContaining([
+        { slotIndex: 0, itemId: "5325", quantity: 9999 },
+        { slotIndex: 3, itemId: "5325", quantity: 2 }
+      ])
+    );
+  });
+
+  it("moves inventory items into empty slots, merges matching stacks, and swaps different items", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 14,
+      name: "Mover",
+      gender: "male"
+    });
+
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 5,
+      itemId: "5325",
+      quantity: 2
+    });
+
+    const merged = characterRepository.moveInventoryItemForPlayer(character!.id, user!.id, 0, 5).character;
+
+    expect(merged?.inventory.items).toEqual(
+      expect.arrayContaining([{ slotIndex: 5, itemId: "5325", quantity: 5 }])
+    );
+    expect(merged?.inventory.items.some((item) => item.slotIndex === 0)).toBe(false);
+
+    const moved = characterRepository.moveInventoryItemForPlayer(character!.id, user!.id, 5, 6).character;
+
+    expect(moved?.inventory.items).toEqual(
+      expect.arrayContaining([{ slotIndex: 6, itemId: "5325", quantity: 5 }])
+    );
+
+    const swapped = characterRepository.moveInventoryItemForPlayer(character!.id, user!.id, 1, 2).character;
+
+    expect(swapped?.inventory.items).toEqual(
+      expect.arrayContaining([
+        { slotIndex: 1, itemId: "3896", quantity: 5 },
+        { slotIndex: 2, itemId: "9449", quantity: 1 }
+      ])
+    );
+  });
+
+  it("sorts inventory into dense slots by the selected item field", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 15,
+      name: "Sorter",
+      gender: "male"
+    });
+
+    const updated = characterRepository.sortInventoryForPlayer(character!.id, user!.id, "name");
+
+    expect(updated?.inventory.items).toEqual([
+      { slotIndex: 0, itemId: "9449", quantity: 1 },
+      { slotIndex: 1, itemId: "5325", quantity: 3 },
+      { slotIndex: 2, itemId: "3896", quantity: 5 }
+    ]);
+  });
+
   it("updates persisted stats and skill levels for the owning player", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({

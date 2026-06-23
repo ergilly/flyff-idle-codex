@@ -59,6 +59,15 @@ const updateCharacterProgressionSchema = z
     message: "Stats or skill levels are required"
   });
 
+const moveInventoryItemSchema = z.object({
+  fromSlotIndex: z.number().int().min(0).max(99),
+  toSlotIndex: z.number().int().min(0).max(99)
+});
+
+const sortInventorySchema = z.object({
+  sortBy: z.enum(["name", "level", "job", "category"])
+});
+
 function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
   return character;
 }
@@ -162,6 +171,61 @@ characterRouter.post("/:characterId/inventory/:slotIndex/equip", requireAuth, as
   }
 
   response.json({ character: toPublicCharacter(result.character) });
+});
+
+characterRouter.post("/:characterId/inventory/move", requireAuth, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+  const result = moveInventoryItemSchema.safeParse(request.body);
+
+  if (!characterIdResult.success || !result.success) {
+    response.status(400).json({ error: "Source and destination slots are required" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const moveResult = await characterRepository.moveInventoryItemForPlayer(
+    characterIdResult.data,
+    auth.sub,
+    result.data.fromSlotIndex,
+    result.data.toSlotIndex
+  );
+
+  if (!moveResult.character) {
+    response
+      .status(
+        moveResult.error === "Character not found" || moveResult.error === "Inventory item not found"
+          ? 404
+          : 400
+      )
+      .json({ error: moveResult.error ?? "Unable to move item" });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(moveResult.character) });
+});
+
+characterRouter.post("/:characterId/inventory/sort", requireAuth, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+  const result = sortInventorySchema.safeParse(request.body);
+
+  if (!characterIdResult.success || !result.success) {
+    response.status(400).json({ error: "Sort option is required" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const character = await characterRepository.sortInventoryForPlayer(
+    characterIdResult.data,
+    auth.sub,
+    result.data.sortBy
+  );
+
+  if (!character) {
+    response.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(character) });
 });
 
 characterRouter.post(

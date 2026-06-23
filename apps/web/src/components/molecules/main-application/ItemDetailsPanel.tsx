@@ -5,7 +5,7 @@ import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { StatLabel } from "@/components/atoms/StatRow";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
-import { getItemIconUrl, type ItemMetadata } from "@/lib/api";
+import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 
 type ItemDetailsPanelProps = {
@@ -13,6 +13,7 @@ type ItemDetailsPanelProps = {
   actionError?: string;
   actionLabel?: string;
   awakeningStats?: ItemMetadata["abilities"];
+  character?: Character;
   className?: string;
   emptyDescription?: string;
   item?: ItemMetadata | null;
@@ -36,6 +37,28 @@ const detailsListClassName =
 
 const effectListClassName =
   "grid gap-2 [&_strong]:rounded-control [&_strong]:border-2 [&_strong]:border-[rgba(226,179,63,0.42)] [&_strong]:bg-[linear-gradient(180deg,rgba(255,225,115,0.14),rgba(13,13,11,0.72))] [&_strong]:px-2.5 [&_strong]:py-2 [&_strong]:text-[0.9rem] [&_strong]:text-primary-strong [&_strong]:shadow-[inset_0_0_12px_rgba(255,216,76,0.08)]";
+
+const secondJobToFirstJob: Record<string, string> = {
+  Blade: "Mercenary",
+  Knight: "Mercenary",
+  Elementor: "Magician",
+  Psykeeper: "Magician",
+  Billposter: "Assist",
+  Ringmaster: "Assist",
+  Jester: "Acrobat",
+  Ranger: "Acrobat"
+};
+
+const thirdJobToSecondJob: Record<string, string> = {
+  Slayer: "Blade",
+  Templar: "Knight",
+  Arcanist: "Elementor",
+  Mentalist: "Psykeeper",
+  Forcemaster: "Billposter",
+  Seraph: "Ringmaster",
+  Harlequin: "Jester",
+  Crackshooter: "Ranger"
+};
 
 function formatLabel(value: string) {
   return value
@@ -68,6 +91,43 @@ function canItemTypeAwaken(item: ItemMetadata) {
   );
 }
 
+function normalizeRequirement(value: string) {
+  return value.toLowerCase().replace(/\s+/g, "");
+}
+
+function getJobLineage(job: string) {
+  const secondJob = thirdJobToSecondJob[job];
+  const firstJob = secondJob ? secondJobToFirstJob[secondJob] : secondJobToFirstJob[job];
+
+  return [job, secondJob, firstJob, "Vagrant"].filter((value): value is string => Boolean(value));
+}
+
+function meetsRequiredJob(character: Character, requiredJob: string) {
+  const normalizedRequirement = normalizeRequirement(requiredJob);
+
+  return getJobLineage(character.job).some((job) => normalizeRequirement(job) === normalizedRequirement);
+}
+
+function isRequirementUnmet(label: string, item: ItemMetadata, character?: Character) {
+  if (!character) {
+    return false;
+  }
+
+  if (label === "Gender" && item.sex) {
+    return item.sex !== character.gender;
+  }
+
+  if (label === "Req Job" && item.requiredJob) {
+    return !meetsRequiredJob(character, item.requiredJob);
+  }
+
+  if (label === "Level" && item.level !== null) {
+    return character.level < item.level;
+  }
+
+  return false;
+}
+
 function renderDescription(description: string, itemName: string): ReactNode {
   if (!itemName || !description.includes(itemName)) {
     return description;
@@ -88,6 +148,7 @@ export function ItemDetailsPanel({
   actionError = "",
   actionLabel,
   awakeningStats = [],
+  character,
   className,
   emptyDescription = "Select an equipped item to inspect its stats.",
   item,
@@ -122,7 +183,13 @@ export function ItemDetailsPanel({
     defenseRange ? ["Defense", defenseRange] : null,
     item.requiredJob ? ["Req Job", item.requiredJob] : null,
     item.level !== null ? ["Level", item.level.toString()] : null
-  ].filter((row): row is [string, string] => Boolean(row));
+  ]
+    .filter((row): row is [string, string] => Boolean(row))
+    .map(([label, value]) => ({
+      label,
+      unmet: isRequirementUnmet(label, item, character),
+      value
+    }));
   const hasAwakeningStats = awakeningStats.length > 0;
 
   return (
@@ -155,11 +222,12 @@ export function ItemDetailsPanel({
 
       {metadataRows.length > 0 ? (
         <dl className={detailsListClassName}>
-          {metadataRows.map(([label, value]) => (
+          {metadataRows.map(({ label, unmet, value }) => (
             <div
-              className={
-                label ? undefined : "justify-start [&_dd]:text-left [&_dd]:uppercase [&_dd]:text-text-muted"
-              }
+              className={cx(
+                !label && "justify-start [&_dd]:text-left [&_dd]:uppercase [&_dd]:text-text-muted",
+                unmet && "[&_dd]:!text-[#ff4d4d]"
+              )}
               key={`${label}-${value}`}
             >
               {label ? <dt>{label}</dt> : null}

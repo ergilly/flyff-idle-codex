@@ -166,6 +166,7 @@ export function CharacterEquipmentPanel({
           actionDisabled={isActionPending}
           actionError={actionError}
           actionLabel={selectedEquipmentSlot ? "Unequip" : undefined}
+          character={character}
           item={selectedItem}
           onAction={
             selectedEquipmentSlot && onUnequipEquipmentSlot

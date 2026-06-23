@@ -71,6 +71,8 @@ export type CharacterInventoryItem = {
   quantity: number;
 };
 
+export type InventorySortOption = "name" | "level" | "job" | "category";
+
 export type ItemMetadata = {
   id: string;
   name: string;
@@ -88,6 +90,7 @@ export type ItemMetadata = {
   twoHanded: boolean | null;
   minDefense: number | null;
   maxDefense: number | null;
+  stack?: number | null;
   abilities: Array<{
     parameter: string;
     add: number | null;
@@ -340,6 +343,53 @@ export async function equipInventoryItem(
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(data?.error ?? "Unable to equip item");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
+export async function moveInventoryItem(
+  token: string,
+  characterId: string,
+  fromSlotIndex: number,
+  toSlotIndex: number
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/inventory/move`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ fromSlotIndex, toSlotIndex })
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to move item");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
+export async function sortInventory(
+  token: string,
+  characterId: string,
+  sortBy: InventorySortOption
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/inventory/sort`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ sortBy })
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to sort inventory");
   }
 
   const data = (await response.json()) as { character: Character };

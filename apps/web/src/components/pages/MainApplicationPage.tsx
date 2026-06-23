@@ -31,10 +31,13 @@ import {
   equipInventoryItem,
   fetchCharacters,
   fetchItems,
+  moveInventoryItem,
   refundCharacterSkills,
   refundCharacterStats,
+  sortInventory,
   type Character,
   type CharacterEquipmentSlot,
+  type InventorySortOption,
   type CharacterSkillLevels,
   type ItemMetadata,
   unequipItem,
@@ -541,6 +544,63 @@ export function MainApplicationPage() {
     }
   }
 
+  async function handleMoveInventoryItem(fromSlotIndex: number, toSlotIndex: number) {
+    if (!selectedCharacter || fromSlotIndex === toSlotIndex) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setItemActionError("");
+    setIsItemActionPending(true);
+
+    try {
+      const updatedCharacter = await moveInventoryItem(
+        token,
+        selectedCharacter.id,
+        fromSlotIndex,
+        toSlotIndex
+      );
+      updateCharacter(updatedCharacter);
+      setSelectedInventorySlotIndex(toSlotIndex);
+    } catch (moveError) {
+      setItemActionError(moveError instanceof Error ? moveError.message : "Unable to move item");
+    } finally {
+      setIsItemActionPending(false);
+    }
+  }
+
+  async function handleSortInventory(sortBy: InventorySortOption) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setItemActionError("");
+    setIsItemActionPending(true);
+
+    try {
+      const updatedCharacter = await sortInventory(token, selectedCharacter.id, sortBy);
+      updateCharacter(updatedCharacter);
+      setSelectedInventorySlotIndex(null);
+    } catch (sortError) {
+      setItemActionError(sortError instanceof Error ? sortError.message : "Unable to sort inventory");
+    } finally {
+      setIsItemActionPending(false);
+    }
+  }
+
   async function handleUnequipEquipmentSlot(equipmentSlot: CharacterEquipmentSlot) {
     if (!selectedCharacter) {
       return;
@@ -671,7 +731,9 @@ export function MainApplicationPage() {
             isActionPending={isItemActionPending}
             itemsById={itemsById}
             onEquipSlot={handleEquipInventorySlot}
+            onMoveItem={handleMoveInventoryItem}
             onSelectSlot={handleSelectInventorySlot}
+            onSortInventory={handleSortInventory}
             selectedSlotIndex={selectedInventorySlotIndex}
           />
         ) : activeNavItem === "Admin" ? (

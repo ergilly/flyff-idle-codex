@@ -1,10 +1,10 @@
 import Image from "next/image";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, DragEvent, ReactNode } from "react";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { ItemDetailsPanel } from "@/components/molecules/main-application/ItemDetailsPanel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
-import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
+import { getItemIconUrl, type Character, type InventorySortOption, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 
 const inventorySlotCount = 100;
@@ -15,9 +15,18 @@ type InventoryPageProps = {
   isActionPending?: boolean;
   itemsById: Record<string, ItemMetadata>;
   onEquipSlot?: (slotIndex: number) => void;
+  onMoveItem?: (fromSlotIndex: number, toSlotIndex: number) => void;
   onSelectSlot: (slotIndex: number | null) => void;
+  onSortInventory?: (sortBy: InventorySortOption) => void;
   selectedSlotIndex: number | null;
 };
+
+const inventorySortOptions: Array<{ label: string; value: InventorySortOption }> = [
+  { label: "A-Z", value: "name" },
+  { label: "Level", value: "level" },
+  { label: "Job", value: "job" },
+  { label: "Category", value: "category" }
+];
 
 export function InventoryPage({
   actionError = "",
@@ -25,7 +34,9 @@ export function InventoryPage({
   isActionPending = false,
   itemsById,
   onEquipSlot,
+  onMoveItem,
   onSelectSlot,
+  onSortInventory,
   selectedSlotIndex
 }: InventoryPageProps) {
   const inventoryItemsBySlot = new Map(character.inventory.items.map((item) => [item.slotIndex, item]));
@@ -44,6 +55,31 @@ export function InventoryPage({
           <MutedText>
             {character.inventory.items.length} / {inventorySlotCount} occupied
           </MutedText>
+          <label className="grid min-w-[180px] gap-1 text-xs font-black uppercase tracking-[0.08em] text-text-muted">
+            Sort
+            <select
+              className="h-10 rounded-control border-2 border-border bg-panel-muted px-3 text-sm font-black normal-case tracking-normal text-foreground outline-none transition-colors hover:border-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+              defaultValue=""
+              disabled={isActionPending}
+              onChange={(event) => {
+                const sortBy = event.target.value as InventorySortOption;
+
+                if (sortBy) {
+                  onSortInventory?.(sortBy);
+                  event.target.value = "";
+                }
+              }}
+            >
+              <option value="" disabled>
+                Sort by...
+              </option>
+              {inventorySortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <div
           className="themed-scrollbar grid min-h-0 grid-cols-[repeat(auto-fill,100px)] content-start justify-start gap-2 overflow-y-auto pr-2"
@@ -65,7 +101,22 @@ export function InventoryPage({
                 $selected={isSelected}
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
+                draggable={Boolean(inventoryItem) && !isActionPending}
                 key={slotIndex}
+                onDragOver={(event) => {
+                  if (onMoveItem) {
+                    event.preventDefault();
+                  }
+                }}
+                onDragStart={(event) => {
+                  if (!inventoryItem) {
+                    return;
+                  }
+
+                  event.dataTransfer.effectAllowed = "move";
+                  event.dataTransfer.setData("text/plain", String(slotIndex));
+                }}
+                onDrop={(event) => handleDrop(event, slotIndex, onMoveItem)}
                 onClick={() => onSelectSlot(inventoryItem ? slotIndex : null)}
                 title={slotLabel}
                 type="button"
@@ -92,6 +143,7 @@ export function InventoryPage({
         actionError={actionError}
         actionLabel={selectedInventoryItem ? "Equip" : undefined}
         className="themed-scrollbar h-full max-h-full max-w-none overflow-y-auto border-border"
+        character={character}
         emptyDescription="Select an inventory item to inspect its stats."
         item={selectedItem}
         onAction={
@@ -103,6 +155,23 @@ export function InventoryPage({
       />
     </section>
   );
+}
+
+function handleDrop(
+  event: DragEvent<HTMLButtonElement>,
+  toSlotIndex: number,
+  onMoveItem?: (fromSlotIndex: number, toSlotIndex: number) => void
+) {
+  if (!onMoveItem) {
+    return;
+  }
+
+  event.preventDefault();
+  const fromSlotIndex = Number(event.dataTransfer.getData("text/plain"));
+
+  if (Number.isInteger(fromSlotIndex) && fromSlotIndex >= 0 && fromSlotIndex !== toSlotIndex) {
+    onMoveItem(fromSlotIndex, toSlotIndex);
+  }
 }
 
 type InventorySlotProps = ButtonHTMLAttributes<HTMLButtonElement> & {
