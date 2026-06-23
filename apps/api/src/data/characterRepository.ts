@@ -219,7 +219,12 @@ export const characterRepository = {
     const now = new Date().toISOString();
 
     if (inventoryItem.slotIndex !== undefined) {
-      setInventorySlot(id, playerId, { ...inventoryItem, slotIndex: inventoryItem.slotIndex }, now);
+      if (
+        !setInventorySlot(character, playerId, { ...inventoryItem, slotIndex: inventoryItem.slotIndex }, now)
+      ) {
+        return null;
+      }
+
       return this.findById(id);
     }
 
@@ -242,6 +247,10 @@ export const characterRepository = {
       return { character, error: null };
     }
 
+    if (toSlotIndex >= character.inventory.size) {
+      return { character: null, error: "Destination slot is outside inventory capacity" };
+    }
+
     const sourceItem = character.inventory.items.find((item) => item.slotIndex === fromSlotIndex);
 
     if (!sourceItem) {
@@ -255,7 +264,6 @@ export const characterRepository = {
       db.prepare(
         "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
       ).run(toSlotIndex, now, id, fromSlotIndex);
-      updateInventorySize(id, toSlotIndex, now);
       return { character: this.findById(id), error: null };
     }
 
@@ -704,7 +712,9 @@ function getOpenInventorySlots(character: Character, additionalOpenSlots: number
     usedSlotIndexes.delete(slotIndex);
   }
 
-  return Array.from({ length: 100 }, (_slot, index) => index).filter((index) => !usedSlotIndexes.has(index));
+  return Array.from({ length: character.inventory.size }, (_slot, index) => index).filter(
+    (index) => !usedSlotIndexes.has(index)
+  );
 }
 
 function getItemData(itemId: string) {
@@ -736,20 +746,18 @@ function updateInventorySize(characterId: string, slotIndex: number, now: string
 }
 
 function setInventorySlot(
-  characterId: string,
+  character: Character,
   playerId: string,
   inventoryItem: { itemId: string; quantity: number; slotIndex: number },
   now: string
 ) {
-  const inventorySize = Math.max(100, inventoryItem.slotIndex + 1);
-
-  db.prepare(
-    "UPDATE characters SET inventory_size = MAX(inventory_size, ?), updated_at = ? WHERE id = ? AND player_id = ?"
-  ).run(inventorySize, now, characterId, playerId);
+  if (inventoryItem.slotIndex >= character.inventory.size || character.playerId !== playerId) {
+    return false;
+  }
 
   const existingItem = db
     .prepare("SELECT id FROM character_inventory_items WHERE character_id = ? AND slot_index = ?")
-    .get(characterId, inventoryItem.slotIndex) as { id: string } | undefined;
+    .get(character.id, inventoryItem.slotIndex) as { id: string } | undefined;
 
   if (existingItem) {
     db.prepare(
@@ -762,13 +770,15 @@ function setInventorySlot(
     "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
   ).run(
     randomUUID(),
-    characterId,
+    character.id,
     inventoryItem.slotIndex,
     inventoryItem.itemId,
     inventoryItem.quantity,
     now,
     now
   );
+
+  return true;
 }
 
 function addInventoryQuantity(
@@ -839,7 +849,6 @@ function swapInventorySlots(characterId: string, fromSlotIndex: number, toSlotIn
   db.prepare(
     "UPDATE character_inventory_items SET slot_index = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
   ).run(toSlotIndex, now, characterId, temporarySlotIndex);
-  updateInventorySize(characterId, Math.max(fromSlotIndex, toSlotIndex), now);
 }
 
 function reassignInventorySlots(

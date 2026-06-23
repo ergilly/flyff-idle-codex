@@ -500,14 +500,22 @@ export function MainApplicationPage() {
     setIsAddingInventoryItem(true);
 
     try {
+      const previousInventoryItemsBySlot = new Map(
+        selectedCharacter.inventory.items.map((item) => [item.slotIndex, item])
+      );
       const updatedCharacter = await addCharacterInventoryItem(token, selectedCharacter.id, {
         itemId,
         quantity
       });
       updateCharacter(updatedCharacter);
-      const addedItem = [...updatedCharacter.inventory.items]
-        .reverse()
-        .find((item) => item.itemId === itemId && item.quantity === quantity);
+      const addedItem = [...updatedCharacter.inventory.items].reverse().find((item) => {
+        const previousItem = previousInventoryItemsBySlot.get(item.slotIndex);
+
+        return (
+          item.itemId === itemId &&
+          (!previousItem || previousItem.itemId !== item.itemId || previousItem.quantity !== item.quantity)
+        );
+      });
       setSelectedInventorySlotIndex(addedItem?.slotIndex ?? null);
     } catch (addItemError) {
       setAdminError(addItemError instanceof Error ? addItemError.message : "Unable to add item");

@@ -321,7 +321,13 @@ export async function addCharacterInventoryItem(
   });
 
   if (!response.ok) {
-    throw new Error(response.status === 404 ? "Item or character not found" : "Unable to add item");
+    throw new Error(
+      response.status === 403
+        ? "Admin access is required"
+        : response.status === 404
+          ? "Item or character not found"
+          : "Unable to add item"
+    );
   }
 
   const data = (await response.json()) as { character: Character };

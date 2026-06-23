@@ -202,6 +202,36 @@ describe("character repository", () => {
         { slotIndex: 2, itemId: "9449", quantity: 1 }
       ])
     );
+    expect(swapped?.inventory.size).toBe(50);
+  });
+
+  it("does not let inventory writes exceed the character capacity", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 16,
+      name: "Capacity",
+      gender: "male"
+    });
+
+    expect(
+      characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+        slotIndex: 55,
+        itemId: "5325",
+        quantity: 1
+      })
+    ).toBeNull();
+
+    const moveResult = characterRepository.moveInventoryItemForPlayer(character!.id, user!.id, 0, 55);
+
+    expect(moveResult).toEqual({
+      character: null,
+      error: "Destination slot is outside inventory capacity"
+    });
+    expect(characterRepository.findById(character!.id)?.inventory).toMatchObject({
+      size: 50,
+      items: expect.not.arrayContaining([expect.objectContaining({ slotIndex: 55 })])
+    });
   });
 
   it("sorts inventory into dense slots by the selected item field", () => {

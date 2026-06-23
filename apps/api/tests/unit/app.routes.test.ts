@@ -106,6 +106,24 @@ describe("app routes", () => {
     });
   });
 
+  it("does not infer admin access from email address", async () => {
+    const registerResponse = await request(app).post("/api/auth/register").send({
+      displayName: "Admin Name",
+      email: "admin-looking@flyff-idle.local",
+      password: "password123"
+    });
+
+    expect(registerResponse).toMatchObject({
+      status: 201,
+      body: {
+        user: expect.objectContaining({
+          email: "admin-looking@flyff-idle.local",
+          isAdmin: false
+        })
+      }
+    });
+  });
+
   async function loginDemoPlayer() {
     return request(app).post("/api/auth/login").send({
       email: "test@flyff-idle.local",

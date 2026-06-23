@@ -7,8 +7,6 @@ import { SectionHeading } from "@/components/molecules/main-application/SectionH
 import { getItemIconUrl, type Character, type InventorySortOption, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 
-const inventorySlotCount = 100;
-
 type InventoryPageProps = {
   actionError?: string;
   character: Character;
@@ -39,6 +37,7 @@ export function InventoryPage({
   onSortInventory,
   selectedSlotIndex
 }: InventoryPageProps) {
+  const inventorySlotCount = character.inventory.size;
   const inventoryItemsBySlot = new Map(character.inventory.items.map((item) => [item.slotIndex, item]));
   const selectedInventoryItem =
     selectedSlotIndex !== null ? inventoryItemsBySlot.get(selectedSlotIndex) : undefined;

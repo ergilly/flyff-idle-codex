@@ -6,6 +6,7 @@ db.exec(`
     email TEXT NOT NULL UNIQUE,
     display_name TEXT NOT NULL,
     password_hash TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
@@ -78,12 +79,23 @@ db.exec(`
 const characterColumns = new Set(
   (db.prepare("PRAGMA table_info(characters)").all() as Array<{ name: string }>).map((column) => column.name)
 );
+const userColumns = new Set(
+  (db.prepare("PRAGMA table_info(users)").all() as Array<{ name: string }>).map((column) => column.name)
+);
+
+function addUserColumn(name: string, definition: string) {
+  if (!userColumns.has(name)) {
+    db.exec(`ALTER TABLE users ADD COLUMN ${name} ${definition}`);
+  }
+}
 
 function addCharacterColumn(name: string, definition: string) {
   if (!characterColumns.has(name)) {
     db.exec(`ALTER TABLE characters ADD COLUMN ${name} ${definition}`);
   }
 }
+
+addUserColumn("is_admin", "INTEGER NOT NULL DEFAULT 0");
 
 addCharacterColumn("str", "INTEGER NOT NULL DEFAULT 15");
 addCharacterColumn("gender", "TEXT NOT NULL DEFAULT 'male'");
