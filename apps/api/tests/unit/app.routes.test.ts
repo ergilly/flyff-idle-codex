@@ -72,7 +72,53 @@ describe("app routes", () => {
         token: expect.any(String),
         user: expect.objectContaining({
           email: "fresh@flyff-idle.local",
-          displayName: "Fresh Pilot"
+          displayName: "Fresh Pilot",
+          isAdmin: false
+        })
+      }
+    });
+  });
+
+  it("marks seeded test accounts as admins", async () => {
+    await expect(loginDemoPlayer()).resolves.toMatchObject({
+      status: 200,
+      body: {
+        user: expect.objectContaining({
+          email: "test@flyff-idle.local",
+          isAdmin: true
+        })
+      }
+    });
+
+    await expect(
+      request(app).post("/api/auth/login").send({
+        email: "thirdjobs@flyff-idle.local",
+        password: "password123"
+      })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        user: expect.objectContaining({
+          email: "thirdjobs@flyff-idle.local",
+          isAdmin: true
+        })
+      }
+    });
+  });
+
+  it("does not infer admin access from email address", async () => {
+    const registerResponse = await request(app).post("/api/auth/register").send({
+      displayName: "Admin Name",
+      email: "admin-looking@flyff-idle.local",
+      password: "password123"
+    });
+
+    expect(registerResponse).toMatchObject({
+      status: 201,
+      body: {
+        user: expect.objectContaining({
+          email: "admin-looking@flyff-idle.local",
+          isAdmin: false
         })
       }
     });
@@ -316,6 +362,80 @@ describe("app routes", () => {
           })
         ]
       }
+    });
+  });
+
+  it("lets admins refund stat and skill points for their characters", async () => {
+    const loginResponse = await loginDemoPlayer();
+    const charactersResponse = await request(app)
+      .get("/api/characters")
+      .set("Authorization", `Bearer ${loginResponse.body.token}`);
+    const characterId = charactersResponse.body.characters[0].id;
+
+    await request(app)
+      .patch(`/api/characters/${characterId}/progression`)
+      .set("Authorization", `Bearer ${loginResponse.body.token}`)
+      .send({
+        stats: {
+          str: 19,
+          sta: 18,
+          dex: 17,
+          int: 16
+        },
+        skillLevels: {
+          "vagrant-clean-hit": 2
+        }
+      });
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/refund-stats`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          stats: {
+            str: 15,
+            sta: 15,
+            dex: 15,
+            int: 15
+          },
+          skillLevels: {
+            "vagrant-clean-hit": 2
+          }
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/refund-skills`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          skillLevels: {}
+        })
+      }
+    });
+  });
+
+  it("rejects non-admin point refunds", async () => {
+    const registerResponse = await registerFreshPlayer("NotAdmin");
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", `Bearer ${registerResponse.body.token}`)
+      .send({ slotIndex: 0, name: "PlainHero", gender: "female" });
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${createResponse.body.character.id}/refund-stats`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 403,
+      body: { error: "Admin access is required" }
     });
   });
 

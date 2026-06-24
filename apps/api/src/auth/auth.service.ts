@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { config } from "../config.js";
 import { userRepository } from "../data/userRepository.js";
-import type { AuthTokenPayload, PublicUser } from "../types.js";
+import type { AuthTokenPayload, PublicUser, User } from "../types.js";
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -19,12 +19,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 type AuthSession = { token: string; user: PublicUser };
 
-function createSession(user: {
-  id: string;
-  email: string;
-  displayName: string;
-  passwordHash: string;
-}): AuthSession {
+function createSession(user: User): AuthSession {
   const payload: AuthTokenPayload = {
     sub: user.id,
     email: user.email

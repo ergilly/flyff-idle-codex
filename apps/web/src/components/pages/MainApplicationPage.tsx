@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
+import { AdminPage } from "@/components/pages/AdminPage";
+import { InventoryPage } from "@/components/pages/InventoryPage";
 import { ContentHeading } from "@/components/molecules/main-application/ContentHeading";
-import {
-  getEquippedItemIds,
-  getEquipmentItems
-} from "@/components/molecules/main-application/CharacterEquipmentPanel";
+import { getEquippedItemIds } from "@/components/molecules/main-application/CharacterEquipmentPanel";
 import { type StatKey } from "@/components/molecules/main-application/StatAllocationPanel";
 import { CharacterPageContent } from "@/components/organisms/main-application/CharacterPageContent";
 import { DashboardStatsGrid } from "@/components/organisms/main-application/DashboardStatsGrid";
@@ -28,10 +27,20 @@ import {
 } from "@/components/templates/main-application/MainApplicationTemplate";
 import { getAvailableStatPoints, getTotalSkillPoints } from "@/lib/characterProgression";
 import {
+  addCharacterInventoryItem,
+  equipInventoryItem,
   fetchCharacters,
+  fetchItems,
+  moveInventoryItem,
+  refundCharacterSkills,
+  refundCharacterStats,
+  sortInventory,
   type Character,
+  type CharacterEquipmentSlot,
+  type InventorySortOption,
   type CharacterSkillLevels,
   type ItemMetadata,
+  unequipItem,
   updateCharacterProgression
 } from "@/lib/api";
 import {
@@ -89,17 +98,30 @@ export function MainApplicationPage() {
   const [skillTabs, setSkillTabs] = useState<SkillTreeTab[]>([]);
   const [itemsById, setItemsById] = useState<Record<string, ItemMetadata>>({});
   const [selectedEquipmentItemId, setSelectedEquipmentItemId] = useState<string | null>(null);
+  const [selectedInventorySlotIndex, setSelectedInventorySlotIndex] = useState<number | null>(null);
+  const [itemActionError, setItemActionError] = useState("");
+  const [isItemActionPending, setIsItemActionPending] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminError, setAdminError] = useState("");
+  const [refundingAdminAction, setRefundingAdminAction] = useState<"stats" | "skills" | null>(null);
+  const [isAddingInventoryItem, setIsAddingInventoryItem] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("flyffIdleToken");
+    const storedUser = localStorage.getItem("flyffIdleUser");
     const storedCharacterId = localStorage.getItem("flyffIdleSelectedCharacterId");
     const storedTheme = localStorage.getItem(storageKey) === "light" ? "light" : "dark";
 
     setTheme(storedTheme);
     applyTheme(storedTheme);
     setSelectedCharacterId(storedCharacterId);
+    try {
+      setIsAdmin(storedUser ? Boolean((JSON.parse(storedUser) as { isAdmin?: boolean }).isAdmin) : false);
+    } catch {
+      setIsAdmin(false);
+    }
 
     if (!token) {
       router.replace("/");
@@ -189,20 +211,25 @@ export function MainApplicationPage() {
     if (!selectedCharacter) {
       setItemsById({});
       setSelectedEquipmentItemId(null);
+      setSelectedInventorySlotIndex(null);
       return;
     }
 
     const token = localStorage.getItem("flyffIdleToken");
-    const equippedItemIds = getEquippedItemIds(selectedCharacter);
+    const itemIds = [
+      ...getEquippedItemIds(selectedCharacter),
+      ...selectedCharacter.inventory.items.map((item) => item.itemId)
+    ];
     let ignoreResult = false;
 
-    if (!token || equippedItemIds.length === 0) {
+    if (!token || itemIds.length === 0) {
       setItemsById({});
       setSelectedEquipmentItemId(null);
+      setSelectedInventorySlotIndex(null);
       return;
     }
 
-    getEquipmentItems(token, selectedCharacter)
+    fetchItems(token, itemIds)
       .then((items) => {
         if (!ignoreResult) {
           setItemsById(Object.fromEntries(items.map((item) => [item.id, item])));
@@ -228,6 +255,16 @@ export function MainApplicationPage() {
       setSelectedEquipmentItemId(null);
     }
   }, [selectedCharacter, selectedEquipmentItemId]);
+
+  useEffect(() => {
+    if (!selectedCharacter || selectedInventorySlotIndex === null) {
+      return;
+    }
+
+    if (!selectedCharacter.inventory.items.some((item) => item.slotIndex === selectedInventorySlotIndex)) {
+      setSelectedInventorySlotIndex(null);
+    }
+  }, [selectedCharacter, selectedInventorySlotIndex]);
 
   function handleAddStat(stat: StatKey) {
     if (availableStatPoints <= 0) {
@@ -375,6 +412,229 @@ export function MainApplicationPage() {
     setIsMobileNavOpen(false);
   }
 
+  function handleSelectEquipmentItem(itemId: string) {
+    setItemActionError("");
+    setSelectedEquipmentItemId(itemId);
+  }
+
+  function handleSelectInventorySlot(slotIndex: number | null) {
+    setItemActionError("");
+    setSelectedInventorySlotIndex(slotIndex);
+  }
+
+  function updateCharacter(updatedCharacter: Character) {
+    setCharacters((currentCharacters) =>
+      currentCharacters.map((character) =>
+        character.id === updatedCharacter.id ? updatedCharacter : character
+      )
+    );
+  }
+
+  async function handleRefundStats() {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setAdminError("");
+    setRefundingAdminAction("stats");
+
+    try {
+      const updatedCharacter = await refundCharacterStats(token, selectedCharacter.id);
+      updateCharacter(updatedCharacter);
+      setAppliedStats({ str: 0, sta: 0, dex: 0, int: 0 });
+      setPendingStats({ str: 0, sta: 0, dex: 0, int: 0 });
+      setPendingSkillLevels({});
+    } catch (refundError) {
+      setAdminError(refundError instanceof Error ? refundError.message : "Unable to refund points");
+    } finally {
+      setRefundingAdminAction(null);
+    }
+  }
+
+  async function handleRefundSkills() {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setAdminError("");
+    setRefundingAdminAction("skills");
+
+    try {
+      const updatedCharacter = await refundCharacterSkills(token, selectedCharacter.id);
+      updateCharacter(updatedCharacter);
+      setPendingSkillLevels({});
+    } catch (refundError) {
+      setAdminError(refundError instanceof Error ? refundError.message : "Unable to refund points");
+    } finally {
+      setRefundingAdminAction(null);
+    }
+  }
+
+  async function handleAddInventoryItem(itemId: string, quantity: number) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setAdminError("");
+    setIsAddingInventoryItem(true);
+
+    try {
+      const previousInventoryItemsBySlot = new Map(
+        selectedCharacter.inventory.items.map((item) => [item.slotIndex, item])
+      );
+      const updatedCharacter = await addCharacterInventoryItem(token, selectedCharacter.id, {
+        itemId,
+        quantity
+      });
+      updateCharacter(updatedCharacter);
+      const addedItem = [...updatedCharacter.inventory.items].reverse().find((item) => {
+        const previousItem = previousInventoryItemsBySlot.get(item.slotIndex);
+
+        return (
+          item.itemId === itemId &&
+          (!previousItem || previousItem.itemId !== item.itemId || previousItem.quantity !== item.quantity)
+        );
+      });
+      setSelectedInventorySlotIndex(addedItem?.slotIndex ?? null);
+    } catch (addItemError) {
+      setAdminError(addItemError instanceof Error ? addItemError.message : "Unable to add item");
+    } finally {
+      setIsAddingInventoryItem(false);
+    }
+  }
+
+  async function handleEquipInventorySlot(slotIndex: number) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+    const inventoryItem = selectedCharacter.inventory.items.find((item) => item.slotIndex === slotIndex);
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setItemActionError("");
+    setIsItemActionPending(true);
+
+    try {
+      const updatedCharacter = await equipInventoryItem(token, selectedCharacter.id, slotIndex);
+      updateCharacter(updatedCharacter);
+      setSelectedInventorySlotIndex(null);
+      setSelectedEquipmentItemId(inventoryItem?.itemId ?? null);
+    } catch (equipError) {
+      setItemActionError(equipError instanceof Error ? equipError.message : "Unable to equip item");
+    } finally {
+      setIsItemActionPending(false);
+    }
+  }
+
+  async function handleMoveInventoryItem(fromSlotIndex: number, toSlotIndex: number) {
+    if (!selectedCharacter || fromSlotIndex === toSlotIndex) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setItemActionError("");
+    setIsItemActionPending(true);
+
+    try {
+      const updatedCharacter = await moveInventoryItem(
+        token,
+        selectedCharacter.id,
+        fromSlotIndex,
+        toSlotIndex
+      );
+      updateCharacter(updatedCharacter);
+      setSelectedInventorySlotIndex(toSlotIndex);
+    } catch (moveError) {
+      setItemActionError(moveError instanceof Error ? moveError.message : "Unable to move item");
+    } finally {
+      setIsItemActionPending(false);
+    }
+  }
+
+  async function handleSortInventory(sortBy: InventorySortOption) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setItemActionError("");
+    setIsItemActionPending(true);
+
+    try {
+      const updatedCharacter = await sortInventory(token, selectedCharacter.id, sortBy);
+      updateCharacter(updatedCharacter);
+      setSelectedInventorySlotIndex(null);
+    } catch (sortError) {
+      setItemActionError(sortError instanceof Error ? sortError.message : "Unable to sort inventory");
+    } finally {
+      setIsItemActionPending(false);
+    }
+  }
+
+  async function handleUnequipEquipmentSlot(equipmentSlot: CharacterEquipmentSlot) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    setItemActionError("");
+    setIsItemActionPending(true);
+
+    try {
+      const updatedCharacter = await unequipItem(token, selectedCharacter.id, equipmentSlot);
+      updateCharacter(updatedCharacter);
+      setSelectedEquipmentItemId(null);
+    } catch (unequipError) {
+      setItemActionError(unequipError instanceof Error ? unequipError.message : "Unable to unequip item");
+    } finally {
+      setIsItemActionPending(false);
+    }
+  }
+
   function handleThemeToggle() {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
@@ -422,6 +682,7 @@ export function MainApplicationPage() {
           activeNavItem={activeNavItem}
           characterName={selectedCharacter.name}
           isMobileNavOpen={isMobileNavOpen}
+          isAdmin={isAdmin}
           isProfileMenuOpen={isProfileMenuOpen}
           onChangeCharacter={handleChangeCharacter}
           onLogout={handleLogout}
@@ -452,6 +713,8 @@ export function MainApplicationPage() {
             character={selectedCharacter}
             detailStats={detailStats}
             itemsById={itemsById}
+            equipmentActionError={itemActionError}
+            isEquipmentActionPending={isItemActionPending}
             onAddSkillLevel={handleAddSkillLevel}
             onAddStat={handleAddStat}
             onApplySkills={handleApplySkills}
@@ -461,12 +724,35 @@ export function MainApplicationPage() {
             onRemoveStat={handleRemoveStat}
             onResetSkills={handleResetSkills}
             onResetStats={handleResetStats}
-            onSelectEquipmentItem={setSelectedEquipmentItemId}
+            onSelectEquipmentItem={handleSelectEquipmentItem}
+            onUnequipEquipmentSlot={handleUnequipEquipmentSlot}
             pendingSkillLevels={pendingSkillLevels}
             pendingStats={pendingStats}
             selectedEquipmentItemId={selectedEquipmentItemId}
             skillTabs={skillTabs}
             statKeys={statKeys}
+          />
+        ) : activeNavItem === "Inventory" ? (
+          <InventoryPage
+            character={selectedCharacter}
+            actionError={itemActionError}
+            isActionPending={isItemActionPending}
+            itemsById={itemsById}
+            onEquipSlot={handleEquipInventorySlot}
+            onMoveItem={handleMoveInventoryItem}
+            onSelectSlot={handleSelectInventorySlot}
+            onSortInventory={handleSortInventory}
+            selectedSlotIndex={selectedInventorySlotIndex}
+          />
+        ) : activeNavItem === "Admin" ? (
+          <AdminPage
+            addingInventoryItem={isAddingInventoryItem}
+            character={selectedCharacter}
+            error={adminError}
+            onAddInventoryItem={handleAddInventoryItem}
+            onRefundSkills={handleRefundSkills}
+            onRefundStats={handleRefundStats}
+            refundingAction={refundingAdminAction}
           />
         ) : (
           <DashboardStatsGrid character={selectedCharacter} />

@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { verifyToken } from "./auth.service.js";
+import { userRepository } from "../data/userRepository.js";
 
 export function requireAuth(request: Request, response: Response, next: NextFunction) {
   const header = request.header("authorization");
@@ -19,4 +20,18 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
 
   response.locals.auth = payload;
   next();
+}
+
+export function requireAdmin(request: Request, response: Response, next: NextFunction) {
+  requireAuth(request, response, () => {
+    const user = userRepository.findById(response.locals.auth.sub);
+
+    if (!user?.isAdmin) {
+      response.status(403).json({ error: "Admin access is required" });
+      return;
+    }
+
+    response.locals.user = user;
+    next();
+  });
 }

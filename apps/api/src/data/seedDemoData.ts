@@ -15,50 +15,51 @@ type SeedCharacter = {
 function upsertSeedUser({
   displayName,
   email,
+  isAdmin = false,
   now,
   passwordHash
 }: {
   displayName: string;
   email: string;
+  isAdmin?: boolean;
   now: string;
   passwordHash: string;
 }) {
   const existingUser = db
     .prepare(
-      "SELECT id, email, display_name AS displayName, password_hash AS passwordHash FROM users WHERE email = ?"
+      "SELECT id, email, display_name AS displayName, password_hash AS passwordHash, is_admin AS isAdmin FROM users WHERE email = ?"
     )
-    .get(email) as User | undefined;
+    .get(email) as (Omit<User, "isAdmin"> & { isAdmin: number }) | undefined;
 
   if (existingUser) {
-    db.prepare("UPDATE users SET display_name = ?, password_hash = ?, updated_at = ? WHERE id = ?").run(
-      displayName,
-      passwordHash,
-      now,
-      existingUser.id
-    );
+    db.prepare(
+      "UPDATE users SET display_name = ?, password_hash = ?, is_admin = ?, updated_at = ? WHERE id = ?"
+    ).run(displayName, passwordHash, Number(isAdmin), now, existingUser.id);
 
     return {
       ...existingUser,
       displayName,
-      passwordHash
+      passwordHash,
+      isAdmin
     };
   }
 
-  const user = {
+  const user: User = {
     id: randomUUID(),
     email,
     displayName,
-    passwordHash
+    passwordHash,
+    isAdmin
   };
 
   db.prepare(
-    "INSERT INTO users (id, email, display_name, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(user.id, user.email, user.displayName, user.passwordHash, now, now);
+    "INSERT INTO users (id, email, display_name, password_hash, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+  ).run(user.id, user.email, user.displayName, user.passwordHash, Number(user.isAdmin), now, now);
 
   return user;
 }
 
-function replaceSeedCharacters(user: User, characters: readonly SeedCharacter[], now: string) {
+function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly SeedCharacter[], now: string) {
   db.prepare("DELETE FROM characters WHERE player_id = ?").run(user.id);
 
   const insertCharacter = db.prepare(
@@ -100,6 +101,7 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
   const demoUser = upsertSeedUser({
     email: "test@flyff-idle.local",
     displayName: "Prototype Pilot",
+    isAdmin: true,
     passwordHash,
     now
   });
@@ -178,6 +180,7 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
   const thirdJobUser = upsertSeedUser({
     email: "thirdjobs@flyff-idle.local",
     displayName: "Third Job Tester",
+    isAdmin: true,
     passwordHash,
     now
   });

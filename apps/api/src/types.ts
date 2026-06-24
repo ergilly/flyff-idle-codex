@@ -3,6 +3,7 @@ export type User = {
   email: string;
   displayName: string;
   passwordHash: string;
+  isAdmin: boolean;
 };
 
 export type PublicUser = Omit<User, "passwordHash">;

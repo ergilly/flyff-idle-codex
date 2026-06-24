@@ -2,7 +2,13 @@ import Image from "next/image";
 import type { ButtonHTMLAttributes, CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { ItemDetailsPanel } from "@/components/molecules/main-application/ItemDetailsPanel";
-import { fetchItems, getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
+import {
+  fetchItems,
+  getItemIconUrl,
+  type Character,
+  type CharacterEquipmentSlot,
+  type ItemMetadata
+} from "@/lib/api";
 import { cx } from "@/lib/classNames";
 
 type EquipmentFrame =
@@ -33,8 +39,11 @@ type EquipmentSlotDefinition = {
 };
 
 type CharacterEquipmentPanelProps = {
+  actionError?: string;
   character: Character;
+  isActionPending?: boolean;
   itemsById: Record<string, ItemMetadata>;
+  onUnequipEquipmentSlot?: (equipmentSlot: CharacterEquipmentSlot) => void;
   onSelectEquipmentItem: (itemId: string) => void;
   selectedEquipmentItemId: string | null;
 };
@@ -96,8 +105,11 @@ function getEquipmentValue(character: Character, slot: keyof Character["equipmen
 }
 
 export function CharacterEquipmentPanel({
+  actionError = "",
   character,
+  isActionPending = false,
   itemsById,
+  onUnequipEquipmentSlot,
   onSelectEquipmentItem,
   selectedEquipmentItemId
 }: CharacterEquipmentPanelProps) {
@@ -150,7 +162,19 @@ export function CharacterEquipmentPanel({
           })}
           <ModelViewerReserved aria-label={`${character.name} model preview`} />
         </EquipmentLayout>
-        <ItemDetailsPanel item={selectedItem} slotLabel={selectedEquipmentSlot?.label ?? null} />
+        <ItemDetailsPanel
+          actionDisabled={isActionPending}
+          actionError={actionError}
+          actionLabel={selectedEquipmentSlot ? "Unequip" : undefined}
+          character={character}
+          item={selectedItem}
+          onAction={
+            selectedEquipmentSlot && onUnequipEquipmentSlot
+              ? () => onUnequipEquipmentSlot(selectedEquipmentSlot.slot)
+              : undefined
+          }
+          slotLabel={selectedEquipmentSlot?.label ?? null}
+        />
       </EquipmentPanelContent>
     </EquipmentPanelFrame>
   );
