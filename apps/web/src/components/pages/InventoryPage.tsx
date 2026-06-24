@@ -166,7 +166,13 @@ function handleDrop(
   }
 
   event.preventDefault();
-  const fromSlotIndex = Number(event.dataTransfer.getData("text/plain"));
+  const rawFromSlotIndex = event.dataTransfer.getData("text/plain");
+
+  if (!rawFromSlotIndex) {
+    return;
+  }
+
+  const fromSlotIndex = Number(rawFromSlotIndex);
 
   if (Number.isInteger(fromSlotIndex) && fromSlotIndex >= 0 && fromSlotIndex !== toSlotIndex) {
     onMoveItem(fromSlotIndex, toSlotIndex);
