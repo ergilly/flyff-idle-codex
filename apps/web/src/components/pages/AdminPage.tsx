@@ -42,7 +42,7 @@ export function AdminPage({
   const assignedStatPoints =
     character.stats.str + character.stats.sta + character.stats.dex + character.stats.int - 60;
   const assignedSkillLevels = Object.values(character.skillLevels).reduce((total, level) => total + level, 0);
-  const nextOpenSlot = Array.from({ length: 100 }, (_slot, index) => index).find(
+  const nextOpenSlot = Array.from({ length: character.inventory.size }, (_slot, index) => index).find(
     (index) => !character.inventory.items.some((item) => item.slotIndex === index)
   );
   const selectedItemStackSize = selectedItem?.stack && selectedItem.stack > 0 ? selectedItem.stack : 1;
