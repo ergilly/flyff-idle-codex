@@ -64,7 +64,12 @@ adminRouter.post("/characters/:characterId/inventory", requireAdmin, async (requ
   });
 
   if (!character) {
-    response.status(404).json({ error: "Character not found" });
+    const existingCharacter = characterRepository.findById(characterIdResult.data);
+    const isOwnedCharacter = existingCharacter?.playerId === auth.sub;
+
+    response
+      .status(isOwnedCharacter ? 400 : 404)
+      .json({ error: isOwnedCharacter ? "Not enough inventory space" : "Character not found" });
     return;
   }
 
