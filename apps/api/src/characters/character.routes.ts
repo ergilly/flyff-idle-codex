@@ -102,7 +102,9 @@ characterRouter.post("/", requireAuth, async (request, response) => {
 
     response.status(201).json({ character: toPublicCharacter(character) });
   } catch (error) {
-    if (error instanceof Error && error.message.includes("UNIQUE constraint failed")) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (message.includes("UNIQUE constraint failed")) {
       response.status(409).json({ error: "That character slot is already occupied" });
       return;
     }
