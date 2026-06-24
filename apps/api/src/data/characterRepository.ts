@@ -763,7 +763,7 @@ function setInventorySlot(
     db.prepare(
       "UPDATE character_inventory_items SET item_id = ?, quantity = ?, updated_at = ? WHERE id = ?"
     ).run(inventoryItem.itemId, inventoryItem.quantity, now, existingItem.id);
-    return;
+    return true;
   }
 
   db.prepare(
