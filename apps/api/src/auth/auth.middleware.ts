@@ -22,7 +22,7 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
   next();
 }
 
-export function requireAdmin(_request: Request, response: Response, next: NextFunction) {
+export function requireAdmin(request: Request, response: Response, next: NextFunction) {
   requireAuth(request, response, () => {
     const user = userRepository.findById(response.locals.auth.sub);
 
