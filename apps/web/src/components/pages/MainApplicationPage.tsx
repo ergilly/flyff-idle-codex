@@ -7,6 +7,7 @@ import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { AdminPage } from "@/components/pages/AdminPage";
 import { InventoryPage } from "@/components/pages/InventoryPage";
+import { MapPage } from "@/components/pages/MapPage";
 import { ContentHeading } from "@/components/molecules/main-application/ContentHeading";
 import { getEquippedItemIds } from "@/components/molecules/main-application/CharacterEquipmentPanel";
 import { type StatKey } from "@/components/molecules/main-application/StatAllocationPanel";
@@ -744,6 +745,8 @@ export function MainApplicationPage() {
             onSortInventory={handleSortInventory}
             selectedSlotIndex={selectedInventorySlotIndex}
           />
+        ) : activeNavItem === "Map" ? (
+          <MapPage />
         ) : activeNavItem === "Admin" ? (
           <AdminPage
             addingInventoryItem={isAddingInventoryItem}

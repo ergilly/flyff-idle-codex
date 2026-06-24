@@ -229,6 +229,10 @@ jest.mock("./InventoryPage", () => ({
   )
 }));
 
+jest.mock("./MapPage", () => ({
+  MapPage: () => <section aria-label="mock map">Map page</section>
+}));
+
 jest.mock("./AdminPage", () => ({
   AdminPage: ({
     onAddInventoryItem,

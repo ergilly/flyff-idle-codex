@@ -98,6 +98,50 @@ export type ItemMetadata = {
   }>;
 };
 
+export type MonsterMetadata = {
+  id: number | string;
+  name: string;
+  drops?: MonsterDrop[];
+  event?: boolean;
+  level: number | null;
+  rank: string | null;
+  area: string | null;
+  element: string | null;
+  hp: number | null;
+  minAttack: number | null;
+  maxAttack: number | null;
+  defense: number | null;
+  magicDefense: number | null;
+  minDropGold: number | null;
+  maxDropGold: number | null;
+};
+
+export type MonsterDrop = {
+  item: number | string;
+  probabilityRange?: string;
+  prob?: string;
+  common?: boolean;
+};
+
+export type MonsterQuestDrop = {
+  id: number | string;
+  name: string;
+  icon: string | null;
+};
+
+export type MonsterVariantRank = "small" | "normal" | "captain" | "giant";
+
+export type MonsterFamilyVariant = Pick<MonsterMetadata, "id" | "name" | "level" | "rank" | "element"> & {
+  drops?: MonsterDrop[];
+  variantRank: MonsterVariantRank;
+};
+
+export type MonsterFamily = {
+  name: string;
+  questDrops: MonsterQuestDrop[];
+  variants: MonsterFamilyVariant[];
+};
+
 export type DataSetQueryResponse<T> = {
   dataSet: string;
   total: number;
@@ -165,6 +209,241 @@ export async function fetchDataSet<T>(
 
   const data = (await response.json()) as DataSetQueryResponse<T>;
   return data.results;
+}
+
+export async function fetchMonstersByNames(monsterNames: string[]): Promise<Record<string, MonsterMetadata>> {
+  const uniqueMonsterNames = Array.from(new Set(monsterNames.map((name) => name.trim()).filter(Boolean)));
+
+  if (uniqueMonsterNames.length === 0) {
+    return {};
+  }
+
+  const monsterResults = await Promise.all(
+    uniqueMonsterNames.map(async (name) => {
+      const monsters = await fetchDataSet<MonsterMetadata>("monsters", {
+        name,
+        fields:
+          "id,name,level,rank,area,element,hp,minAttack,maxAttack,defense,magicDefense,minDropGold,maxDropGold",
+        limit: 1
+      });
+
+      return [name, monsters[0]] as const;
+    })
+  );
+
+  return Object.fromEntries(
+    monsterResults.filter((entry): entry is readonly [string, MonsterMetadata] => Boolean(entry[1]))
+  );
+}
+
+export async function fetchMonsterFamiliesByNames(
+  monsterNames: string[]
+): Promise<Record<string, MonsterFamily>> {
+  const uniqueMonsterNames = Array.from(new Set(monsterNames.map((name) => name.trim()).filter(Boolean)));
+
+  if (uniqueMonsterNames.length === 0) {
+    return {};
+  }
+
+  const familyEntries: Array<readonly [string, MonsterFamily | undefined]> = await Promise.all(
+    uniqueMonsterNames.map(async (name) => {
+      const exactMatches = await fetchDataSet<MonsterMetadata>("monsters", {
+        name,
+        fields: monsterFamilyFields,
+        limit: 5
+      });
+      const anchor = exactMatches.find(
+        (monster) => normalizeLookupValue(monster.name) === normalizeLookupValue(name)
+      );
+
+      if (!anchor || anchor.level === null) {
+        return [name, undefined] as const;
+      }
+
+      const baseLevel = getMonsterFamilyBaseLevel(anchor);
+      const candidates = await fetchDataSet<MonsterMetadata>("monsters", {
+        fields: monsterFamilyFields,
+        minLevel: baseLevel,
+        maxLevel: baseLevel + 4,
+        limit: 500
+      });
+      const variants = getMonsterFamilyVariants(anchor, candidates, baseLevel);
+
+      return [
+        name,
+        {
+          name: anchor.name,
+          questDrops: [],
+          variants
+        }
+      ] as const;
+    })
+  );
+
+  const monsterFamilies: Record<string, MonsterFamily> = {};
+
+  familyEntries.forEach(([name, family]) => {
+    if (family) {
+      monsterFamilies[name] = family;
+    }
+  });
+  const questDropIds = getQuestDropItemIds(
+    Object.values(monsterFamilies).flatMap((family) => family.variants)
+  );
+  const questDropsByItemId = await fetchQuestDropsByItemId(questDropIds);
+
+  return Object.fromEntries(
+    Object.entries(monsterFamilies).map(([name, family]) => [
+      name,
+      {
+        ...family,
+        questDrops: getFamilyQuestDrops(family, questDropsByItemId)
+      }
+    ])
+  );
+}
+
+const monsterFamilyFields =
+  "id,name,event,level,rank,area,element,drops,hp,minAttack,maxAttack,defense,magicDefense,minDropGold,maxDropGold";
+
+const monsterVariantOrder: MonsterVariantRank[] = ["small", "normal", "captain", "giant"];
+const monsterVariantLevelOffset: Record<MonsterVariantRank, number> = {
+  small: 0,
+  normal: 0,
+  captain: 1,
+  giant: 4
+};
+const monsterVariantRankSet = new Set<string>(monsterVariantOrder);
+
+function normalizeLookupValue(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function getMonsterFamilyBaseLevel(monster: MonsterMetadata) {
+  const level = monster.level ?? 0;
+  const rank = getMonsterVariantRank(monster);
+
+  return rank ? level - monsterVariantLevelOffset[rank] : level;
+}
+
+function getMonsterVariantRank(monster: MonsterMetadata): MonsterVariantRank | null {
+  const rank = monster.rank?.toLowerCase() ?? "";
+
+  return monsterVariantRankSet.has(rank) ? (rank as MonsterVariantRank) : null;
+}
+
+function getMonsterFamilyVariants(
+  anchor: MonsterMetadata,
+  candidates: MonsterMetadata[],
+  baseLevel: number
+): MonsterFamilyVariant[] {
+  const availableCandidates = candidates.filter((candidate) => !candidate.event);
+
+  return monsterVariantOrder
+    .map((variantRank) => {
+      const exactLevelCandidates = availableCandidates.filter(
+        (candidate) =>
+          getMonsterVariantRank(candidate) === variantRank &&
+          candidate.level === baseLevel + monsterVariantLevelOffset[variantRank]
+      );
+      const nearbyCandidates = availableCandidates.filter(
+        (candidate) => getMonsterVariantRank(candidate) === variantRank && candidate.level !== null
+      );
+      const variantCandidates = exactLevelCandidates.length > 0 ? exactLevelCandidates : nearbyCandidates;
+      const bestMatch = getBestMonsterFamilyCandidate(anchor, variantCandidates);
+
+      return bestMatch ? toMonsterFamilyVariant(bestMatch, variantRank) : null;
+    })
+    .filter((variant): variant is MonsterFamilyVariant => Boolean(variant));
+}
+
+function getBestMonsterFamilyCandidate(anchor: MonsterMetadata, candidates: MonsterMetadata[]) {
+  if (candidates.length === 0) {
+    return undefined;
+  }
+
+  const bestCandidate = candidates
+    .map((candidate) => ({
+      candidate,
+      score: getMonsterNameSimilarityScore(anchor.name, candidate.name)
+    }))
+    .sort((left, right) => right.score - left.score)[0];
+
+  return bestCandidate && bestCandidate.score > 0 ? bestCandidate.candidate : undefined;
+}
+
+function getMonsterNameSimilarityScore(anchorName: string, candidateName: string) {
+  const anchorTokens = getMonsterNameTokens(anchorName);
+  const candidateTokens = getMonsterNameTokens(candidateName);
+
+  return Array.from(candidateTokens).filter((token) => anchorTokens.has(token)).length;
+}
+
+function getMonsterNameTokens(name: string) {
+  return new Set(
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((token) => token.length > 1 && !["small", "captain", "giant", "the"].includes(token))
+  );
+}
+
+function toMonsterFamilyVariant(
+  monster: MonsterMetadata,
+  variantRank: MonsterVariantRank
+): MonsterFamilyVariant {
+  return {
+    drops: monster.drops,
+    element: monster.element,
+    id: monster.id,
+    level: monster.level,
+    name: monster.name,
+    rank: monster.rank,
+    variantRank
+  };
+}
+
+function getQuestDropItemIds(variants: MonsterFamilyVariant[]) {
+  return Array.from(
+    new Set(
+      variants.flatMap((variant) => variant.drops?.map((drop) => String(drop.item)) ?? []).filter(Boolean)
+    )
+  );
+}
+
+async function fetchQuestDropsByItemId(itemIds: string[]) {
+  if (itemIds.length === 0) {
+    return {};
+  }
+
+  const items = await fetchDataSet<MonsterQuestDrop & { category: string | null }>("items", {
+    fields: "id,name,icon,category",
+    ids: itemIds.join(","),
+    limit: 500
+  });
+
+  return Object.fromEntries(
+    items
+      .filter((item) => item.category === "quest")
+      .map((item) => [
+        String(item.id),
+        {
+          id: item.id,
+          icon: item.icon,
+          name: item.name
+        }
+      ])
+  );
+}
+
+function getFamilyQuestDrops(family: MonsterFamily, questDropsByItemId: Record<string, MonsterQuestDrop>) {
+  const questDrops = family.variants
+    .flatMap((variant) => variant.drops ?? [])
+    .map((drop) => questDropsByItemId[String(drop.item)])
+    .filter((item): item is MonsterQuestDrop => Boolean(item));
+
+  return Array.from(new Map(questDrops.map((item) => [String(item.id), item])).values());
 }
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
