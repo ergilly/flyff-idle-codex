@@ -10,10 +10,12 @@ describe("game data service", () => {
     expect(listDataSets()).toEqual(
       expect.arrayContaining([
         { name: "items", href: "/api/data/items" },
+        { name: "mapMonsters", href: "/api/data/mapMonsters" },
         { name: "skills", href: "/api/data/skills" }
       ])
     );
     expect(isDataSetName("items")).toBe(true);
+    expect(isDataSetName("mapMonsters")).toBe(true);
     expect(isDataSetName("unknown")).toBe(false);
   });
 
@@ -73,6 +75,38 @@ describe("game data service", () => {
     expect(queryDataSet("items", { twoHanded: "true", ids: "10", fields: "id,twoHanded" })).toMatchObject({
       total: 1,
       results: [{ id: 10, twoHanded: true }]
+    });
+  });
+
+  it("queries curated map monsters by family", () => {
+    const bangFamily = queryDataSet("mapMonsters", { family: "bang", fields: "name,family,location,spawns" });
+
+    expect(bangFamily).toMatchObject({
+      dataSet: "mapMonsters",
+      total: 4,
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          family: "bang",
+          location: { region: "flaris", x: 58, y: 39 },
+          name: "Boss Bang"
+        }),
+        expect.objectContaining({
+          family: "bang",
+          name: "Giant Bang"
+        })
+      ])
+    });
+    expect(bangFamily.results.every((monster) => !("spawns" in monster))).toBe(true);
+
+    expect(queryDataSet("mapMonsters", { family: "bang", "location.region": "flaris" })).toMatchObject({
+      dataSet: "mapMonsters",
+      total: 4,
+      results: expect.arrayContaining([
+        expect.objectContaining({
+          family: "bang",
+          location: expect.objectContaining({ region: "flaris" })
+        })
+      ])
     });
   });
 

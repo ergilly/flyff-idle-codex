@@ -68,6 +68,12 @@ const sortInventorySchema = z.object({
   sortBy: z.enum(["name", "level", "job", "category"])
 });
 
+const equipmentSetRequestSchema = z
+  .object({
+    equipmentSet: z.number().int().min(0).max(2).optional()
+  })
+  .optional();
+
 function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
   return character;
 }
@@ -150,8 +156,9 @@ characterRouter.patch("/:characterId/progression", requireAuth, async (request, 
 characterRouter.post("/:characterId/inventory/:slotIndex/equip", requireAuth, async (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);
   const slotIndexResult = z.coerce.number().int().min(0).max(99).safeParse(request.params.slotIndex);
+  const equipmentSetResult = equipmentSetRequestSchema.safeParse(request.body);
 
-  if (!characterIdResult.success || !slotIndexResult.success) {
+  if (!characterIdResult.success || !slotIndexResult.success || !equipmentSetResult.success) {
     response.status(404).json({ error: "Inventory item not found" });
     return;
   }
@@ -160,7 +167,8 @@ characterRouter.post("/:characterId/inventory/:slotIndex/equip", requireAuth, as
   const result = await characterRepository.equipInventoryItemForPlayer(
     characterIdResult.data,
     auth.sub,
-    slotIndexResult.data
+    slotIndexResult.data,
+    (equipmentSetResult.data?.equipmentSet ?? 0) as 0 | 1 | 2
   );
 
   if (!result.character) {
@@ -236,8 +244,9 @@ characterRouter.post(
   async (request, response) => {
     const characterIdResult = z.string().safeParse(request.params.characterId);
     const equipmentSlotResult = equipmentSlotSchema.safeParse(request.params.equipmentSlot);
+    const equipmentSetResult = equipmentSetRequestSchema.safeParse(request.body);
 
-    if (!characterIdResult.success || !equipmentSlotResult.success) {
+    if (!characterIdResult.success || !equipmentSlotResult.success || !equipmentSetResult.success) {
       response.status(404).json({ error: "Equipment slot not found" });
       return;
     }
@@ -246,7 +255,8 @@ characterRouter.post(
     const result = await characterRepository.unequipItemForPlayer(
       characterIdResult.data,
       auth.sub,
-      equipmentSlotResult.data
+      equipmentSlotResult.data,
+      (equipmentSetResult.data?.equipmentSet ?? 0) as 0 | 1 | 2
     );
 
     if (!result.character) {

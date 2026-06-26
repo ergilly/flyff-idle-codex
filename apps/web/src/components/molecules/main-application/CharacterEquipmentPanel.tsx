@@ -40,12 +40,17 @@ type EquipmentSlotDefinition = {
 
 type CharacterEquipmentPanelProps = {
   actionError?: string;
+  activeEquipmentSet?: number;
   character: Character;
   isActionPending?: boolean;
   itemsById: Record<string, ItemMetadata>;
-  onUnequipEquipmentSlot?: (equipmentSlot: CharacterEquipmentSlot) => void;
+  onEquipmentSetChange?: (equipmentSet: number) => void;
+  onUnequipEquipmentSlot?: (equipmentSlot: CharacterEquipmentSlot, equipmentSet: number) => void;
   onSelectEquipmentItem: (itemId: string) => void;
   selectedEquipmentItemId: string | null;
+  showItemDetails?: boolean;
+  showSetSelector?: boolean;
+  variant?: "framed" | "embedded";
 };
 
 const equipmentSlots: EquipmentSlotDefinition[] = [
@@ -92,45 +97,91 @@ const equipmentFrameStyles: Record<EquipmentFrame, CSSProperties> = {
   "bottom-4": { top: "80.555556%", left: "63.671875%", width: "11.71875%", height: "10.416667%" }
 };
 
+const emptyEquipment: Character["equipment"] = {
+  ammo: null,
+  boots: null,
+  cloak: null,
+  csBoots: null,
+  csGloves: null,
+  csHelm: null,
+  csSuit: null,
+  earringL: null,
+  earringR: null,
+  flying: null,
+  gloves: null,
+  helmet: null,
+  mainhand: null,
+  mask: null,
+  necklace: null,
+  offhand: null,
+  ringL: null,
+  ringR: null,
+  suit: null
+};
+
 export function getEquippedItemIds(character: Character) {
-  return Object.values(character.equipment).filter((itemId): itemId is string => Boolean(itemId));
+  const equipmentSets = character.equipmentSets?.length ? character.equipmentSets : [character.equipment];
+
+  return equipmentSets.flatMap((equipment) =>
+    Object.values(equipment).filter((itemId): itemId is string => Boolean(itemId))
+  );
 }
 
 export function getEquipmentItems(token: string, character: Character) {
   return fetchItems(token, getEquippedItemIds(character));
 }
 
-function getEquipmentValue(character: Character, slot: keyof Character["equipment"]) {
-  return character.equipment[slot] ?? "Empty";
+function getCharacterEquipmentSet(character: Character, equipmentSet: number) {
+  return (
+    character.equipmentSets?.[equipmentSet] ?? (equipmentSet === 0 ? character.equipment : emptyEquipment)
+  );
+}
+
+function getEquipmentValue(equipment: Character["equipment"], slot: keyof Character["equipment"]) {
+  return equipment[slot] ?? "Empty";
 }
 
 export function CharacterEquipmentPanel({
   actionError = "",
+  activeEquipmentSet = 0,
   character,
   isActionPending = false,
   itemsById,
+  onEquipmentSetChange,
   onUnequipEquipmentSlot,
   onSelectEquipmentItem,
-  selectedEquipmentItemId
+  selectedEquipmentItemId,
+  showItemDetails = true,
+  showSetSelector = true,
+  variant = "framed"
 }: CharacterEquipmentPanelProps) {
+  const equipment = getCharacterEquipmentSet(character, activeEquipmentSet);
   const selectedEquipmentSlot = equipmentSlots.find(
-    ({ slot }) => character.equipment[slot] === selectedEquipmentItemId
+    ({ slot }) => equipment[slot] === selectedEquipmentItemId
   );
   const selectedItem = selectedEquipmentItemId ? itemsById[selectedEquipmentItemId] : null;
-  const mainhandItemId = character.equipment.mainhand;
+  const mainhandItemId = equipment.mainhand;
   const mainhandItem = mainhandItemId ? itemsById[mainhandItemId] : null;
   const hasTwoHandedMainhand = mainhandItem?.category === "weapon" && mainhandItem.twoHanded === true;
 
-  return (
-    <EquipmentPanelFrame>
-      <SectionHeading eyebrow="Equipment" />
-      <EquipmentPanelContent>
+  const content = (
+    <>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionHeading eyebrow="Equipment" />
+        {showSetSelector ? (
+          <EquipmentSetSelector
+            activeEquipmentSet={activeEquipmentSet}
+            onEquipmentSetChange={onEquipmentSetChange}
+          />
+        ) : null}
+      </div>
+      <EquipmentPanelContent showItemDetails={showItemDetails}>
         <EquipmentLayout aria-label="Character equipment slots">
           {equipmentSlots.map(({ frame, label, slot }) => {
             const isOffhandBlockedByTwoHander = slot === "offhand" && hasTwoHandedMainhand;
-            const itemId = isOffhandBlockedByTwoHander ? mainhandItemId : character.equipment[slot];
+            const itemId = isOffhandBlockedByTwoHander ? mainhandItemId : equipment[slot];
             const item = itemId ? itemsById[itemId] : null;
-            const value = item?.name ?? getEquipmentValue(character, slot);
+            const value = item?.name ?? getEquipmentValue(equipment, slot);
             const iconUrl = item?.icon ? getItemIconUrl(item.icon) : null;
             const isSelected = itemId !== null && itemId === selectedEquipmentItemId;
             const slotLabel = isOffhandBlockedByTwoHander
@@ -162,21 +213,63 @@ export function CharacterEquipmentPanel({
           })}
           <ModelViewerReserved aria-label={`${character.name} model preview`} />
         </EquipmentLayout>
-        <ItemDetailsPanel
-          actionDisabled={isActionPending}
-          actionError={actionError}
-          actionLabel={selectedEquipmentSlot ? "Unequip" : undefined}
-          character={character}
-          item={selectedItem}
-          onAction={
-            selectedEquipmentSlot && onUnequipEquipmentSlot
-              ? () => onUnequipEquipmentSlot(selectedEquipmentSlot.slot)
-              : undefined
-          }
-          slotLabel={selectedEquipmentSlot?.label ?? null}
-        />
+        {showItemDetails ? (
+          <ItemDetailsPanel
+            actionDisabled={isActionPending}
+            actionError={actionError}
+            actionLabel={selectedEquipmentSlot ? "Unequip" : undefined}
+            character={character}
+            item={selectedItem}
+            onAction={
+              selectedEquipmentSlot && onUnequipEquipmentSlot
+                ? () => onUnequipEquipmentSlot(selectedEquipmentSlot.slot, activeEquipmentSet)
+                : undefined
+            }
+            slotLabel={selectedEquipmentSlot?.label ?? null}
+          />
+        ) : null}
       </EquipmentPanelContent>
-    </EquipmentPanelFrame>
+    </>
+  );
+
+  if (variant === "embedded") {
+    return <div className="grid content-start gap-4">{content}</div>;
+  }
+
+  return <EquipmentPanelFrame>{content}</EquipmentPanelFrame>;
+}
+
+function EquipmentSetSelector({
+  activeEquipmentSet,
+  onEquipmentSetChange
+}: {
+  activeEquipmentSet: number;
+  onEquipmentSetChange?: (equipmentSet: number) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-1 rounded-control border border-border bg-black/35 p-1">
+      {[0, 1, 2].map((equipmentSet) => {
+        const isActive = activeEquipmentSet === equipmentSet;
+
+        return (
+          <button
+            aria-label={`Equipment set ${equipmentSet + 1}`}
+            aria-pressed={isActive}
+            className={cx(
+              "h-8 min-w-9 rounded-[4px] px-2 text-xs font-black transition-colors",
+              isActive
+                ? "bg-primary text-button-text"
+                : "text-text-muted hover:bg-panel-muted hover:text-foreground"
+            )}
+            key={equipmentSet}
+            onClick={() => onEquipmentSetChange?.(equipmentSet)}
+            type="button"
+          >
+            {equipmentSet + 1}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -188,9 +281,22 @@ function EquipmentPanelFrame({ children }: { children: ReactNode }) {
   );
 }
 
-function EquipmentPanelContent({ children }: { children: ReactNode }) {
+function EquipmentPanelContent({
+  children,
+  showItemDetails
+}: {
+  children: ReactNode;
+  showItemDetails: boolean;
+}) {
   return (
-    <div className="grid grid-cols-[minmax(280px,1fr)_minmax(220px,0.72fr)] items-start justify-start gap-4 max-[1500px]:grid-cols-1">
+    <div
+      className={cx(
+        "grid items-start justify-start gap-4",
+        showItemDetails
+          ? "grid-cols-[minmax(280px,1fr)_minmax(220px,0.72fr)] max-[1500px]:grid-cols-1"
+          : "grid-cols-1"
+      )}
+    >
       {children}
     </div>
   );

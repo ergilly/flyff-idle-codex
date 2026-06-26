@@ -6,7 +6,11 @@ import {
   fetchCharacters,
   fetchDataSet,
   fetchItems,
+  fetchMapMonsterFamiliesByRegion,
+  fetchMonsterFamiliesByNames,
+  fetchMonstersByNames,
   getItemIconUrl,
+  getMonsterIconUrl,
   login,
   moveInventoryItem,
   register,
@@ -204,10 +208,334 @@ describe("api client", () => {
     expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/data/skills?classId=9686&limit=50");
   });
 
+  it("loads monster metadata keyed by assigned marker names", async () => {
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        dataSet: "monsters",
+        total: 1,
+        limit: 1,
+        offset: 0,
+        results: [{ id: 1, name: "Aibatt", level: 1, rank: "normal", element: "wind" }]
+      })
+    });
+
+    await expect(fetchMonstersByNames(["Aibatt", "Aibatt", ""])).resolves.toEqual({
+      Aibatt: { id: 1, name: "Aibatt", level: 1, rank: "normal", element: "wind" }
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/data/monsters?name=Aibatt&fields=id%2Cname%2Clevel%2Crank%2Carea%2Celement%2Chp%2CminAttack%2CmaxAttack%2Cdefense%2CmagicDefense%2CminDropGold%2CmaxDropGold&limit=1"
+    );
+  });
+
+  it("builds monster families and quest drops from assigned marker names", async () => {
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      const requestUrl = new URL(url);
+      const monsterName = requestUrl.searchParams.get("name") ?? "Aibatt";
+      const monsterByName: Record<string, { level: number; rank: string; element: string }> = {
+        "Small Aibatt": { level: 1, rank: "small", element: "wind" },
+        Aibatt: { level: 1, rank: "normal", element: "wind" },
+        "Captain Aibatt": { level: 2, rank: "captain", element: "wind" },
+        "Giant Aibatt": { level: 5, rank: "giant", element: "fire" }
+      };
+
+      if (requestUrl.pathname.endsWith("/api/data/items")) {
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            dataSet: "items",
+            total: 1,
+            limit: 500,
+            offset: 0,
+            results: [{ id: 100, name: "Twinkle Stone", icon: "twinkle.png", category: "quest" }]
+          })
+        });
+      }
+
+      if (requestUrl.searchParams.has("minLevel")) {
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            dataSet: "monsters",
+            total: 4,
+            limit: 500,
+            offset: 0,
+            results: [
+              {
+                id: 1,
+                name: "Small Aibatt",
+                event: false,
+                level: 1,
+                rank: "small",
+                element: "wind",
+                drops: [{ item: 100 }]
+              },
+              {
+                id: 2,
+                name: "Aibatt",
+                event: false,
+                level: 1,
+                rank: "normal",
+                element: "wind",
+                drops: [{ item: 100 }]
+              },
+              {
+                id: 3,
+                name: "Captain Aibatt",
+                event: false,
+                level: 2,
+                rank: "captain",
+                element: "wind",
+                drops: [{ item: 100 }]
+              },
+              {
+                id: 4,
+                name: "Giant Aibatt",
+                event: false,
+                level: 5,
+                rank: "giant",
+                element: "fire",
+                drops: [{ item: 100 }]
+              }
+            ]
+          })
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          dataSet: "monsters",
+          total: 1,
+          limit: 5,
+          offset: 0,
+          results: [
+            {
+              id: monsterName,
+              name: monsterName,
+              event: false,
+              level: monsterByName[monsterName]?.level ?? 1,
+              rank: monsterByName[monsterName]?.rank ?? "normal",
+              element: monsterByName[monsterName]?.element ?? "wind",
+              drops: [{ item: 100 }]
+            }
+          ]
+        })
+      });
+    }) as jest.Mock;
+
+    await expect(
+      fetchMonsterFamiliesByNames([
+        {
+          familyNames: {
+            small: "Small Aibatt",
+            normal: "Aibatt",
+            captain: "Captain Aibatt",
+            giant: "Giant Aibatt"
+          },
+          monsterName: "Aibatt"
+        }
+      ])
+    ).resolves.toMatchObject({
+      Aibatt: {
+        questDrops: [{ id: 100, name: "Twinkle Stone", icon: "twinkle.png" }],
+        variants: [
+          { name: "Small Aibatt", level: 1, variantRank: "small" },
+          { name: "Aibatt", level: 1, variantRank: "normal" },
+          { name: "Captain Aibatt", level: 2, variantRank: "captain" },
+          { name: "Giant Aibatt", level: 5, variantRank: "giant" }
+        ]
+      }
+    });
+  });
+
+  it("uses explicit monster family names when marker data provides them", async () => {
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      const requestUrl = new URL(url);
+      const name = requestUrl.searchParams.get("name") ?? "";
+      const rankByName: Record<string, string> = {
+        "Private Bearnerky": "small",
+        "Sergeant Bearnerky": "normal",
+        "Captain Bearnerky": "captain",
+        "General Bearnerky": "giant"
+      };
+
+      if (requestUrl.pathname.endsWith("/api/data/items")) {
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            dataSet: "items",
+            total: 1,
+            limit: 500,
+            offset: 0,
+            results: [{ id: 200, name: "Nerkymane", icon: "nerkymane.png", category: "quest" }]
+          })
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          dataSet: "monsters",
+          total: 1,
+          limit: 5,
+          offset: 0,
+          results: [
+            {
+              id: name,
+              name,
+              event: false,
+              level: 108,
+              rank: rankByName[name],
+              element: "earth",
+              drops: [{ item: 200 }]
+            }
+          ]
+        })
+      });
+    }) as jest.Mock;
+
+    await expect(
+      fetchMonsterFamiliesByNames([
+        {
+          familyNames: {
+            small: "Private Bearnerky",
+            normal: "Sergeant Bearnerky",
+            captain: "Captain Bearnerky",
+            giant: "General Bearnerky"
+          },
+          monsterName: "Private Bearnerky"
+        }
+      ])
+    ).resolves.toMatchObject({
+      "Private Bearnerky": {
+        questDrops: [{ id: 200, name: "Nerkymane", icon: "nerkymane.png" }],
+        variants: [
+          { name: "Private Bearnerky", variantRank: "small" },
+          { name: "Sergeant Bearnerky", variantRank: "normal" },
+          { name: "Captain Bearnerky", variantRank: "captain" },
+          { name: "General Bearnerky", variantRank: "giant" }
+        ]
+      }
+    });
+  });
+
+  it("builds map monster families from curated map monster data", async () => {
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      const requestUrl = new URL(url);
+
+      if (requestUrl.pathname.endsWith("/api/data/items")) {
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            dataSet: "items",
+            total: 1,
+            limit: 500,
+            offset: 0,
+            results: [{ id: 100, name: "Twinkle Stone", icon: "twinkle.png", category: "quest" }]
+          })
+        });
+      }
+
+      const mapMonsterResults = [
+        {
+          id: 1,
+          name: "Aibatt",
+          level: 1,
+          rank: "normal",
+          area: "normal",
+          element: "wind",
+          icon: "aibatt.png",
+          drops: [{ item: 100 }],
+          family: "aibatt",
+          location: { region: "flaris", x: 35, y: 70 }
+        },
+        {
+          id: 2,
+          name: "Small Aibatt",
+          level: 1,
+          rank: "small",
+          area: "normal",
+          element: "wind",
+          icon: "small-aibatt.png",
+          drops: [{ item: 100 }],
+          family: "aibatt",
+          location: { region: "flaris", x: 35, y: 70 }
+        },
+        {
+          id: 3,
+          name: "Captain Aibatt",
+          level: 2,
+          rank: "captain",
+          area: "normal",
+          element: "wind",
+          icon: "captain-aibatt.png",
+          drops: [{ item: 100 }],
+          family: "aibatt",
+          location: { region: "flaris", x: 35, y: 70 }
+        },
+        {
+          id: 4,
+          name: "Giant Aibatt",
+          level: 5,
+          rank: "giant",
+          area: "normal",
+          element: "fire",
+          icon: "giant-aibatt.png",
+          drops: [{ item: 100 }],
+          family: "aibatt",
+          location: { region: "flaris", x: 35, y: 70 }
+        },
+        {
+          id: 5,
+          name: "Bang",
+          level: 19,
+          rank: "small",
+          area: "normal",
+          element: "fire",
+          icon: "bang.png",
+          drops: [{ item: 100 }],
+          family: "bang",
+          location: { region: "saint", x: 42, y: 38 }
+        }
+      ];
+      const requestedRegion = requestUrl.searchParams.get("location.region");
+
+      return Promise.resolve({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          dataSet: "mapMonsters",
+          total: 5,
+          limit: 500,
+          offset: 0,
+          results: requestedRegion
+            ? mapMonsterResults.filter((monster) => monster.location.region === requestedRegion)
+            : mapMonsterResults
+        })
+      });
+    }) as jest.Mock;
+
+    await expect(fetchMapMonsterFamiliesByRegion("flaris")).resolves.toMatchObject([
+      {
+        family: "aibatt",
+        location: { region: "flaris", x: 35, y: 70 },
+        name: "Aibatt",
+        questDrops: [{ id: 100, name: "Twinkle Stone", icon: "twinkle.png" }],
+        variants: [
+          { name: "Small Aibatt", variantRank: "small" },
+          { icon: "aibatt.png", name: "Aibatt", variantRank: "normal" },
+          { name: "Captain Aibatt", variantRank: "captain" },
+          { name: "Giant Aibatt", variantRank: "giant" }
+        ]
+      }
+    ]);
+  });
+
   it("skips empty item icon requests and builds Flyff icon URLs", async () => {
     await expect(fetchItems("token", [])).resolves.toEqual([]);
     expect(global.fetch).not.toHaveBeenCalled();
     expect(getItemIconUrl("mkin04foot.png")).toBe("https://api.flyff.com/image/item/mkin04foot.png");
+    expect(getMonsterIconUrl("aibatt.png")).toBe("https://api.flyff.com/image/monster/aibatt.png");
   });
 
   it("handles item and data loading failures", async () => {

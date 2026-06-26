@@ -130,3 +130,12 @@ a {
 .themed-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
+
+.map-pan-viewport {
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+
+.map-pan-viewport::-webkit-scrollbar {
+  display: none;
+}

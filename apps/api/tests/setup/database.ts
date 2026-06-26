@@ -23,6 +23,10 @@ function ensureCharacterProgressionColumns() {
   if (!characterColumns.has("skill_levels")) {
     db.exec("ALTER TABLE characters ADD COLUMN skill_levels TEXT NOT NULL DEFAULT '{}'");
   }
+
+  if (!characterColumns.has("equipment_sets")) {
+    db.exec("ALTER TABLE characters ADD COLUMN equipment_sets TEXT NOT NULL DEFAULT '[]'");
+  }
 }
 
 export async function resetTestDatabase() {

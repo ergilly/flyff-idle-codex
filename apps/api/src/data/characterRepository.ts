@@ -30,6 +30,7 @@ type CharacterRow = {
   dex: number;
   int: number;
   skillLevels: string;
+  equipmentSets: string;
   helmet: string | null;
   suit: string | null;
   gloves: string | null;
@@ -106,12 +107,23 @@ const thirdJobToSecondJob: Record<string, string> = {
 };
 
 type EquipmentSlot = keyof Character["equipment"];
+type EquipmentSetIndex = 0 | 1 | 2;
+
+const equipmentSetIndexes = [0, 1, 2] as const;
 
 export const characterRepository = {
   create({ playerId, slotIndex, name, gender }: CreateCharacterInput) {
     const now = new Date().toISOString();
     const id = randomUUID();
     const startingEquipment = startingEquipmentByGender[gender];
+    const equipment = {
+      ...createEmptyEquipment(),
+      boots: startingEquipment.boots,
+      gloves: startingEquipment.gloves,
+      mainhand: startingMainhand,
+      suit: startingEquipment.suit
+    };
+    const equipmentSets = createEquipmentSets(equipment);
 
     db.prepare(
       `INSERT INTO characters (
@@ -130,13 +142,14 @@ export const characterRepository = {
         sta,
         dex,
         int,
+        equipment_sets,
         suit,
         gloves,
         boots,
         mainhand,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       playerId,
@@ -153,9 +166,10 @@ export const characterRepository = {
       15,
       15,
       15,
-      startingEquipment.suit,
-      startingEquipment.gloves,
-      startingEquipment.boots,
+      JSON.stringify(equipmentSets),
+      equipment.suit,
+      equipment.gloves,
+      equipment.boots,
       startingMainhand,
       now,
       now
@@ -317,7 +331,12 @@ export const characterRepository = {
 
     return this.findById(id);
   },
-  equipInventoryItemForPlayer(id: string, playerId: string, slotIndex: number) {
+  equipInventoryItemForPlayer(
+    id: string,
+    playerId: string,
+    slotIndex: number,
+    equipmentSet: EquipmentSetIndex = 0
+  ) {
     const character = this.findById(id);
 
     if (!character || character.playerId !== playerId) {
@@ -342,14 +361,15 @@ export const characterRepository = {
       return { character: null, error: requirementError };
     }
 
-    const equipmentSlot = getEquipmentSlotForItem(character, item);
+    const targetEquipment = getEquipmentForSet(character, equipmentSet);
+    const equipmentSlot = getEquipmentSlotForItem(character, item, targetEquipment);
 
     if (!equipmentSlot) {
       return { character: null, error: "That item cannot be equipped" };
     }
 
-    if (equipmentSlot === "offhand" && character.equipment.mainhand) {
-      const [mainhandItem] = findItemsByIds([character.equipment.mainhand]);
+    if (equipmentSlot === "offhand" && targetEquipment.mainhand) {
+      const [mainhandItem] = findItemsByIds([targetEquipment.mainhand]);
 
       if (mainhandItem?.twoHanded) {
         return { character: null, error: "Unequip your two-handed weapon first" };
@@ -358,8 +378,8 @@ export const characterRepository = {
 
     const now = new Date().toISOString();
     const returnedItemIds = [
-      character.equipment[equipmentSlot],
-      equipmentSlot === "mainhand" && item.twoHanded ? character.equipment.offhand : null
+      targetEquipment[equipmentSlot],
+      equipmentSlot === "mainhand" && item.twoHanded ? targetEquipment.offhand : null
     ].filter((itemId): itemId is string => Boolean(itemId));
     const inventorySlotsToUse = getOpenInventorySlots(character, [slotIndex]);
 
@@ -371,26 +391,32 @@ export const characterRepository = {
       id,
       slotIndex
     );
-    db.prepare(
-      `UPDATE characters SET ${equipmentColumnBySlot[equipmentSlot]} = ?, updated_at = ? WHERE id = ?`
-    ).run(inventoryItem.itemId, now, id);
+    const nextEquipment = {
+      ...targetEquipment,
+      [equipmentSlot]: inventoryItem.itemId,
+      ...(equipmentSlot === "mainhand" && item.twoHanded ? { offhand: null } : {})
+    };
 
-    if (equipmentSlot === "mainhand" && item.twoHanded) {
-      db.prepare("UPDATE characters SET offhand = NULL, updated_at = ? WHERE id = ?").run(now, id);
-    }
+    persistEquipmentSet(id, character, equipmentSet, nextEquipment, now);
 
     insertInventoryItems(id, returnedItemIds, inventorySlotsToUse, now);
 
     return { character: this.findById(id), error: null };
   },
-  unequipItemForPlayer(id: string, playerId: string, equipmentSlot: EquipmentSlot) {
+  unequipItemForPlayer(
+    id: string,
+    playerId: string,
+    equipmentSlot: EquipmentSlot,
+    equipmentSet: EquipmentSetIndex = 0
+  ) {
     const character = this.findById(id);
 
     if (!character || character.playerId !== playerId) {
       return { character: null, error: "Character not found" };
     }
 
-    const itemId = character.equipment[equipmentSlot];
+    const targetEquipment = getEquipmentForSet(character, equipmentSet);
+    const itemId = targetEquipment[equipmentSlot];
 
     if (!itemId) {
       return { character: null, error: "Equipment slot is empty" };
@@ -404,9 +430,7 @@ export const characterRepository = {
 
     const now = new Date().toISOString();
 
-    db.prepare(
-      `UPDATE characters SET ${equipmentColumnBySlot[equipmentSlot]} = NULL, updated_at = ? WHERE id = ?`
-    ).run(now, id);
+    persistEquipmentSet(id, character, equipmentSet, { ...targetEquipment, [equipmentSlot]: null }, now);
     insertInventoryItems(id, [itemId], [slotIndex], now);
 
     return { character: this.findById(id), error: null };
@@ -472,7 +496,8 @@ export const characterRepository = {
           sta,
           dex,
           int,
-          skill_levels AS skillLevels,
+        skill_levels AS skillLevels,
+          equipment_sets AS equipmentSets,
           helmet,
           suit,
           gloves,
@@ -522,7 +547,8 @@ export const characterRepository = {
           sta,
           dex,
           int,
-          skill_levels AS skillLevels,
+        skill_levels AS skillLevels,
+          equipment_sets AS equipmentSets,
           helmet,
           suit,
           gloves,
@@ -585,6 +611,7 @@ export const characterRepository = {
         dex,
         int,
         skillLevels,
+        equipmentSets,
         helmet,
         suit,
         gloves,
@@ -606,17 +633,8 @@ export const characterRepository = {
         ringL,
         inventorySize,
         ...character
-      }): Character => ({
-        id,
-        ...character,
-        stats: {
-          str,
-          sta,
-          dex,
-          int
-        },
-        skillLevels: parseSkillLevels(skillLevels),
-        equipment: {
+      }): Character => {
+        const equipment = {
           helmet,
           suit,
           gloves,
@@ -636,14 +654,28 @@ export const characterRepository = {
           necklace,
           earringL,
           ringL
-        },
-        inventory: {
-          size: inventorySize,
-          items: (inventoryItemsByCharacterId.get(id) ?? []).map(
-            ({ characterId: _characterId, id: _id, ...item }) => item
-          )
-        }
-      })
+        };
+
+        return {
+          id,
+          ...character,
+          stats: {
+            str,
+            sta,
+            dex,
+            int
+          },
+          skillLevels: parseSkillLevels(skillLevels),
+          equipment,
+          equipmentSets: parseEquipmentSets(equipmentSets, equipment),
+          inventory: {
+            size: inventorySize,
+            items: (inventoryItemsByCharacterId.get(id) ?? []).map(
+              ({ characterId: _characterId, id: _id, ...item }) => item
+            )
+          }
+        };
+      }
     );
   }
 };
@@ -664,6 +696,144 @@ function parseSkillLevels(skillLevels: string) {
   } catch {
     return {};
   }
+}
+
+function createEmptyEquipment(): Character["equipment"] {
+  return {
+    ammo: null,
+    boots: null,
+    cloak: null,
+    csBoots: null,
+    csGloves: null,
+    csHelm: null,
+    csSuit: null,
+    earringL: null,
+    earringR: null,
+    flying: null,
+    gloves: null,
+    helmet: null,
+    mainhand: null,
+    mask: null,
+    necklace: null,
+    offhand: null,
+    ringL: null,
+    ringR: null,
+    suit: null
+  };
+}
+
+function normalizeEquipment(value: unknown, fallback: Character["equipment"]): Character["equipment"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return fallback;
+  }
+
+  const input = value as Partial<Record<keyof Character["equipment"], unknown>>;
+  const emptyEquipment = createEmptyEquipment();
+
+  return Object.fromEntries(
+    Object.keys(emptyEquipment).map((slot) => {
+      const value = input[slot as keyof Character["equipment"]];
+
+      return [slot, typeof value === "string" ? value : null];
+    })
+  ) as Character["equipment"];
+}
+
+function createEquipmentSets(firstSet: Character["equipment"]) {
+  return [firstSet, createEmptyEquipment(), createEmptyEquipment()];
+}
+
+function parseEquipmentSets(equipmentSets: string, firstSet: Character["equipment"]) {
+  try {
+    const parsed = JSON.parse(equipmentSets) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return createEquipmentSets(firstSet);
+    }
+
+    return equipmentSetIndexes.map((setIndex) =>
+      setIndex === 0 ? firstSet : normalizeEquipment(parsed[setIndex], createEmptyEquipment())
+    );
+  } catch {
+    return createEquipmentSets(firstSet);
+  }
+}
+
+function getEquipmentForSet(character: Character, equipmentSet: EquipmentSetIndex) {
+  return (
+    character.equipmentSets[equipmentSet] ??
+    (equipmentSet === 0 ? character.equipment : createEmptyEquipment())
+  );
+}
+
+function persistEquipmentSet(
+  characterId: string,
+  character: Character,
+  equipmentSet: EquipmentSetIndex,
+  equipment: Character["equipment"],
+  now: string
+) {
+  const equipmentSets = equipmentSetIndexes.map((setIndex) =>
+    setIndex === equipmentSet ? equipment : getEquipmentForSet(character, setIndex)
+  );
+
+  if (equipmentSet === 0) {
+    db.prepare(
+      `UPDATE characters
+        SET equipment_sets = ?,
+            helmet = ?,
+            suit = ?,
+            gloves = ?,
+            boots = ?,
+            flying = ?,
+            cs_boots = ?,
+            cs_gloves = ?,
+            cs_suit = ?,
+            cs_helm = ?,
+            mask = ?,
+            cloak = ?,
+            ammo = ?,
+            offhand = ?,
+            mainhand = ?,
+            ring_r = ?,
+            earring_r = ?,
+            necklace = ?,
+            earring_l = ?,
+            ring_l = ?,
+            updated_at = ?
+        WHERE id = ?`
+    ).run(
+      JSON.stringify(equipmentSets),
+      equipment.helmet,
+      equipment.suit,
+      equipment.gloves,
+      equipment.boots,
+      equipment.flying,
+      equipment.csBoots,
+      equipment.csGloves,
+      equipment.csSuit,
+      equipment.csHelm,
+      equipment.mask,
+      equipment.cloak,
+      equipment.ammo,
+      equipment.offhand,
+      equipment.mainhand,
+      equipment.ringR,
+      equipment.earringR,
+      equipment.necklace,
+      equipment.earringL,
+      equipment.ringL,
+      now,
+      characterId
+    );
+    return;
+  }
+
+  db.prepare("UPDATE characters SET equipment_sets = ?, updated_at = ? WHERE id = ?").run(
+    JSON.stringify(equipmentSets),
+    now,
+    characterId
+  );
 }
 
 function normalizeRequirement(value: string) {
@@ -917,14 +1087,18 @@ function compareInventoryItems(
 }
 
 function getFirstOpenPairSlot(
-  character: Character,
+  equipment: Character["equipment"],
   leftSlot: "earringL" | "ringL",
   rightSlot: "earringR" | "ringR"
 ) {
-  return character.equipment[leftSlot] ? rightSlot : leftSlot;
+  return equipment[leftSlot] ? rightSlot : leftSlot;
 }
 
-function getEquipmentSlotForItem(character: Character, item: ItemMetadata): EquipmentSlot | null {
+function getEquipmentSlotForItem(
+  character: Character,
+  item: ItemMetadata,
+  equipment = character.equipment
+): EquipmentSlot | null {
   if (item.category === "weapon") {
     return "mainhand";
   }
@@ -943,11 +1117,11 @@ function getEquipmentSlotForItem(character: Character, item: ItemMetadata): Equi
     }
 
     if (item.subcategory === "earring") {
-      return getFirstOpenPairSlot(character, "earringL", "earringR");
+      return getFirstOpenPairSlot(equipment, "earringL", "earringR");
     }
 
     if (item.subcategory === "ring") {
-      return getFirstOpenPairSlot(character, "ringL", "ringR");
+      return getFirstOpenPairSlot(equipment, "ringL", "ringR");
     }
   }
 

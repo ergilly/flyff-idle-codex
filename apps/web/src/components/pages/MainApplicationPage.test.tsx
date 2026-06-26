@@ -51,7 +51,7 @@ jest.mock("@/lib/skillTrees", () => ({
 }));
 
 jest.mock("@/components/organisms/main-application/MainApplicationSidebar", () => ({
-  navItems: [{ label: "Character Page" }, { label: "Inventory" }, { label: "Map" }],
+  navItems: [{ label: "Character Page" }, { label: "Inventory" }, { label: "Map" }, { label: "Combat" }],
   MainApplicationSidebar: ({
     isAdmin,
     onLogout,
@@ -74,6 +74,9 @@ jest.mock("@/components/organisms/main-application/MainApplicationSidebar", () =
       </button>
       <button type="button" onClick={() => onSelectNavItem("Map")}>
         Map
+      </button>
+      <button type="button" onClick={() => onSelectNavItem("Combat")}>
+        Combat
       </button>
       {isAdmin ? (
         <button type="button" onClick={() => onSelectNavItem("Admin")}>
@@ -143,7 +146,7 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
     onResetSkills: () => void;
     onResetStats: () => void;
     onSelectEquipmentItem: (itemId: string) => void;
-    onUnequipEquipmentSlot: (slot: "cloak") => void;
+    onUnequipEquipmentSlot: (slot: "cloak", equipmentSet: number) => void;
     pendingSkillLevels: Record<string, number>;
     pendingStats: Record<string, number>;
     availableStatPoints: number;
@@ -189,7 +192,7 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
         <button type="button" onClick={() => onSelectEquipmentItem("40")}>
           Select Equipment
         </button>
-        <button type="button" onClick={() => onUnequipEquipmentSlot("cloak")}>
+        <button type="button" onClick={() => onUnequipEquipmentSlot("cloak", 0)}>
           Unequip Cloak
         </button>
       </section>
@@ -205,7 +208,7 @@ jest.mock("./InventoryPage", () => ({
     onSortInventory,
     selectedSlotIndex
   }: {
-    onEquipSlot: (slot: number) => void;
+    onEquipSlot: (slot: number, equipmentSet: number) => void;
     onMoveItem: (from: number, to: number) => void;
     onSelectSlot: (slot: number | null) => void;
     onSortInventory: (sortBy: "name") => void;
@@ -216,7 +219,7 @@ jest.mock("./InventoryPage", () => ({
       <button type="button" onClick={() => onSelectSlot(0)}>
         Select Slot
       </button>
-      <button type="button" onClick={() => onEquipSlot(0)}>
+      <button type="button" onClick={() => onEquipSlot(0, 1)}>
         Equip Slot
       </button>
       <button type="button" onClick={() => onMoveItem(0, 3)}>
@@ -224,6 +227,23 @@ jest.mock("./InventoryPage", () => ({
       </button>
       <button type="button" onClick={() => onSortInventory("name")}>
         Sort Name
+      </button>
+    </section>
+  )
+}));
+
+jest.mock("./BattlePage", () => ({
+  BattlePage: ({ selectedMonsterFamily }: { selectedMonsterFamily: { name: string } | null }) => (
+    <section aria-label="mock battle">Battle target {selectedMonsterFamily?.name ?? "none"}</section>
+  )
+}));
+
+jest.mock("./MapPage", () => ({
+  MapPage: ({ onSelectMonster }: { onSelectMonster: (monsterFamily: { name: string }) => void }) => (
+    <section aria-label="mock map">
+      Map page
+      <button type="button" onClick={() => onSelectMonster({ name: "Aibatt" })}>
+        Fight Aibatt
       </button>
     </section>
   )
@@ -400,7 +420,7 @@ describe("MainApplicationPage", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Unequip Cloak" }));
-    await waitFor(() => expect(unequipItem).toHaveBeenCalledWith("token", "char-1", "cloak"));
+    await waitFor(() => expect(unequipItem).toHaveBeenCalledWith("token", "char-1", "cloak", 0));
   });
 
   it("runs inventory and admin actions from their navigation tabs", async () => {
@@ -428,7 +448,7 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Move Slot" }));
     fireEvent.click(screen.getByRole("button", { name: "Sort Name" }));
 
-    await waitFor(() => expect(equipInventoryItem).toHaveBeenCalledWith("token", "char-1", 0));
+    await waitFor(() => expect(equipInventoryItem).toHaveBeenCalledWith("token", "char-1", 0, 1));
     expect(moveInventoryItem).toHaveBeenCalledWith("token", "char-1", 0, 3);
     expect(sortInventory).toHaveBeenCalledWith("token", "char-1", "name");
 
@@ -440,6 +460,22 @@ describe("MainApplicationPage", () => {
     await waitFor(() => expect(refundCharacterStats).toHaveBeenCalledWith("token", "char-1"));
     expect(refundCharacterSkills).toHaveBeenCalledWith("token", "char-1");
     expect(addCharacterInventoryItem).toHaveBeenCalledWith("token", "char-1", { itemId: "40", quantity: 2 });
+  });
+
+  it("opens battle from combat navigation and map monster selection", async () => {
+    arrangeSession();
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+    expect(screen.getByText("Battle target none")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fight Aibatt" }));
+
+    expect(screen.getByText("Battle target Aibatt")).toBeInTheDocument();
   });
 
   it("handles failed character, inventory, and admin actions", async () => {
@@ -461,7 +497,7 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Move Slot" }));
     fireEvent.click(screen.getByRole("button", { name: "Sort Name" }));
 
-    await waitFor(() => expect(equipInventoryItem).toHaveBeenCalledWith("token", "char-1", 0));
+    await waitFor(() => expect(equipInventoryItem).toHaveBeenCalledWith("token", "char-1", 0, 1));
     expect(moveInventoryItem).toHaveBeenCalledWith("token", "char-1", 0, 3);
     expect(sortInventory).toHaveBeenCalledWith("token", "char-1", "name");
 
@@ -476,7 +512,7 @@ describe("MainApplicationPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Character Page" }));
     fireEvent.click(screen.getByRole("button", { name: "Unequip Cloak" }));
-    await waitFor(() => expect(unequipItem).toHaveBeenCalledWith("token", "char-1", "cloak"));
+    await waitFor(() => expect(unequipItem).toHaveBeenCalledWith("token", "char-1", "cloak", 0));
 
     fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
     fireEvent.click(screen.getByRole("button", { name: "Apply Skills" }));
