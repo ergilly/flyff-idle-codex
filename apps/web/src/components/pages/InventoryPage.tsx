@@ -9,10 +9,11 @@ import { cx } from "@/lib/classNames";
 
 type InventoryPageProps = {
   actionError?: string;
+  activeEquipmentSet?: number;
   character: Character;
   isActionPending?: boolean;
   itemsById: Record<string, ItemMetadata>;
-  onEquipSlot?: (slotIndex: number) => void;
+  onEquipSlot?: (slotIndex: number, equipmentSet: number) => void;
   onMoveItem?: (fromSlotIndex: number, toSlotIndex: number) => void;
   onSelectSlot: (slotIndex: number | null) => void;
   onSortInventory?: (sortBy: InventorySortOption) => void;
@@ -28,6 +29,7 @@ const inventorySortOptions: Array<{ label: string; value: InventorySortOption }>
 
 export function InventoryPage({
   actionError = "",
+  activeEquipmentSet = 0,
   character,
   isActionPending = false,
   itemsById,
@@ -140,18 +142,37 @@ export function InventoryPage({
       <ItemDetailsPanel
         actionDisabled={isActionPending}
         actionError={actionError}
-        actionLabel={selectedInventoryItem ? "Equip" : undefined}
         className="themed-scrollbar h-full max-h-full max-w-none overflow-y-auto border-border"
         character={character}
         emptyDescription="Select an inventory item to inspect its stats."
         item={selectedItem}
-        onAction={
-          selectedInventoryItem && onEquipSlot
-            ? () => onEquipSlot(selectedInventoryItem.slotIndex)
-            : undefined
-        }
         slotLabel={selectedSlotIndex !== null ? `Inventory ${selectedSlotIndex + 1}` : null}
-      />
+      >
+        {selectedInventoryItem && onEquipSlot ? (
+          <div className="grid gap-2">
+            <span className="text-[0.78rem] font-extrabold uppercase text-text-muted">Equip to set</span>
+            <div className="grid grid-cols-3 gap-2">
+              {[0, 1, 2].map((equipmentSet) => (
+                <button
+                  aria-label={`Equip to set ${equipmentSet + 1}`}
+                  className={cx(
+                    "min-h-10 rounded-control border-2 px-2 text-sm font-black transition-colors disabled:cursor-wait disabled:opacity-60",
+                    activeEquipmentSet === equipmentSet
+                      ? "border-[#f5d46a] bg-[linear-gradient(180deg,#ffe07a,#b9851f)] text-button-text"
+                      : "border-border bg-panel-muted text-foreground hover:border-primary"
+                  )}
+                  disabled={isActionPending}
+                  key={equipmentSet}
+                  onClick={() => onEquipSlot(selectedInventoryItem.slotIndex, equipmentSet)}
+                  type="button"
+                >
+                  {equipmentSet + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </ItemDetailsPanel>
     </section>
   );
 }

@@ -22,6 +22,7 @@ export type Character = {
   stats: CharacterStats;
   skillLevels: CharacterSkillLevels;
   equipment: CharacterEquipment;
+  equipmentSets: CharacterEquipment[];
   inventory: CharacterInventory;
 };
 

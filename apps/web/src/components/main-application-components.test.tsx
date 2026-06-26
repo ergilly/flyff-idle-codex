@@ -315,7 +315,7 @@ describe("main application components", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
 
     expect(onSelectEquipmentItem).toHaveBeenCalledWith("40");
-    expect(onUnequipEquipmentSlot).toHaveBeenCalledWith("cloak");
+    expect(onUnequipEquipmentSlot).toHaveBeenCalledWith("cloak", 0);
     expect(onAddSkillLevel).toHaveBeenCalledWith(expect.objectContaining({ id: "clean" }));
     expect(onRemoveSkillLevel).toHaveBeenCalledWith(expect.objectContaining({ id: "clean" }));
     expect(onApplySkills).toHaveBeenCalled();
@@ -325,6 +325,7 @@ describe("main application components", () => {
   it("composes the full character page content", () => {
     render(
       <CharacterPageContent
+        activeEquipmentSet={0}
         appliedStats={{ str: 0, sta: 0, dex: 0, int: 0 }}
         availableSkillPoints={3}
         availableStatPoints={2}
@@ -336,6 +337,7 @@ describe("main application components", () => {
         onApplySkills={jest.fn()}
         onApplyStats={jest.fn()}
         onCanRemoveSkillLevel={() => true}
+        onEquipmentSetChange={jest.fn()}
         onRemoveSkillLevel={jest.fn()}
         onRemoveStat={jest.fn()}
         onResetSkills={jest.fn()}

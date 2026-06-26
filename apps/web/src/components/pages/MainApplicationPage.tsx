@@ -6,6 +6,7 @@ import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { AdminPage } from "@/components/pages/AdminPage";
+import { BattlePage } from "@/components/pages/BattlePage";
 import { InventoryPage } from "@/components/pages/InventoryPage";
 import { MapPage } from "@/components/pages/MapPage";
 import { ContentHeading } from "@/components/molecules/main-application/ContentHeading";
@@ -41,6 +42,7 @@ import {
   type InventorySortOption,
   type CharacterSkillLevels,
   type ItemMetadata,
+  type MapMonsterFamily,
   unequipItem,
   updateCharacterProgression
 } from "@/lib/api";
@@ -98,6 +100,8 @@ export function MainApplicationPage() {
   const [availableSkillPoints, setAvailableSkillPoints] = useState(0);
   const [skillTabs, setSkillTabs] = useState<SkillTreeTab[]>([]);
   const [itemsById, setItemsById] = useState<Record<string, ItemMetadata>>({});
+  const [selectedMonsterFamily, setSelectedMonsterFamily] = useState<MapMonsterFamily | null>(null);
+  const [activeEquipmentSet, setActiveEquipmentSet] = useState(0);
   const [selectedEquipmentItemId, setSelectedEquipmentItemId] = useState<string | null>(null);
   const [selectedInventorySlotIndex, setSelectedInventorySlotIndex] = useState<number | null>(null);
   const [itemActionError, setItemActionError] = useState("");
@@ -161,6 +165,7 @@ export function MainApplicationPage() {
     setPendingSkillLevels({});
     setAvailableSkillPoints(0);
     setSkillTabs([]);
+    setActiveEquipmentSet(0);
 
     let ignoreResult = false;
     const refreshSkillTabs = () => {
@@ -256,6 +261,11 @@ export function MainApplicationPage() {
       setSelectedEquipmentItemId(null);
     }
   }, [selectedCharacter, selectedEquipmentItemId]);
+
+  function handleEquipmentSetChange(equipmentSet: number) {
+    setActiveEquipmentSet(equipmentSet);
+    setSelectedEquipmentItemId(null);
+  }
 
   useEffect(() => {
     if (!selectedCharacter || selectedInventorySlotIndex === null) {
@@ -413,6 +423,12 @@ export function MainApplicationPage() {
     setIsMobileNavOpen(false);
   }
 
+  function handleSelectMapMonster(monsterFamily: MapMonsterFamily) {
+    setSelectedMonsterFamily(monsterFamily);
+    setActiveNavItem("Combat");
+    setIsMobileNavOpen(false);
+  }
+
   function handleSelectEquipmentItem(itemId: string) {
     setItemActionError("");
     setSelectedEquipmentItemId(itemId);
@@ -525,7 +541,7 @@ export function MainApplicationPage() {
     }
   }
 
-  async function handleEquipInventorySlot(slotIndex: number) {
+  async function handleEquipInventorySlot(slotIndex: number, equipmentSet: number) {
     if (!selectedCharacter) {
       return;
     }
@@ -542,9 +558,10 @@ export function MainApplicationPage() {
     setIsItemActionPending(true);
 
     try {
-      const updatedCharacter = await equipInventoryItem(token, selectedCharacter.id, slotIndex);
+      const updatedCharacter = await equipInventoryItem(token, selectedCharacter.id, slotIndex, equipmentSet);
       updateCharacter(updatedCharacter);
       setSelectedInventorySlotIndex(null);
+      setActiveEquipmentSet(equipmentSet);
       setSelectedEquipmentItemId(inventoryItem?.itemId ?? null);
     } catch (equipError) {
       setItemActionError(equipError instanceof Error ? equipError.message : "Unable to equip item");
@@ -610,7 +627,7 @@ export function MainApplicationPage() {
     }
   }
 
-  async function handleUnequipEquipmentSlot(equipmentSlot: CharacterEquipmentSlot) {
+  async function handleUnequipEquipmentSlot(equipmentSlot: CharacterEquipmentSlot, equipmentSet: number) {
     if (!selectedCharacter) {
       return;
     }
@@ -626,7 +643,7 @@ export function MainApplicationPage() {
     setIsItemActionPending(true);
 
     try {
-      const updatedCharacter = await unequipItem(token, selectedCharacter.id, equipmentSlot);
+      const updatedCharacter = await unequipItem(token, selectedCharacter.id, equipmentSlot, equipmentSet);
       updateCharacter(updatedCharacter);
       setSelectedEquipmentItemId(null);
     } catch (unequipError) {
@@ -708,6 +725,7 @@ export function MainApplicationPage() {
         <ContentHeading activeNavItem={activeNavItem} />
         {activeNavItem === "Character Page" ? (
           <CharacterPageContent
+            activeEquipmentSet={activeEquipmentSet}
             appliedStats={appliedStats}
             availableSkillPoints={availableSkillPoints}
             availableStatPoints={availableStatPoints}
@@ -720,6 +738,7 @@ export function MainApplicationPage() {
             onAddStat={handleAddStat}
             onApplySkills={handleApplySkills}
             onCanRemoveSkillLevel={handleCanRemoveSkillLevel}
+            onEquipmentSetChange={handleEquipmentSetChange}
             onApplyStats={handleApplyStats}
             onRemoveSkillLevel={handleRemoveSkillLevel}
             onRemoveStat={handleRemoveStat}
@@ -740,13 +759,21 @@ export function MainApplicationPage() {
             isActionPending={isItemActionPending}
             itemsById={itemsById}
             onEquipSlot={handleEquipInventorySlot}
+            activeEquipmentSet={activeEquipmentSet}
             onMoveItem={handleMoveInventoryItem}
             onSelectSlot={handleSelectInventorySlot}
             onSortInventory={handleSortInventory}
             selectedSlotIndex={selectedInventorySlotIndex}
           />
         ) : activeNavItem === "Map" ? (
-          <MapPage />
+          <MapPage onSelectMonster={handleSelectMapMonster} />
+        ) : activeNavItem === "Combat" ? (
+          <BattlePage
+            character={selectedCharacter}
+            itemsById={itemsById}
+            selectedMonsterFamily={selectedMonsterFamily}
+            skillTabs={skillTabs}
+          />
         ) : activeNavItem === "Admin" ? (
           <AdminPage
             addingInventoryItem={isAddingInventoryItem}

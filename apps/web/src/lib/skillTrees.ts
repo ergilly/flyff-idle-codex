@@ -1,6 +1,7 @@
 import { fetchDataSet, type Character, type CharacterSkillLevels } from "@/lib/api";
 
 export type SkillTreeTier = "vagrant" | "first" | "second" | "third";
+export type SkillCombo = "step" | "circular" | "finish" | "general";
 
 export type SkillRequirement = {
   level: number;
@@ -11,6 +12,7 @@ export type SkillRequirement = {
 export type SkillDefinition = {
   classId: number;
   className: string;
+  combo?: SkillCombo;
   costPerLevel: number;
   description: string;
   icon: string;
@@ -41,6 +43,7 @@ type RawJob = {
 
 type RawSkill = {
   class?: number;
+  combo?: string | null;
   description?: string;
   icon: string;
   id: number;
@@ -178,6 +181,24 @@ function getTier(jobName: string): SkillTreeTier {
   }
 
   return "vagrant";
+}
+
+function getSkillCombo(combo: string | null | undefined): SkillCombo {
+  const normalizedCombo = combo?.toLowerCase().trim();
+
+  if (normalizedCombo === "step" || normalizedCombo === "steps") {
+    return "step";
+  }
+
+  if (normalizedCombo === "circular" || normalizedCombo === "circle") {
+    return "circular";
+  }
+
+  if (normalizedCombo === "finish" || normalizedCombo === "finisher") {
+    return "finish";
+  }
+
+  return "general";
 }
 
 function getTreeXCoordinate(jobName: string, position: number) {
@@ -323,6 +344,7 @@ function getSkillsForJob(job: RawJob, classSkills: RawSkill[], skillsById: Map<s
       return {
         classId: job.id,
         className: job.name,
+        combo: getSkillCombo(skill.combo),
         costPerLevel: skill.skillPoints ?? 1,
         description: skill.description ?? "",
         icon: skill.icon,

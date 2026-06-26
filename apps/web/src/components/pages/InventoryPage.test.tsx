@@ -119,8 +119,8 @@ describe("InventoryPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Slot 2: Empty" }));
     expect(onSelectSlot).toHaveBeenCalledWith(null);
 
-    fireEvent.click(screen.getByRole("button", { name: "Equip" }));
-    expect(onEquipSlot).toHaveBeenCalledWith(0);
+    fireEvent.click(screen.getByRole("button", { name: "Equip to set 2" }));
+    expect(onEquipSlot).toHaveBeenCalledWith(0, 1);
   });
 
   it("sorts inventory and reports drag-and-drop moves", () => {
@@ -163,7 +163,9 @@ describe("InventoryPage", () => {
     );
 
     expect(screen.getByLabelText("Sort")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Equip" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Equip to set 1" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Equip to set 2" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Equip to set 3" })).toBeDisabled();
     expect(screen.getByText("Unable to equip item")).toBeInTheDocument();
   });
 });

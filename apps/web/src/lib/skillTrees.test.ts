@@ -103,6 +103,7 @@ describe("skillTrees", () => {
         {
           id: 200,
           name: "Empower Weapon",
+          combo: "circle",
           description: "Buffs attacks",
           icon: "empower.png",
           level: 20,
@@ -158,6 +159,7 @@ describe("skillTrees", () => {
         skills: [
           expect.objectContaining({
             costPerLevel: 2,
+            combo: "circular",
             description: "Buffs attacks",
             name: "Empower Weapon",
             requirements: [{ skill: "100", skillName: "Clean Hit", level: 3 }]

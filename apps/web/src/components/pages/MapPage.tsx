@@ -7,19 +7,21 @@ import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import {
-  fetchMonsterFamiliesByNames,
+  fetchMapMonsterFamiliesByRegion,
   getItemIconUrl,
+  type MapMonsterFamily,
   type MonsterFamily,
   type MonsterFamilyVariant
 } from "@/lib/api";
 import { cx } from "@/lib/classNames";
-import { monsterMarkersByRegion, type MapRegionId, type MapMonsterMarker } from "@/lib/mapMonsterMarkers";
+import { getMonsterMarkerIconSrc, type MapRegionId, type MapMonsterMarker } from "@/lib/mapMonsterMarkers";
 
 const minMapZoom = 1;
 const maxMapZoom = 2.5;
 const mapZoomStep = 0.25;
 const zeroPan = { x: 0, y: 0 };
 const emptyMonsterMarkers: MapMonsterMarker[] = [];
+const emptyMonsterFamilies: MapMonsterFamily[] = [];
 
 type RegionDefinition = {
   id: MapRegionId;
@@ -165,13 +167,18 @@ const regions: RegionDefinition[] = [
   }
 ];
 
-export function MapPage() {
+type MapPageProps = {
+  onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
+};
+
+export function MapPage({ onSelectMonster }: MapPageProps) {
   const [activeRegionId, setActiveRegionId] = useState<MapRegionId | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<MapRegionId | null>(null);
   const [mapZoom, setMapZoom] = useState(minMapZoom);
   const [mapPan, setMapPan] = useState(zeroPan);
   const [isPanning, setIsPanning] = useState(false);
-  const [monsterFamiliesByName, setMonsterFamiliesByName] = useState<Record<string, MonsterFamily>>({});
+  const [monsterFamilies, setMonsterFamilies] = useState<MapMonsterFamily[]>(emptyMonsterFamilies);
+  const [isMonsterFamilyLoading, setIsMonsterFamilyLoading] = useState(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const panStartRef = useRef({ panX: 0, panY: 0, x: 0, y: 0 });
   const selectedRegion = regions.find((region) => region.id === selectedRegionId) ?? null;
@@ -179,8 +186,9 @@ export function MapPage() {
     regions.find((region) => region.id === (activeRegionId ?? selectedRegionId)) ?? selectedRegion;
   const panelRegion = selectedRegion ?? activeRegion;
   const selectedRegionMarkers = selectedRegion
-    ? monsterMarkersByRegion[selectedRegion.id]
+    ? createMapMonsterMarkers(monsterFamilies)
     : emptyMonsterMarkers;
+  const monsterFamiliesByMarkerId = getMonsterFamiliesByMarkerId(monsterFamilies);
 
   useEffect(() => {
     setMapZoom(minMapZoom);
@@ -189,37 +197,34 @@ export function MapPage() {
 
   useEffect(() => {
     let isCurrent = true;
-    const monsterNames = Array.from(
-      new Set(
-        selectedRegionMarkers
-          .map((marker) => marker.monsterName)
-          .filter((name): name is string => Boolean(name))
-      )
-    );
 
-    if (monsterNames.length === 0) {
-      setMonsterFamiliesByName({});
+    if (!selectedRegion) {
+      setMonsterFamilies(emptyMonsterFamilies);
+      setIsMonsterFamilyLoading(false);
       return;
     }
 
-    setMonsterFamiliesByName({});
+    setMonsterFamilies(emptyMonsterFamilies);
+    setIsMonsterFamilyLoading(true);
 
-    fetchMonsterFamiliesByNames(monsterNames)
-      .then((familiesByName) => {
+    fetchMapMonsterFamiliesByRegion(selectedRegion.id)
+      .then((families) => {
         if (isCurrent) {
-          setMonsterFamiliesByName(familiesByName);
+          setMonsterFamilies(families);
+          setIsMonsterFamilyLoading(false);
         }
       })
       .catch(() => {
         if (isCurrent) {
-          setMonsterFamiliesByName({});
+          setMonsterFamilies(emptyMonsterFamilies);
+          setIsMonsterFamilyLoading(false);
         }
       });
 
     return () => {
       isCurrent = false;
     };
-  }, [selectedRegionMarkers]);
+  }, [selectedRegion]);
 
   function handleZoomIn() {
     zoomFromViewportCenter(mapZoom + mapZoomStep);
@@ -367,10 +372,17 @@ export function MapPage() {
                 priority
                 unoptimized
               />
-              <MonsterMarkerLayer
-                markers={selectedRegionMarkers}
-                monsterFamiliesByName={monsterFamiliesByName}
-              />
+              {isMonsterFamilyLoading ? (
+                <div className="absolute inset-0 grid place-items-center bg-black/18 text-xs font-black uppercase tracking-wide text-[#fff1ba]">
+                  Loading monster data...
+                </div>
+              ) : (
+                <MonsterMarkerLayer
+                  markers={selectedRegionMarkers}
+                  monsterFamiliesByMarkerId={monsterFamiliesByMarkerId}
+                  onSelectMonster={onSelectMonster}
+                />
+              )}
             </div>
           </div>
         ) : (
@@ -529,10 +541,12 @@ function ZoomControls({
 
 function MonsterMarkerLayer({
   markers,
-  monsterFamiliesByName
+  monsterFamiliesByMarkerId,
+  onSelectMonster
 }: {
   markers: MapMonsterMarker[];
-  monsterFamiliesByName: Record<string, MonsterFamily>;
+  monsterFamiliesByMarkerId: Record<string, MapMonsterFamily>;
+  onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
 }) {
   if (markers.length === 0) {
     return null;
@@ -544,7 +558,8 @@ function MonsterMarkerLayer({
         <MonsterMarker
           key={marker.id}
           marker={marker}
-          monsterFamily={getMonsterFamily(marker, monsterFamiliesByName)}
+          monsterFamily={monsterFamiliesByMarkerId[marker.id]}
+          onSelectMonster={onSelectMonster}
         />
       ))}
     </div>
@@ -553,10 +568,12 @@ function MonsterMarkerLayer({
 
 function MonsterMarker({
   marker,
-  monsterFamily
+  monsterFamily,
+  onSelectMonster
 }: {
   marker: MapMonsterMarker;
-  monsterFamily?: MonsterFamily;
+  monsterFamily?: MapMonsterFamily;
+  onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
 }) {
   const markerLabel = monsterFamily?.name ?? marker.label;
 
@@ -564,21 +581,30 @@ function MonsterMarker({
     <button
       aria-describedby={`${marker.id}-description`}
       aria-label={markerLabel}
-      className="group absolute grid aspect-square w-[4.6%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[#fff1ba]/70 bg-black/45 p-[0.35%] shadow-[0_2px_8px_rgba(0,0,0,0.65)] transition-transform hover:z-20 hover:scale-110 focus-visible:z-20 focus-visible:scale-110 focus-visible:border-[#fff1ba] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#fff1ba]/70"
+      className="group absolute grid aspect-square w-[4.35%] -translate-x-1/2 -translate-y-1/2 place-items-center transition-transform hover:z-20 hover:scale-110 focus-visible:z-20 focus-visible:scale-110 focus-visible:outline-none"
       onMouseDown={(event) => event.stopPropagation()}
+      onClick={() => {
+        if (monsterFamily) {
+          onSelectMonster?.(monsterFamily);
+        }
+      }}
       style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
       title={markerLabel}
       type="button"
     >
-      <Image
-        className="pointer-events-none h-full w-full object-contain [image-rendering:pixelated]"
-        src={marker.iconSrc}
-        alt=""
-        aria-hidden="true"
-        width={40}
-        height={40}
-        unoptimized
-      />
+      <span className="pointer-events-none grid h-full w-full place-items-center overflow-hidden rounded-full border border-[#fff1ba]/70 bg-black/45 shadow-[0_2px_8px_rgba(0,0,0,0.65)] group-focus-visible:border-[#fff1ba] group-focus-visible:ring-2 group-focus-visible:ring-[#fff1ba]/70">
+        <span className="grid h-[82%] w-[82%] place-items-center">
+          <Image
+            className="pointer-events-none h-full w-full object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]"
+            src={marker.iconSrc}
+            alt=""
+            aria-hidden="true"
+            width={64}
+            height={64}
+            unoptimized
+          />
+        </span>
+      </span>
       <MonsterTooltip marker={marker} monsterFamily={monsterFamily} />
     </button>
   );
@@ -693,10 +719,6 @@ function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }
   );
 }
 
-function getMonsterFamily(marker: MapMonsterMarker, monsterFamiliesByName: Record<string, MonsterFamily>) {
-  return marker.monsterName ? monsterFamiliesByName[marker.monsterName] : undefined;
-}
-
 function formatMonsterValue(value: string | number | null) {
   return value === null ? "Unknown" : String(value);
 }
@@ -711,7 +733,31 @@ function getElementIconSrc(element: string | null) {
 
 function getMonsterTooltipPlacement(marker: MapMonsterMarker) {
   return cx(
-    marker.y > 72 ? "bottom-[calc(100%+0.45rem)]" : "top-[calc(100%+0.45rem)]",
+    marker.y >= 60 ? "bottom-[calc(100%+0.45rem)]" : "top-[calc(100%+0.45rem)]",
     marker.x < 22 ? "left-0" : marker.x > 78 ? "right-0" : "left-1/2 -translate-x-1/2"
   );
+}
+
+function createMapMonsterMarkers(monsterFamilies: MapMonsterFamily[]) {
+  return monsterFamilies.flatMap((family) => {
+    return [
+      {
+        description: `Spawn marker for ${family.name}.`,
+        family: family.family,
+        iconSrc: getMonsterMarkerIconSrc(family.family),
+        id: getMapMonsterMarkerId(family),
+        label: family.name,
+        x: family.location.x,
+        y: family.location.y
+      }
+    ];
+  });
+}
+
+function getMonsterFamiliesByMarkerId(monsterFamilies: MapMonsterFamily[]) {
+  return Object.fromEntries(monsterFamilies.map((family) => [getMapMonsterMarkerId(family), family]));
+}
+
+function getMapMonsterMarkerId(family: MapMonsterFamily) {
+  return [family.location.region, family.family, family.location.x, family.location.y].join("-");
 }

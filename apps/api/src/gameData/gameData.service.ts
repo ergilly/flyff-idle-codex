@@ -1,7 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 
-export const dataSetNames = ["items", "jobs", "monsters", "sets", "skills", "upgrades"] as const;
+export const dataSetNames = [
+  "items",
+  "jobs",
+  "mapMonsters",
+  "monsters",
+  "sets",
+  "skills",
+  "upgrades"
+] as const;
 
 export type DataSetName = (typeof dataSetNames)[number];
 export type JsonDataRecord = Record<string, unknown>;
@@ -72,6 +80,16 @@ function matchesScalarFilter(value: unknown, expected: string) {
   }
 
   return normalize(value) === normalize(expected);
+}
+
+function getFieldValue(item: JsonDataRecord, field: string) {
+  return field.split(".").reduce<unknown>((value, segment) => {
+    if (!isJsonDataRecord(value)) {
+      return undefined;
+    }
+
+    return value[segment];
+  }, item);
 }
 
 function matchesRange(item: JsonDataRecord, minimumLevel?: number, maximumLevel?: number) {
@@ -176,7 +194,7 @@ export function queryDataSet(dataSetName: DataSetName, query: Record<string, unk
     .filter((item) => matchesRange(item, minimumLevel, maximumLevel))
     .filter((item) => (dataSetName === "skills" && classId ? matchesScalarFilter(item.class, classId) : true))
     .filter((item) =>
-      scalarFilters.every(({ field, expected }) => matchesScalarFilter(item[field], expected))
+      scalarFilters.every(({ field, expected }) => matchesScalarFilter(getFieldValue(item, field), expected))
     );
 
   return {

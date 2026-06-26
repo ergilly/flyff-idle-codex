@@ -14,6 +14,7 @@ type ItemDetailsPanelProps = {
   actionLabel?: string;
   awakeningStats?: ItemMetadata["abilities"];
   character?: Character;
+  children?: ReactNode;
   className?: string;
   emptyDescription?: string;
   item?: ItemMetadata | null;
@@ -149,6 +150,7 @@ export function ItemDetailsPanel({
   actionLabel,
   awakeningStats = [],
   character,
+  children,
   className,
   emptyDescription = "Select an equipped item to inspect its stats.",
   item,
@@ -262,6 +264,8 @@ export function ItemDetailsPanel({
           {actionLabel}
         </Button>
       ) : null}
+
+      {children}
     </aside>
   );
 }

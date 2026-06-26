@@ -28,6 +28,7 @@ db.exec(`
     dex INTEGER NOT NULL DEFAULT 15,
     int INTEGER NOT NULL DEFAULT 15,
     skill_levels TEXT NOT NULL DEFAULT '{}',
+    equipment_sets TEXT NOT NULL DEFAULT '[]',
     helmet TEXT,
     suit TEXT,
     gloves TEXT,
@@ -106,6 +107,7 @@ addCharacterColumn("sta", "INTEGER NOT NULL DEFAULT 15");
 addCharacterColumn("dex", "INTEGER NOT NULL DEFAULT 15");
 addCharacterColumn("int", "INTEGER NOT NULL DEFAULT 15");
 addCharacterColumn("skill_levels", "TEXT NOT NULL DEFAULT '{}'");
+addCharacterColumn("equipment_sets", "TEXT NOT NULL DEFAULT '[]'");
 addCharacterColumn("helmet", "TEXT");
 addCharacterColumn("suit", "TEXT");
 addCharacterColumn("gloves", "TEXT");
