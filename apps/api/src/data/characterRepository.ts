@@ -361,7 +361,7 @@ export const characterRepository = {
       character.equipment[equipmentSlot],
       equipmentSlot === "mainhand" && item.twoHanded ? character.equipment.offhand : null
     ].filter((itemId): itemId is string => Boolean(itemId));
-    const inventorySlotsToUse = [slotIndex, ...getOpenInventorySlots(character, [slotIndex])];
+    const inventorySlotsToUse = getOpenInventorySlots(character, [slotIndex]);
 
     if (inventorySlotsToUse.length < returnedItemIds.length) {
       return { character: null, error: "Not enough open inventory slots" };

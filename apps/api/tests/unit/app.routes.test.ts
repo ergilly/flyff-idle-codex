@@ -1,5 +1,6 @@
 import request from "supertest";
 import { createApp } from "../../src/app.js";
+import { db } from "../../src/data/database.js";
 import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
 describe("app routes", () => {
@@ -184,6 +185,16 @@ describe("app routes", () => {
         ])
       }
     });
+
+    await expect(
+      request(app)
+        .post("/api/characters")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ slotIndex: 1, name: "DuplicateSlot", gender: "female" })
+    ).resolves.toMatchObject({
+      status: 409,
+      body: { error: "That character slot is already occupied" }
+    });
   });
 
   it("creates characters for authenticated players", async () => {
@@ -307,6 +318,21 @@ describe("app routes", () => {
         ])
       }
     });
+
+    await expect(request(app).get("/api/data/nope")).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Data set not found" }
+    });
+
+    await expect(request(app).get("/api/data/nope/1")).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Data set not found" }
+    });
+
+    await expect(request(app).get("/api/data/items/missing")).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Data record not found" }
+    });
   });
 
   it("persists stat and skill point allocation for authenticated players", async () => {
@@ -362,6 +388,26 @@ describe("app routes", () => {
           })
         ]
       }
+    });
+
+    await expect(
+      request(app)
+        .patch(`/api/characters/${createResponse.body.character.id}/progression`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({})
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Stats or skill levels are required" }
+    });
+
+    await expect(
+      request(app)
+        .patch("/api/characters/missing/progression")
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({ skillLevels: { "vagrant-clean-hit": 0 } })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
     });
   });
 
@@ -439,12 +485,317 @@ describe("app routes", () => {
     });
   });
 
+  it("lets admins add, equip, move, sort, and unequip inventory items", async () => {
+    const loginResponse = await loginDemoPlayer();
+    const charactersResponse = await request(app)
+      .get("/api/characters")
+      .set("Authorization", `Bearer ${loginResponse.body.token}`);
+    const characterId = charactersResponse.body.characters[0].id;
+
+    const addItemResponse = await request(app)
+      .post(`/api/admin/characters/${characterId}/inventory`)
+      .set("Authorization", `Bearer ${loginResponse.body.token}`)
+      .send({ itemId: "40", quantity: 1 });
+    const addedItem = addItemResponse.body.character.inventory.items.find(
+      (item: { itemId: string }) => item.itemId === "40"
+    );
+
+    expect(addItemResponse.status).toBe(200);
+    expect(addedItem).toEqual(expect.objectContaining({ itemId: "40", quantity: 1 }));
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/${addedItem.slotIndex}/equip`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          equipment: expect.objectContaining({ cloak: "40" }),
+          inventory: {
+            size: 50,
+            items: expect.not.arrayContaining([expect.objectContaining({ itemId: "40" })])
+          }
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/equipment/cloak/unequip`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          equipment: expect.objectContaining({ cloak: null }),
+          inventory: {
+            size: 50,
+            items: expect.arrayContaining([expect.objectContaining({ itemId: "40", quantity: 1 })])
+          }
+        })
+      }
+    });
+
+    const playerResponse = await registerFreshPlayer("Inventory");
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", `Bearer ${playerResponse.body.token}`)
+      .send({ slotIndex: 0, name: "BagHero", gender: "male" });
+    const bagCharacterId = createResponse.body.character.id;
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${bagCharacterId}/inventory/move`)
+        .set("Authorization", `Bearer ${playerResponse.body.token}`)
+        .send({ fromSlotIndex: 0, toSlotIndex: 4 })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          inventory: {
+            size: 50,
+            items: expect.arrayContaining([{ slotIndex: 4, itemId: "5325", quantity: 3 }])
+          }
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${bagCharacterId}/inventory/sort`)
+        .set("Authorization", `Bearer ${playerResponse.body.token}`)
+        .send({ sortBy: "name" })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          inventory: {
+            size: 50,
+            items: [
+              { slotIndex: 0, itemId: "9449", quantity: 1 },
+              { slotIndex: 1, itemId: "5325", quantity: 3 },
+              { slotIndex: 2, itemId: "3896", quantity: 5 }
+            ]
+          }
+        })
+      }
+    });
+  });
+
+  it("validates inventory and admin item actions", async () => {
+    const loginResponse = await loginDemoPlayer();
+    const charactersResponse = await request(app)
+      .get("/api/characters")
+      .set("Authorization", `Bearer ${loginResponse.body.token}`);
+    const characterId = charactersResponse.body.characters[0].id;
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/inventory`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ itemId: "missing", quantity: 1 })
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Item and quantity are required" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/inventory`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ itemId: "999999", quantity: 1 })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Item not found" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/99/equip`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Inventory item not found" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/not-a-slot/equip`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Inventory item not found" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/move`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({})
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Source and destination slots are required" }
+    });
+
+    await expect(
+      request(app)
+        .post("/api/characters/missing/inventory/move")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ fromSlotIndex: 0, toSlotIndex: 1 })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/move`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ fromSlotIndex: 0, toSlotIndex: 55 })
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Destination slot is outside inventory capacity" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/sort`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ sortBy: "rarity" })
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Sort option is required" }
+    });
+
+    await expect(
+      request(app)
+        .post("/api/characters/missing/inventory/sort")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ sortBy: "name" })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/equipment/not-a-slot/unequip`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Equipment slot not found" }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/equipment/cloak/unequip`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Equipment slot is empty" }
+    });
+
+    await expect(
+      request(app)
+        .post("/api/characters/missing/equipment/mainhand/unequip")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
+  });
+
+  it("returns precise admin inventory errors", async () => {
+    const loginResponse = await loginDemoPlayer();
+    const charactersResponse = await request(app)
+      .get("/api/characters")
+      .set("Authorization", `Bearer ${loginResponse.body.token}`);
+    const characterId = charactersResponse.body.characters[0].id;
+    const now = new Date().toISOString();
+
+    await expect(
+      request(app)
+        .post("/api/admin/characters/missing/refund-stats")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
+
+    await expect(
+      request(app)
+        .post("/api/admin/characters/missing/refund-skills")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
+
+    const otherPlayer = await registerFreshPlayer("OtherInventory");
+    const otherCharacter = await request(app)
+      .post("/api/characters")
+      .set("Authorization", `Bearer ${otherPlayer.body.token}`)
+      .send({ slotIndex: 0, name: "OtherBag", gender: "male" });
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${otherCharacter.body.character.id}/inventory`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ itemId: "1855", quantity: 1 })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
+
+    db.prepare("DELETE FROM character_inventory_items WHERE character_id = ?").run(characterId);
+    const insertInventoryItem = db.prepare(
+      "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+
+    for (let slotIndex = 0; slotIndex < 50; slotIndex += 1) {
+      insertInventoryItem.run(`route-full-${slotIndex}`, characterId, slotIndex, "1855", 1, now, now);
+    }
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/inventory`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ itemId: "1855", quantity: 1 })
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Not enough inventory space" }
+    });
+  });
+
   it("deletes characters only after matching name confirmation", async () => {
     const registerResponse = await registerFreshPlayer("Delete");
     const createResponse = await request(app)
       .post("/api/characters")
       .set("Authorization", `Bearer ${registerResponse.body.token}`)
       .send({ slotIndex: 0, name: "DeleteHero", gender: "female" });
+
+    await expect(
+      request(app)
+        .delete(`/api/characters/${createResponse.body.character.id}`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({})
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Character name confirmation is required" }
+    });
+
+    const otherPlayer = await registerFreshPlayer("DeleteOther");
+
+    await expect(
+      request(app)
+        .delete(`/api/characters/${createResponse.body.character.id}`)
+        .set("Authorization", `Bearer ${otherPlayer.body.token}`)
+        .send({ name: "DeleteHero" })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Character not found" }
+    });
 
     await expect(
       request(app)

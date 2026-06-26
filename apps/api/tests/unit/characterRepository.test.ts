@@ -166,6 +166,50 @@ describe("character repository", () => {
     );
   });
 
+  it("updates fixed inventory slots and rejects oversized additions", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 13,
+      name: "Slotter",
+      gender: "male"
+    });
+
+    const replaced = characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 1,
+      itemId: "1855",
+      quantity: 1
+    });
+
+    expect(replaced?.inventory.items).toEqual(
+      expect.arrayContaining([{ slotIndex: 1, itemId: "1855", quantity: 1 }])
+    );
+
+    const inserted = characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 6,
+      itemId: "1871",
+      quantity: 1
+    });
+
+    expect(inserted?.inventory.items).toEqual(
+      expect.arrayContaining([{ slotIndex: 6, itemId: "1871", quantity: 1 }])
+    );
+
+    expect(
+      characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+        itemId: "1855",
+        quantity: 48
+      })
+    ).toBeNull();
+    expect(
+      characterRepository.setInventoryItemForPlayer(character!.id, "other-player", {
+        slotIndex: 3,
+        itemId: "1855",
+        quantity: 1
+      })
+    ).toBeNull();
+  });
+
   it("moves inventory items into empty slots, merges matching stacks, and swaps different items", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({
@@ -203,6 +247,33 @@ describe("character repository", () => {
       ])
     );
     expect(swapped?.inventory.size).toBe(50);
+  });
+
+  it("handles no-op and missing-character inventory moves", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 14,
+      name: "StillMover",
+      gender: "female"
+    });
+
+    expect(characterRepository.moveInventoryItemForPlayer(character!.id, user!.id, 0, 0)).toEqual({
+      character,
+      error: null
+    });
+    expect(characterRepository.moveInventoryItemForPlayer(character!.id, "other-player", 0, 1)).toEqual({
+      character: null,
+      error: "Character not found"
+    });
+    expect(characterRepository.moveInventoryItemForPlayer("missing", user!.id, 0, 1)).toEqual({
+      character: null,
+      error: "Character not found"
+    });
+    expect(characterRepository.moveInventoryItemForPlayer(character!.id, user!.id, 40, 1)).toEqual({
+      character: null,
+      error: "Inventory item not found"
+    });
   });
 
   it("does not let inventory writes exceed the character capacity", () => {
@@ -252,6 +323,154 @@ describe("character repository", () => {
     ]);
   });
 
+  it("sorts by numeric, class, and category metadata", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 15,
+      name: "SorterTwo",
+      gender: "male"
+    });
+
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 3,
+      itemId: "1855",
+      quantity: 1
+    });
+
+    expect(
+      characterRepository.sortInventoryForPlayer(character!.id, user!.id, "level")?.inventory.items
+    ).toHaveLength(4);
+    expect(
+      characterRepository.sortInventoryForPlayer(character!.id, user!.id, "job")?.inventory.items
+    ).toHaveLength(4);
+    expect(
+      characterRepository.sortInventoryForPlayer(character!.id, user!.id, "category")?.inventory.items
+    ).toEqual(expect.arrayContaining([{ slotIndex: 0, itemId: "1855", quantity: 1 }]));
+    expect(characterRepository.sortInventoryForPlayer(character!.id, "other-player", "name")).toBeNull();
+  });
+
+  it("enforces equipment requirements and item equipability", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 17,
+      name: "EquipRules",
+      gender: "female"
+    });
+
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 3,
+      itemId: "1",
+      quantity: 1
+    });
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 4,
+      itemId: "42",
+      quantity: 1
+    });
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 5,
+      itemId: "999999",
+      quantity: 1
+    });
+
+    expect(characterRepository.equipInventoryItemForPlayer(character!.id, "other-player", 3)).toEqual({
+      character: null,
+      error: "Character not found"
+    });
+    expect(characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 5)).toEqual({
+      character: null,
+      error: "Item not found"
+    });
+    expect(characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 4)).toEqual({
+      character: null,
+      error: "That item cannot be equipped"
+    });
+    expect(characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 3).error).toContain(
+      "Missing requirements"
+    );
+  });
+
+  it("handles two-handed weapons, offhand blocking, paired slots, and full unequip inventory", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 18,
+      name: "GearSwitcher",
+      gender: "male"
+    });
+    const now = new Date().toISOString();
+
+    db.prepare("UPDATE characters SET level = ?, job = ?, offhand = ?, ring_l = ? WHERE id = ?").run(
+      85,
+      "Acrobat",
+      "1855",
+      "1764",
+      character!.id
+    );
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 3,
+      itemId: "10",
+      quantity: 1
+    });
+
+    const equippedTwoHander = characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 3);
+
+    expect(equippedTwoHander.character?.equipment).toEqual(
+      expect.objectContaining({
+        mainhand: "10",
+        offhand: null
+      })
+    );
+    expect(equippedTwoHander.character?.inventory.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ itemId: "3497" }),
+        expect.objectContaining({ itemId: "1855" })
+      ])
+    );
+
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 6,
+      itemId: "1871",
+      quantity: 1
+    });
+
+    expect(characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 6)).toEqual({
+      character: null,
+      error: "Unequip your two-handed weapon first"
+    });
+
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 7,
+      itemId: "5536",
+      quantity: 1
+    });
+
+    expect(
+      characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 7).character?.equipment
+    ).toEqual(
+      expect.objectContaining({
+        ringL: "1764",
+        ringR: "5536"
+      })
+    );
+
+    db.prepare("DELETE FROM character_inventory_items WHERE character_id = ?").run(character!.id);
+    const insertInventoryItem = db.prepare(
+      "INSERT INTO character_inventory_items (id, character_id, slot_index, item_id, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+
+    for (let slotIndex = 0; slotIndex < 50; slotIndex += 1) {
+      insertInventoryItem.run(`full-${slotIndex}`, character!.id, slotIndex, "1855", 1, now, now);
+    }
+
+    expect(characterRepository.unequipItemForPlayer(character!.id, user!.id, "mainhand")).toEqual({
+      character: null,
+      error: "Inventory is full"
+    });
+  });
+
   it("updates persisted stats and skill levels for the owning player", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({
@@ -295,6 +514,23 @@ describe("character repository", () => {
       "vagrant-clean-hit": 3,
       "vagrant-brandish": 1
     });
+
+    expect(
+      characterRepository.updateProgressionForPlayer(character!.id, user!.id, { stats: undefined })
+    ).toEqual(
+      expect.objectContaining({
+        stats: {
+          str: 18,
+          sta: 17,
+          dex: 15,
+          int: 15
+        },
+        skillLevels: {
+          "vagrant-clean-hit": 3,
+          "vagrant-brandish": 1
+        }
+      })
+    );
   });
 
   it("refunds stats and skills independently for the owning player", () => {
@@ -368,5 +604,30 @@ describe("character repository", () => {
   it("handles empty lookups", () => {
     expect(characterRepository.listByIds([])).toEqual([]);
     expect(characterRepository.findById("missing")).toBeNull();
+  });
+
+  it("normalizes invalid persisted skill level payloads", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 19,
+      name: "SkillJson",
+      gender: "male"
+    });
+
+    db.prepare("UPDATE characters SET skill_levels = ? WHERE id = ?").run("not json", character!.id);
+    expect(characterRepository.findById(character!.id)?.skillLevels).toEqual({});
+
+    db.prepare("UPDATE characters SET skill_levels = ? WHERE id = ?").run(
+      JSON.stringify({
+        "vagrant-clean-hit": 2,
+        empty: 0,
+        bad: "2"
+      }),
+      character!.id
+    );
+    expect(characterRepository.findById(character!.id)?.skillLevels).toEqual({
+      "vagrant-clean-hit": 2
+    });
   });
 });
