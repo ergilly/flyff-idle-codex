@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
+const fs = require("fs");
+const path = require("path");
+const vm = require("vm");
 
 function fail(message) {
   console.error(message);
@@ -22,7 +22,7 @@ function findFunctionBlock(source, fnName) {
   const start = source.indexOf(signature);
   if (start === -1) return null;
 
-  const openBrace = source.indexOf('{', start);
+  const openBrace = source.indexOf("{", start);
   if (openBrace === -1) return null;
 
   let depth = 0;
@@ -39,7 +39,7 @@ function findFunctionBlock(source, fnName) {
       continue;
     }
 
-    if (ch === '\\') {
+    if (ch === "\\") {
       escaped = true;
       continue;
     }
@@ -52,15 +52,15 @@ function findFunctionBlock(source, fnName) {
       inDouble = !inDouble;
       continue;
     }
-    if (!inSingle && !inDouble && ch === '`') {
+    if (!inSingle && !inDouble && ch === "`") {
       inTemplate = !inTemplate;
       continue;
     }
 
     if (inSingle || inDouble || inTemplate) continue;
 
-    if (ch === '{') depth += 1;
-    if (ch === '}') {
+    if (ch === "{") depth += 1;
+    if (ch === "}") {
       depth -= 1;
       if (depth === 0) {
         return source.slice(start, i + 1);
@@ -96,7 +96,7 @@ function decodeToken(token, lookupName, stringTable, offset) {
   }
 
   // Obfuscated lookup call, e.g. _0x17a327(0x618d)
-  const lookupRe = new RegExp(`^${lookupName}\\((0x[\\da-f]+|\\d+)\\)$`, 'i');
+  const lookupRe = new RegExp(`^${lookupName}\\((0x[\\da-f]+|\\d+)\\)$`, "i");
   const call = value.match(lookupRe);
   if (call) {
     const idx = parseNumber(call[1]) - offset;
@@ -109,17 +109,17 @@ function decodeToken(token, lookupName, stringTable, offset) {
 
 function main() {
   const inputPath = process.argv[2];
-  const outputPath = process.argv[3] || path.resolve(process.cwd(), 'id-display-map.json');
+  const outputPath = process.argv[3] || path.resolve(process.cwd(), "id-display-map.json");
 
   if (!inputPath) {
-    fail('Usage: node scripts/extract-id-display-map.cjs <path-to-viewer.js> [output-json-path]');
+    fail("Usage: node scripts/extract-id-display-map.cjs <path-to-viewer.js> [output-json-path]");
   }
 
   if (!fs.existsSync(inputPath)) {
     fail(`Input file does not exist: ${inputPath}`);
   }
 
-  const source = fs.readFileSync(inputPath, 'utf8');
+  const source = fs.readFileSync(inputPath, "utf8");
 
   if (!source.trim()) {
     fail(
@@ -134,7 +134,7 @@ function main() {
 
   if (!decoderMatch) {
     fail(
-      'Could not find obfuscation decoder function. Ensure this is the bundled/obfuscated viewer.js file and not an empty or different file variant.'
+      "Could not find obfuscation decoder function. Ensure this is the bundled/obfuscated viewer.js file and not an empty or different file variant."
     );
   }
 
@@ -149,7 +149,7 @@ function main() {
 
   const arrayLiteral = extractArrayLiteralFromFunction(arrayFnBlock);
   if (!arrayLiteral) {
-    fail('Could not extract string table array literal.');
+    fail("Could not extract string table array literal.");
   }
 
   let stringTable;
@@ -160,11 +160,12 @@ function main() {
   }
 
   if (!Array.isArray(stringTable)) {
-    fail('Evaluated string table is not an array.');
+    fail("Evaluated string table is not an array.");
   }
 
   // Extract item records with id + displayName.
-  const recordRe = /\{\s*'id':\s*([^,]+),\s*'modelName':\s*([^,]+),\s*'displayName':\s*([^,]+),\s*'ignorePart':\s*([^,]+),\s*'sex':\s*([^}\n]+)\s*\}/g;
+  const recordRe =
+    /\{\s*'id':\s*([^,]+),\s*'modelName':\s*([^,]+),\s*'displayName':\s*([^,]+),\s*'ignorePart':\s*([^,]+),\s*'sex':\s*([^}\n]+)\s*\}/g;
 
   const pairs = [];
   const idToName = Object.create(null);
@@ -177,7 +178,7 @@ function main() {
     const idVal = decodeToken(rawId, lookupName, stringTable, offset);
     const nameVal = decodeToken(rawDisplayName, lookupName, stringTable, offset);
 
-    if (typeof idVal !== 'string' || typeof nameVal !== 'string') continue;
+    if (typeof idVal !== "string" || typeof nameVal !== "string") continue;
 
     if (!/^\d+$/.test(idVal)) continue;
 
@@ -191,11 +192,11 @@ function main() {
     source: path.resolve(inputPath),
     total: pairs.length,
     pairs,
-    idToName,
+    idToName
   };
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
 
   console.log(`Extracted ${pairs.length} id->displayName mappings.`);
   console.log(`Wrote: ${path.resolve(outputPath)}`);

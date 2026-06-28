@@ -340,7 +340,9 @@ describe("BattlePage", () => {
     doubleClickAddSkill("Add Final Blow to action bar");
     doubleClickAddSkill("Add Recovery to action bar");
 
-    expect(screen.queryByRole("button", { name: "Remove selected action slot skill" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Remove selected action slot skill" })
+    ).not.toBeInTheDocument();
 
     const invalidDrag = createDataTransfer();
     fireEvent.dragStart(screen.getByRole("button", { name: "Action slot 4: Step Strike" }), {
