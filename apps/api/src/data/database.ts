@@ -25,12 +25,16 @@ function getApiRoot() {
   return cwd;
 }
 
-export function resolveDatabasePath(databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db") {
-  if (!databaseUrl.startsWith("file:")) {
-    return databaseUrl;
+export function resolveDatabasePath(databaseUrl?: string) {
+  const effectiveDatabaseUrl =
+    databaseUrl ??
+    (process.env.NODE_ENV === "test" ? "file:./test.db" : (process.env.DATABASE_URL ?? "file:./dev.db"));
+
+  if (!effectiveDatabaseUrl.startsWith("file:")) {
+    return effectiveDatabaseUrl;
   }
 
-  const filePath = databaseUrl.slice("file:".length);
+  const filePath = effectiveDatabaseUrl.slice("file:".length);
 
   return path.isAbsolute(filePath) ? filePath : path.resolve(getApiRoot(), filePath);
 }
