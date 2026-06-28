@@ -7,6 +7,7 @@ import { StatLabel } from "@/components/atoms/StatRow";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type ItemDetailsPanelProps = {
   actionDisabled?: boolean;
@@ -285,7 +286,7 @@ export function ItemDetailsPanel({
 
       {actionLabel && onAction ? (
         <Button
-          data-testid={`item_details_button_${actionLabel.toLowerCase().replace(/\s+/g, "_")}`}
+          data-testid={`item_details_button_${getTestIdSegment(actionLabel)}`}
           type="button"
           onClick={onAction}
           disabled={actionDisabled}
@@ -300,7 +301,7 @@ export function ItemDetailsPanel({
 }
 
 function ItemEffectList({ abilities, label }: { abilities: ItemMetadata["abilities"]; label: string }) {
-  const testIdSegment = label.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  const testIdSegment = getTestIdSegment(label);
 
   return (
     <div className={effectListClassName} data-testid={`item_details_div_${testIdSegment}`}>

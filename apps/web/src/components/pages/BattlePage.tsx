@@ -21,6 +21,7 @@ import {
   type SkillDefinition,
   type SkillTreeTab
 } from "@/lib/skillTrees";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type ActionSlot = SkillDefinition | null;
 
@@ -48,13 +49,6 @@ const actionSlotDragDataType = "application/x-flyff-action-slot-index";
 
 function getSkillIconSrc(skill: SkillDefinition) {
   return `https://api.flyff.com/image/skill/colored/${skill.icon}`;
-}
-
-function getTestIdSegment(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
 }
 
 function formatBattleValue(value: number | string | null | undefined) {

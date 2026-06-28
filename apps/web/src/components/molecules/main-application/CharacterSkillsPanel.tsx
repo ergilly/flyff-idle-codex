@@ -16,6 +16,7 @@ import {
   type SkillTreeTab,
   type SkillTreeTier
 } from "@/lib/skillTrees";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type CharacterSkillsPanelProps = {
   availableSkillPoints: number;
@@ -39,13 +40,6 @@ function getDisplayedSkillLevel(
 
 function getSkillIconSrc(skill: SkillDefinition) {
   return `https://api.flyff.com/image/skill/colored/${skill.icon}`;
-}
-
-function getTestIdSegment(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
 }
 
 function isSkillRequirementMet(skillLevels: CharacterSkillLevels, requirement: SkillRequirement) {

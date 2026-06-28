@@ -10,6 +10,7 @@ import {
   type ItemMetadata
 } from "@/lib/api";
 import { cx } from "@/lib/classNames";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type EquipmentFrame =
   | "left-1"
@@ -139,14 +140,6 @@ function getCharacterEquipmentSet(character: Character, equipmentSet: number) {
 
 function getEquipmentValue(equipment: Character["equipment"], slot: keyof Character["equipment"]) {
   return equipment[slot] ?? "Empty";
-}
-
-function getTestIdSegment(value: string) {
-  return value
-    .replace(/([a-z])([A-Z])/g, "$1_$2")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
 }
 
 export function CharacterEquipmentPanel({

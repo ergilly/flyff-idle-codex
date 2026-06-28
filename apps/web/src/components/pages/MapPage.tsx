@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import { getMonsterMarkerIconSrc, type MapRegionId, type MapMonsterMarker } from "@/lib/mapMonsterMarkers";
+import { getTestIdSegment } from "@/lib/testIds";
 
 const minMapZoom = 1;
 const maxMapZoom = 2.5;
@@ -22,13 +23,6 @@ const mapZoomStep = 0.25;
 const zeroPan = { x: 0, y: 0 };
 const emptyMonsterMarkers: MapMonsterMarker[] = [];
 const emptyMonsterFamilies: MapMonsterFamily[] = [];
-
-function getTestIdSegment(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
 
 type RegionDefinition = {
   id: MapRegionId;

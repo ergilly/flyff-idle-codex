@@ -13,6 +13,7 @@ import { TextField } from "@/components/atoms/TextField";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { fetchDataSet, getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type AdminPageProps = {
   addingInventoryItem: boolean;
@@ -23,13 +24,6 @@ type AdminPageProps = {
   onRefundSkills: () => void;
   onRefundStats: () => void;
 };
-
-function getTestIdSegment(value: string | number) {
-  return String(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "");
-}
 
 export function AdminPage({
   addingInventoryItem,
