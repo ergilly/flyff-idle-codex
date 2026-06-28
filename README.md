@@ -37,10 +37,7 @@ Web runs at `http://localhost:3000`.
 
 API runs at `http://localhost:4000`.
 
-API schema docs are available as:
-
-- `http://localhost:4000/docs/openapi.yaml`
-- `http://localhost:4000/docs/openapi.json`
+API docs are available at `http://localhost:4000/swagger`.
 
 ## Demo Account
 
@@ -77,8 +74,7 @@ Implemented endpoints:
 - `POST /api/auth/login`
 - `POST /api/auth/register`
 - `GET /api/characters`
-- `GET /docs/openapi.yaml`
-- `GET /docs/openapi.json`
+- `GET /swagger`
 
 Authentication uses JWT bearer tokens. Passwords are hashed with `bcryptjs`.
 

@@ -2,12 +2,21 @@ openapi: 3.0.3
 info:
   title: Flyff Idle API
   version: 0.1.0
-  description: API schema for auth and player character selection.
+  description: API schema for auth, characters, inventory, admin actions, and game data.
 servers:
   - url: http://localhost:4000
+tags:
+  - name: Health
+  - name: Auth
+  - name: Characters
+  - name: Admin
+  - name: Game Data
+  - name: Items
 paths:
   /health:
     get:
+      tags:
+        - Health
       summary: Health check
       responses:
         "200":
@@ -18,6 +27,8 @@ paths:
                 $ref: "#/components/schemas/HealthResponse"
   /api/auth/login:
     post:
+      tags:
+        - Auth
       summary: Login with email and password
       requestBody:
         required: true
@@ -31,21 +42,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginResponse"
+                $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Unauthorized"
   /api/auth/register:
     post:
+      tags:
+        - Auth
       summary: Create a player profile
       requestBody:
         required: true
@@ -59,13 +64,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LoginResponse"
+                $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/BadRequest"
         "409":
           description: Email already registered
           content:
@@ -74,6 +75,8 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
   /api/characters:
     get:
+      tags:
+        - Characters
       summary: List characters for the authenticated player
       security:
         - bearerAuth: []
@@ -83,21 +86,12 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - characters
-                properties:
-                  characters:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Character"
+                $ref: "#/components/schemas/CharacterListResponse"
         "401":
-          description: Missing or invalid token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Unauthorized"
     post:
+      tags:
+        - Characters
       summary: Create a character in an open roster slot
       security:
         - bearerAuth: []
@@ -113,24 +107,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - character
-                properties:
-                  character:
-                    $ref: "#/components/schemas/Character"
+                $ref: "#/components/schemas/CharacterResponse"
         "400":
-          description: Invalid request body
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Missing or invalid token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Unauthorized"
         "409":
           description: Character slot already occupied
           content:
@@ -139,15 +120,13 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
   /api/characters/{characterId}:
     delete:
+      tags:
+        - Characters
       summary: Delete a character after name confirmation
       security:
         - bearerAuth: []
       parameters:
-        - in: path
-          name: characterId
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/CharacterIdPath"
       requestBody:
         required: true
         content:
@@ -158,25 +137,231 @@ paths:
         "204":
           description: Character deleted
         "400":
-          description: Missing or mismatched name confirmation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Missing or invalid token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/Unauthorized"
         "404":
-          description: Character not found
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/progression:
+    patch:
+      tags:
+        - Characters
+      summary: Update character stats or learned skill levels
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCharacterProgressionRequest"
+      responses:
+        "200":
+          description: Updated character
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/inventory/{slotIndex}/equip:
+    post:
+      tags:
+        - Characters
+      summary: Equip an inventory item into an equipment set
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - $ref: "#/components/parameters/SlotIndexPath"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentSetRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/inventory/move:
+    post:
+      tags:
+        - Characters
+      summary: Move, swap, or stack inventory items
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveInventoryItemRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/inventory/sort:
+    post:
+      tags:
+        - Characters
+      summary: Sort a character inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SortInventoryRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/equipment/{equipmentSlot}/unequip:
+    post:
+      tags:
+        - Characters
+      summary: Unequip an item from an equipment set
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - $ref: "#/components/parameters/EquipmentSlotPath"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentSetRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/admin/characters/{characterId}/refund-stats:
+    post:
+      tags:
+        - Admin
+      summary: Reset a character's stats to their base values
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/admin/characters/{characterId}/refund-skills:
+    post:
+      tags:
+        - Admin
+      summary: Reset a character's learned skill levels
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/admin/characters/{characterId}/inventory:
+    post:
+      tags:
+        - Admin
+      summary: Add an item stack to a character inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddInventoryItemRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/data:
     get:
+      tags:
+        - Game Data
       summary: List JSON-backed data sets
       responses:
         "200":
@@ -187,7 +372,10 @@ paths:
                 $ref: "#/components/schemas/DataSetIndexResponse"
   /api/data/{dataSet}:
     get:
+      tags:
+        - Game Data
       summary: Query a JSON-backed data set
+      description: Supports the named query parameters plus arbitrary scalar filters, including nested filters such as `location.region`.
       parameters:
         - $ref: "#/components/parameters/DataSetPath"
         - in: query
@@ -204,7 +392,7 @@ paths:
           name: fields
           schema:
             type: string
-          description: Comma-separated fields to include in each result.
+          description: Comma-separated top-level fields to include in each result.
         - in: query
           name: limit
           schema:
@@ -246,13 +434,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/DataSetQueryResponse"
         "404":
-          description: Data set not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          $ref: "#/components/responses/NotFound"
   /api/data/{dataSet}/{id}:
     get:
+      tags:
+        - Game Data
       summary: Get a JSON-backed data record by id
       parameters:
         - $ref: "#/components/parameters/DataSetPath"
@@ -269,26 +455,98 @@ paths:
               schema:
                 $ref: "#/components/schemas/DataSetRecordResponse"
         "404":
-          description: Data set or record not found
+          $ref: "#/components/responses/NotFound"
+  /api/items:
+    get:
+      tags:
+        - Items
+      summary: Get indexed item metadata by ids
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: ids
+          required: true
+          schema:
+            type: string
+          description: Comma-separated numeric item ids. At most 50 ids per request.
+          example: 40,3497,3314
+      responses:
+        "200":
+          description: Item metadata
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/ItemListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /swagger:
+    get:
+      tags:
+        - Game Data
+      summary: Open Swagger UI for the API
+      responses:
+        "200":
+          description: Swagger UI HTML page
+          content:
+            text/html:
+              schema:
+                type: string
 components:
   parameters:
+    CharacterIdPath:
+      in: path
+      name: characterId
+      required: true
+      schema:
+        type: string
+    SlotIndexPath:
+      in: path
+      name: slotIndex
+      required: true
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 99
+    EquipmentSlotPath:
+      in: path
+      name: equipmentSlot
+      required: true
+      schema:
+        $ref: "#/components/schemas/CharacterEquipmentSlot"
     DataSetPath:
       in: path
       name: dataSet
       required: true
       schema:
-        type: string
-        enum:
-          - items
-          - jobs
-          - monsters
-          - sets
-          - skills
-          - upgrades
+        $ref: "#/components/schemas/DataSetName"
+  responses:
+    BadRequest:
+      description: Invalid request body or parameters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid bearer token, or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Authenticated user is not an admin
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   securitySchemes:
     bearerAuth:
       type: http
@@ -329,7 +587,7 @@ components:
               minLength: 2
               maxLength: 32
               example: Flaris Founder
-    LoginResponse:
+    AuthResponse:
       type: object
       required:
         - token
@@ -345,6 +603,7 @@ components:
         - id
         - email
         - displayName
+        - isAdmin
       properties:
         id:
           type: string
@@ -353,6 +612,24 @@ components:
           format: email
         displayName:
           type: string
+        isAdmin:
+          type: boolean
+    CharacterListResponse:
+      type: object
+      required:
+        - characters
+      properties:
+        characters:
+          type: array
+          items:
+            $ref: "#/components/schemas/Character"
+    CharacterResponse:
+      type: object
+      required:
+        - character
+      properties:
+        character:
+          $ref: "#/components/schemas/Character"
     CreateCharacterRequest:
       type: object
       required:
@@ -382,6 +659,59 @@ components:
           type: string
           minLength: 1
           example: FlarisHero
+    UpdateCharacterProgressionRequest:
+      type: object
+      description: At least one of `stats` or `skillLevels` is required.
+      minProperties: 1
+      properties:
+        stats:
+          $ref: "#/components/schemas/CharacterStats"
+        skillLevels:
+          $ref: "#/components/schemas/CharacterSkillLevels"
+    EquipmentSetRequest:
+      type: object
+      properties:
+        equipmentSet:
+          type: integer
+          minimum: 0
+          maximum: 2
+          default: 0
+    MoveInventoryItemRequest:
+      type: object
+      required:
+        - fromSlotIndex
+        - toSlotIndex
+      properties:
+        fromSlotIndex:
+          type: integer
+          minimum: 0
+          maximum: 99
+        toSlotIndex:
+          type: integer
+          minimum: 0
+          maximum: 99
+    SortInventoryRequest:
+      type: object
+      required:
+        - sortBy
+      properties:
+        sortBy:
+          $ref: "#/components/schemas/InventorySortOption"
+    AddInventoryItemRequest:
+      type: object
+      required:
+        - itemId
+        - quantity
+      properties:
+        itemId:
+          type: string
+          pattern: "^\\d+$"
+          example: "40"
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 9999
+          example: 1
     Character:
       type: object
       required:
@@ -390,11 +720,14 @@ components:
         - name
         - gender
         - job
+        - progressionRank
         - level
         - exp
         - penya
         - stats
+        - skillLevels
         - equipment
+        - equipmentSets
         - inventory
       properties:
         id:
@@ -409,6 +742,8 @@ components:
           $ref: "#/components/schemas/CharacterGender"
         job:
           type: string
+        progressionRank:
+          $ref: "#/components/schemas/CharacterProgressionRank"
         level:
           type: integer
           minimum: 1
@@ -420,10 +755,29 @@ components:
           minimum: 0
         stats:
           $ref: "#/components/schemas/CharacterStats"
+        skillLevels:
+          $ref: "#/components/schemas/CharacterSkillLevels"
         equipment:
           $ref: "#/components/schemas/CharacterEquipment"
+        equipmentSets:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            $ref: "#/components/schemas/CharacterEquipment"
         inventory:
           $ref: "#/components/schemas/CharacterInventory"
+    CharacterGender:
+      type: string
+      enum:
+        - male
+        - female
+    CharacterProgressionRank:
+      type: string
+      enum:
+        - normal
+        - master
+        - hero
     CharacterStats:
       type: object
       required:
@@ -434,20 +788,32 @@ components:
       properties:
         str:
           type: integer
-          minimum: 0
+          minimum: 15
+          maximum: 999
           example: 15
         sta:
           type: integer
-          minimum: 0
+          minimum: 15
+          maximum: 999
           example: 15
         dex:
           type: integer
-          minimum: 0
+          minimum: 15
+          maximum: 999
           example: 15
         int:
           type: integer
-          minimum: 0
+          minimum: 15
+          maximum: 999
           example: 15
+    CharacterSkillLevels:
+      type: object
+      additionalProperties:
+        type: integer
+        minimum: 0
+        maximum: 20
+      example:
+        vagrant-clean-hit: 1
     CharacterEquipment:
       type: object
       required:
@@ -528,6 +894,28 @@ components:
         ringL:
           type: string
           nullable: true
+    CharacterEquipmentSlot:
+      type: string
+      enum:
+        - helmet
+        - suit
+        - gloves
+        - boots
+        - flying
+        - csBoots
+        - csGloves
+        - csSuit
+        - csHelm
+        - mask
+        - cloak
+        - ammo
+        - offhand
+        - mainhand
+        - ringR
+        - earringR
+        - necklace
+        - earringL
+        - ringL
     CharacterInventory:
       type: object
       required:
@@ -557,11 +945,117 @@ components:
         quantity:
           type: integer
           minimum: 1
-    CharacterGender:
+    InventorySortOption:
       type: string
       enum:
-        - male
-        - female
+        - name
+        - level
+        - job
+        - category
+    ItemListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemMetadata"
+    ItemMetadata:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - icon
+        - category
+        - subcategory
+        - rarity
+        - level
+        - sex
+        - requiredJob
+        - minAttack
+        - maxAttack
+        - attackSpeed
+        - twoHanded
+        - minDefense
+        - maxDefense
+        - abilities
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        subcategory:
+          type: string
+          nullable: true
+        rarity:
+          type: string
+          nullable: true
+        level:
+          type: integer
+          nullable: true
+        sex:
+          type: string
+          nullable: true
+        requiredJob:
+          type: string
+          nullable: true
+        minAttack:
+          type: number
+          nullable: true
+        maxAttack:
+          type: number
+          nullable: true
+        attackSpeed:
+          type: string
+          nullable: true
+        twoHanded:
+          type: boolean
+          nullable: true
+        minDefense:
+          type: number
+          nullable: true
+        maxDefense:
+          type: number
+          nullable: true
+        abilities:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemAbility"
+    ItemAbility:
+      type: object
+      required:
+        - parameter
+        - add
+        - rate
+      properties:
+        parameter:
+          type: string
+        add:
+          type: number
+          nullable: true
+        rate:
+          type: boolean
+    DataSetName:
+      type: string
+      enum:
+        - items
+        - jobs
+        - mapMonsters
+        - monsters
+        - sets
+        - skills
+        - upgrades
     DataSetIndexResponse:
       type: object
       required:
@@ -576,14 +1070,7 @@ components:
               - href
             properties:
               name:
-                type: string
-                enum:
-                  - items
-                  - jobs
-                  - monsters
-                  - sets
-                  - skills
-                  - upgrades
+                $ref: "#/components/schemas/DataSetName"
               href:
                 type: string
                 example: /api/data/skills
@@ -597,8 +1084,7 @@ components:
         - results
       properties:
         dataSet:
-          type: string
-          example: skills
+          $ref: "#/components/schemas/DataSetName"
         total:
           type: integer
           minimum: 0
@@ -620,8 +1106,7 @@ components:
         - item
       properties:
         dataSet:
-          type: string
-          example: jobs
+          $ref: "#/components/schemas/DataSetName"
         item:
           type: object
           additionalProperties: true

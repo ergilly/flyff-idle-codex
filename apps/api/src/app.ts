@@ -11,6 +11,28 @@ import { itemRouter } from "./items/item.routes.js";
 
 const openApiPath = path.resolve(process.cwd(), "../../docs/api/openapi.yaml");
 const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
+const serializedOpenApiDocument = JSON.stringify(openApiDocument).replace(/</g, "\\u003c");
+const swaggerHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flyff Idle API Swagger</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+      window.addEventListener("load", () => {
+        window.ui = SwaggerUIBundle({
+          spec: ${serializedOpenApiDocument},
+          dom_id: "#swagger-ui"
+        });
+      });
+    </script>
+  </body>
+</html>`;
 
 export function createApp() {
   const app = express();
@@ -27,11 +49,8 @@ export function createApp() {
   app.use("/api/characters", characterRouter);
   app.use("/api/data", gameDataRouter);
   app.use("/api/items", itemRouter);
-  app.get("/docs/openapi.yaml", (_request, response) => {
-    response.type("text/yaml").send(fs.readFileSync(openApiPath, "utf8"));
-  });
-  app.get("/docs/openapi.json", (_request, response) => {
-    response.json(openApiDocument);
+  app.get("/swagger", (_request, response) => {
+    response.type("html").send(swaggerHtml);
   });
 
   return app;
