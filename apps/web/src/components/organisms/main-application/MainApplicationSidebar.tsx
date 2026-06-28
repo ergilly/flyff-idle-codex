@@ -14,6 +14,7 @@ import {
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { ProfileActionsMenu } from "@/components/molecules/main-application/ProfileActionsMenu";
 import { cx } from "@/lib/classNames";
+import { getTestIdSegment } from "@/lib/testIds";
 
 export const navItems = [
   { label: "Character Page", icon: CircleUserRound },
@@ -76,7 +77,7 @@ export function MainApplicationSidebar({
           <AppNavButton
             key={label}
             $active={activeNavItem === label}
-            data-testid={`game_sidebar_button_nav_${label.toLowerCase().replace(/\s+/g, "_")}`}
+            data-testid={`game_sidebar_button_nav_${getTestIdSegment(label)}`}
             type="button"
             onClick={() => onSelectNavItem(label)}
           >

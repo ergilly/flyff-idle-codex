@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from "react";
 import type { Character, ItemMetadata } from "@/lib/api";
 import type { SkillDefinition, SkillTreeTab } from "@/lib/skillTrees";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type DetailStat = {
   label: string;
@@ -87,7 +88,7 @@ export function CharacterPageContent({
           <CharacterInfoSection>
             {detailStats.map((stat) => (
               <StatRow
-                data-testid={`character_stat_detail_${stat.label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`}
+                data-testid={`character_stat_detail_${getTestIdSegment(stat.label)}`}
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}

@@ -7,7 +7,8 @@ type ErrorMessageProps = {
 
 export function ErrorMessage({ message, testId }: ErrorMessageProps) {
   const [summary, ...detailLines] = message.split("\n");
-  const resolvedTestId = testId ?? `error_alert_${getTestIdSegment(summary || message || "message")}`;
+  const errorTestIdSegment = getTestIdSegment(summary || message || "message") || "message";
+  const resolvedTestId = testId ?? `error_alert_${errorTestIdSegment}`;
   const detailRows = detailLines
     .map((line) => {
       const separatorIndex = line.indexOf(":");
