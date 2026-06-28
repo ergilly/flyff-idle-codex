@@ -1,0 +1,88 @@
+info:
+  name: Create a player profile
+  type: http
+  seq: 2
+  tags:
+    - Auth
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/auth/register"
+  body:
+    type: json
+    data: "{}"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 201 Response
+    description: Created player session
+    request:
+      url: "{{baseUrl}}/api/auth/register"
+      method: POST
+      body:
+        type: json
+        data: "{}"
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "token": "",
+            "user": {
+              "id": "",
+              "email": "",
+              "displayName": "",
+              "isAdmin": false
+            }
+          }
+  - name: 400 Response
+    description: Invalid request body or parameters
+    request:
+      url: "{{baseUrl}}/api/auth/register"
+      method: POST
+      body:
+        type: json
+        data: "{}"
+    response:
+      status: 400
+      statusText: Bad Request
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": ""
+          }
+  - name: 409 Response
+    description: Email already registered
+    request:
+      url: "{{baseUrl}}/api/auth/register"
+      method: POST
+      body:
+        type: json
+        data: "{}"
+    response:
+      status: 409
+      statusText: Conflict
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": ""
+          }

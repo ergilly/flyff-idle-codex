@@ -1,0 +1,268 @@
+info:
+  name: Query a JSON-backed data set
+  type: http
+  seq: 2
+  tags:
+    - Game_Data
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/data/:dataSet"
+  params:
+    - name: dataSet
+      value: items
+      type: path
+    - name: dataSet
+      value: jobs
+      type: path
+      disabled: true
+    - name: dataSet
+      value: mapMonsters
+      type: path
+      disabled: true
+    - name: dataSet
+      value: monsters
+      type: path
+      disabled: true
+    - name: dataSet
+      value: sets
+      type: path
+      disabled: true
+    - name: dataSet
+      value: skills
+      type: path
+      disabled: true
+    - name: dataSet
+      value: upgrades
+      type: path
+      disabled: true
+    - name: ids
+      value: ""
+      type: query
+      description: Comma-separated record ids.
+      disabled: true
+    - name: q
+      value: ""
+      type: query
+      description: Text search across id, name, and description.
+      disabled: true
+    - name: fields
+      value: ""
+      type: query
+      description: Comma-separated top-level fields to include in each result.
+      disabled: true
+    - name: limit
+      value: "100"
+      type: query
+    - name: offset
+      value: "0"
+      type: query
+    - name: minLevel
+      value: ""
+      type: query
+      description: Minimum level, or upgrade level for upgrades.
+      disabled: true
+    - name: maxLevel
+      value: ""
+      type: query
+      description: Maximum level, or upgrade level for upgrades.
+      disabled: true
+    - name: class
+      value: ""
+      type: query
+      description: Skill class name filter, for example Mercenary.
+      disabled: true
+    - name: classId
+      value: ""
+      type: query
+      description: Skill class id filter.
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: Filtered data records
+    request:
+      url: "{{baseUrl}}/api/data/:dataSet"
+      method: GET
+      params:
+        - name: dataSet
+          value: items
+          type: path
+        - name: dataSet
+          value: jobs
+          type: path
+          disabled: true
+        - name: dataSet
+          value: mapMonsters
+          type: path
+          disabled: true
+        - name: dataSet
+          value: monsters
+          type: path
+          disabled: true
+        - name: dataSet
+          value: sets
+          type: path
+          disabled: true
+        - name: dataSet
+          value: skills
+          type: path
+          disabled: true
+        - name: dataSet
+          value: upgrades
+          type: path
+          disabled: true
+        - name: ids
+          value: ""
+          type: query
+          description: Comma-separated record ids.
+          disabled: true
+        - name: q
+          value: ""
+          type: query
+          description: Text search across id, name, and description.
+          disabled: true
+        - name: fields
+          value: ""
+          type: query
+          description: Comma-separated top-level fields to include in each result.
+          disabled: true
+        - name: limit
+          value: "100"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
+        - name: minLevel
+          value: ""
+          type: query
+          description: Minimum level, or upgrade level for upgrades.
+          disabled: true
+        - name: maxLevel
+          value: ""
+          type: query
+          description: Maximum level, or upgrade level for upgrades.
+          disabled: true
+        - name: class
+          value: ""
+          type: query
+          description: Skill class name filter, for example Mercenary.
+          disabled: true
+        - name: classId
+          value: ""
+          type: query
+          description: Skill class id filter.
+          disabled: true
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "dataSet": "items",
+            "total": 0,
+            "limit": 0,
+            "offset": 0,
+            "results": [
+              {}
+            ]
+          }
+  - name: 404 Response
+    description: Requested resource was not found
+    request:
+      url: "{{baseUrl}}/api/data/:dataSet"
+      method: GET
+      params:
+        - name: dataSet
+          value: items
+          type: path
+        - name: dataSet
+          value: jobs
+          type: path
+          disabled: true
+        - name: dataSet
+          value: mapMonsters
+          type: path
+          disabled: true
+        - name: dataSet
+          value: monsters
+          type: path
+          disabled: true
+        - name: dataSet
+          value: sets
+          type: path
+          disabled: true
+        - name: dataSet
+          value: skills
+          type: path
+          disabled: true
+        - name: dataSet
+          value: upgrades
+          type: path
+          disabled: true
+        - name: ids
+          value: ""
+          type: query
+          description: Comma-separated record ids.
+          disabled: true
+        - name: q
+          value: ""
+          type: query
+          description: Text search across id, name, and description.
+          disabled: true
+        - name: fields
+          value: ""
+          type: query
+          description: Comma-separated top-level fields to include in each result.
+          disabled: true
+        - name: limit
+          value: "100"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
+        - name: minLevel
+          value: ""
+          type: query
+          description: Minimum level, or upgrade level for upgrades.
+          disabled: true
+        - name: maxLevel
+          value: ""
+          type: query
+          description: Maximum level, or upgrade level for upgrades.
+          disabled: true
+        - name: class
+          value: ""
+          type: query
+          description: Skill class name filter, for example Mercenary.
+          disabled: true
+        - name: classId
+          value: ""
+          type: query
+          description: Skill class id filter.
+          disabled: true
+    response:
+      status: 404
+      statusText: Not Found
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": ""
+          }
+
+docs: Supports the named query parameters plus arbitrary scalar filters, including nested filters such as `location.region`.
