@@ -10,10 +10,15 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:migrate": "tsx src/data/migrate.ts",
     "db:seed": "tsx src/data/seed.ts",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:api",
     "test:unit": "jest --config jest.config.cjs --runInBand",
     "test:coverage": "jest --config jest.config.cjs --coverage --runInBand",
-    "test:e2e": "playwright test --config playwright.config.ts"
+    "pretest:api": "npm run allure:clean",
+    "test:api": "playwright test --config playwright.config.ts",
+    "posttest:api": "npm run allure:generate",
+    "allure:clean": "node -e \"require('node:fs').rmSync('test/reports/allure-results', { recursive: true, force: true })\"",
+    "allure:generate": "allure generate test/reports/allure-results --clean -o test/reports/allure-report",
+    "allure:open": "allure open test/reports/allure-report"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -33,6 +38,8 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.2",
     "@types/supertest": "^6.0.2",
+    "allure-commandline": "^2.43.0",
+    "allure-playwright": "^3.10.2",
     "jest": "^29.7.0",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, loginSchema, register, registerSchema } from "./auth.service.js";
+import { isLoginFailure, login, loginSchema, register, registerSchema } from "./auth.service.js";
 
 export const authRouter = Router();
 
@@ -11,14 +11,19 @@ authRouter.post("/login", async (request, response) => {
     return;
   }
 
-  const session = await login(result.data);
+  const loginResult = await login(result.data);
 
-  if (!session) {
-    response.status(401).json({ error: "Invalid credentials" });
+  if (isLoginFailure(loginResult)) {
+    if (loginResult.error === "unknown_email") {
+      response.status(404).json({ error: "No player account exists for that email." });
+      return;
+    }
+
+    response.status(401).json({ error: "That password does not match this player account." });
     return;
   }
 
-  response.json(session);
+  response.json(loginResult);
 });
 
 authRouter.post("/register", async (request, response) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
@@ -11,8 +11,46 @@ import { cx } from "@/lib/classNames";
 
 type AuthMode = "login" | "register";
 
+function validateAuthInput(mode: AuthMode, displayName: string, email: string, password: string) {
+  const trimmedDisplayName = displayName.trim();
+  const trimmedEmail = email.trim();
+
+  if (mode === "register") {
+    if (!trimmedDisplayName) {
+      return "Please enter your display name";
+    }
+
+    if (trimmedDisplayName.length < 2) {
+      return "Display name must be at least 2 characters";
+    }
+
+    if (trimmedDisplayName.length > 32) {
+      return "Display name must be 32 characters or fewer";
+    }
+  }
+
+  if (!trimmedEmail) {
+    return "Please enter your email address";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+    return "Please enter a valid email address";
+  }
+
+  if (!password) {
+    return "Please enter your password";
+  }
+
+  if (password.length < 8) {
+    return "Password must be at least 8 characters";
+  }
+
+  return "";
+}
+
 export function LoginForm() {
   const router = useRouter();
+  const [isHydrated, setIsHydrated] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("test@flyff-idle.local");
@@ -22,9 +60,21 @@ export function LoginForm() {
 
   const isRegistering = mode === "register";
 
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    const validationError = validateAuthInput(mode, displayName, email, password);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -34,12 +84,11 @@ export function LoginForm() {
       localStorage.setItem("flyffIdleToken", session.token);
       localStorage.setItem("flyffIdleUser", JSON.stringify(session.user));
       router.push("/characters");
-    } catch {
-      setError(
-        isRegistering
-          ? "That profile could not be created. Try a different email."
-          : "Those login details did not match a player account."
-      );
+    } catch (error) {
+      const fallbackMessage = isRegistering
+        ? "That profile could not be created. Try a different email."
+        : "Unable to log in with those details.";
+      setError(error instanceof Error && error.message ? error.message : fallbackMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -61,6 +110,7 @@ export function LoginForm() {
               : "bg-transparent text-text-muted"
           )}
           data-testid="login_button_mode_login"
+          disabled={!isHydrated}
           type="button"
           onClick={() => {
             setMode("login");
@@ -79,6 +129,7 @@ export function LoginForm() {
               : "bg-transparent text-text-muted"
           )}
           data-testid="login_button_mode_register"
+          disabled={!isHydrated}
           type="button"
           onClick={() => {
             setMode("register");
@@ -90,7 +141,13 @@ export function LoginForm() {
           Register
         </button>
       </div>
-      <Stack as="form" data-testid="login_form_auth" onSubmit={handleSubmit}>
+      <Stack
+        as="form"
+        data-hydrated={isHydrated ? "true" : "false"}
+        data-testid="login_form_auth"
+        noValidate
+        onSubmit={handleSubmit}
+      >
         {isRegistering ? (
           <TextField
             data-testid="login_input_display_name"
@@ -130,7 +187,7 @@ export function LoginForm() {
           minLength={8}
         />
         {error ? <ErrorMessage message={error} testId="login_error_auth" /> : null}
-        <Button data-testid="login_button_submit" type="submit" disabled={isSubmitting}>
+        <Button data-testid="login_button_submit" type="submit" disabled={!isHydrated || isSubmitting}>
           {isSubmitting ? "Working..." : isRegistering ? "Create profile" : "Log in"}
         </Button>
       </Stack>

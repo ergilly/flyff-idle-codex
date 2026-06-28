@@ -235,5 +235,15 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
     now
   );
 
+  const emptyRosterUser = upsertSeedUser({
+    email: "empty@flyff-idle.local",
+    displayName: "Empty Roster Tester",
+    isAdmin: false,
+    passwordHash,
+    now
+  });
+
+  replaceSeedCharacters(emptyRosterUser, [], now);
+
   return demoUser;
 }
