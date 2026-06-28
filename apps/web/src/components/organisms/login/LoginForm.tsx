@@ -46,9 +46,10 @@ export function LoginForm() {
   }
 
   return (
-    <Stack>
+    <Stack data-testid="login_div_form_shell">
       <div
         className="grid grid-cols-2 overflow-hidden rounded-control border border-border bg-panel-muted"
+        data-testid="login_div_mode_group"
         role="group"
         aria-label="Auth mode"
       >
@@ -59,6 +60,7 @@ export function LoginForm() {
               ? "bg-panel text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
               : "bg-transparent text-text-muted"
           )}
+          data-testid="login_button_mode_login"
           type="button"
           onClick={() => {
             setMode("login");
@@ -76,6 +78,7 @@ export function LoginForm() {
               ? "bg-panel text-foreground shadow-[inset_0_0_0_1px_var(--primary)]"
               : "bg-transparent text-text-muted"
           )}
+          data-testid="login_button_mode_register"
           type="button"
           onClick={() => {
             setMode("register");
@@ -87,9 +90,10 @@ export function LoginForm() {
           Register
         </button>
       </div>
-      <Stack as="form" onSubmit={handleSubmit}>
+      <Stack as="form" data-testid="login_form_auth" onSubmit={handleSubmit}>
         {isRegistering ? (
           <TextField
+            data-testid="login_input_display_name"
             id="displayName"
             label="Display name"
             name="displayName"
@@ -103,6 +107,7 @@ export function LoginForm() {
           />
         ) : null}
         <TextField
+          data-testid="login_input_email"
           id="email"
           label="Email"
           name="email"
@@ -113,6 +118,7 @@ export function LoginForm() {
           required
         />
         <TextField
+          data-testid="login_input_password"
           id="password"
           label="Password"
           name="password"
@@ -123,8 +129,8 @@ export function LoginForm() {
           required
           minLength={8}
         />
-        {error ? <ErrorMessage message={error} /> : null}
-        <Button type="submit" disabled={isSubmitting}>
+        {error ? <ErrorMessage message={error} testId="login_error_auth" /> : null}
+        <Button data-testid="login_button_submit" type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Working..." : isRegistering ? "Create profile" : "Log in"}
         </Button>
       </Stack>

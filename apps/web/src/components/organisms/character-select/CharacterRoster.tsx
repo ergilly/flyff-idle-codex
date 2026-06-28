@@ -82,20 +82,24 @@ export function CharacterRoster() {
   }
 
   if (isLoading) {
-    return <MutedText>Loading characters...</MutedText>;
+    return <MutedText data-testid="characters_p_loading">Loading characters...</MutedText>;
   }
 
   return (
-    <Stack>
-      <div className="mb-[22px] flex items-start justify-between gap-4 max-[560px]:grid">
-        <MutedText>Choose who will begin the grind.</MutedText>
-        <Button type="button" onClick={handleLogout}>
+    <Stack data-testid="characters_div_roster_page">
+      <div
+        className="mb-[22px] flex items-start justify-between gap-4 max-[560px]:grid"
+        data-testid="characters_div_toolbar"
+      >
+        <MutedText data-testid="characters_p_description">Choose who will begin the grind.</MutedText>
+        <Button data-testid="characters_button_logout" type="button" onClick={handleLogout}>
           Log out
         </Button>
       </div>
-      {error ? <ErrorMessage message={error} /> : null}
+      {error ? <ErrorMessage message={error} testId="characters_error_roster" /> : null}
       <div
         className="grid grid-cols-4 gap-4 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1"
+        data-testid="characters_div_roster_grid"
         aria-label="Character roster"
       >
         {(() => {

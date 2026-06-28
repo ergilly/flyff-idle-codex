@@ -20,12 +20,22 @@ export function ProfileActionsMenu({
   variant = "desktop"
 }: ProfileActionsMenuProps) {
   const menu = isOpen ? (
-    <ProfileMenu role="menu" variant={variant}>
-      <ProfileMenuButton type="button" role="menuitem" onClick={onChangeCharacter}>
+    <ProfileMenu data-testid={`game_profile_div_menu_${variant}`} role="menu" variant={variant}>
+      <ProfileMenuButton
+        data-testid={`game_profile_button_change_character_${variant}`}
+        type="button"
+        role="menuitem"
+        onClick={onChangeCharacter}
+      >
         <UserPlus aria-hidden="true" size={17} />
         Change character
       </ProfileMenuButton>
-      <ProfileMenuButton type="button" role="menuitem" onClick={onLogout}>
+      <ProfileMenuButton
+        data-testid={`game_profile_button_logout_${variant}`}
+        type="button"
+        role="menuitem"
+        onClick={onLogout}
+      >
         <LogOut aria-hidden="true" size={17} />
         Log out
       </ProfileMenuButton>
@@ -37,6 +47,7 @@ export function ProfileActionsMenu({
       <MobileProfileMenu>
         <ProfileIconButton
           type="button"
+          data-testid="game_profile_button_menu_mobile"
           aria-label={`${characterName} profile menu`}
           aria-expanded={isOpen}
           aria-haspopup="menu"
@@ -51,7 +62,13 @@ export function ProfileActionsMenu({
 
   return (
     <ProfileMenuWrap>
-      <ProfileButton type="button" aria-expanded={isOpen} aria-haspopup="menu" onClick={onToggle}>
+      <ProfileButton
+        type="button"
+        data-testid="game_profile_button_menu_desktop"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        onClick={onToggle}
+      >
         <CircleUserRound aria-hidden="true" size={20} />
         <span>{characterName}</span>
         <ChevronDown aria-hidden="true" size={16} />
@@ -62,7 +79,14 @@ export function ProfileActionsMenu({
 }
 
 function ProfileMenuWrap({ children }: { children: ReactNode }) {
-  return <div className="relative z-[1001] flex-none max-[560px]:hidden">{children}</div>;
+  return (
+    <div
+      className="relative z-[1001] flex-none max-[560px]:hidden"
+      data-testid="game_profile_div_wrap_desktop"
+    >
+      {children}
+    </div>
+  );
 }
 
 function ProfileButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -75,7 +99,14 @@ function ProfileButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
 }
 
 function MobileProfileMenu({ children }: { children: ReactNode }) {
-  return <div className="relative z-40 hidden flex-none max-[560px]:block">{children}</div>;
+  return (
+    <div
+      className="relative z-40 hidden flex-none max-[560px]:block"
+      data-testid="game_profile_div_wrap_mobile"
+    >
+      {children}
+    </div>
+  );
 }
 
 function ProfileIconButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {

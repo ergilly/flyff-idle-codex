@@ -6,6 +6,7 @@ export function CharacterSelectionPage() {
   return (
     <GameTemplate>
       <PageHeader
+        testId="characters_header_page"
         eyebrow="Character Select"
         title="Pick your adventurer"
         description="Your roster will later connect to persisted player data and progression systems."

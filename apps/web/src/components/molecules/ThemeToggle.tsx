@@ -38,6 +38,7 @@ export function ThemeToggle() {
   return (
     <button
       className="absolute right-[18px] top-[18px] inline-flex min-h-[38px] cursor-pointer items-center gap-2.5 rounded-full border border-border bg-panel-shell py-[5px] pl-1.5 pr-3 font-extrabold text-foreground shadow-toggle max-[560px]:static max-[560px]:mb-4 max-[560px]:justify-self-end"
+      data-testid="theme_button_toggle"
       type="button"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       aria-pressed={theme === "light"}

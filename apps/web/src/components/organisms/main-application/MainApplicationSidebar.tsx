@@ -14,6 +14,7 @@ import {
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { ProfileActionsMenu } from "@/components/molecules/main-application/ProfileActionsMenu";
 import { cx } from "@/lib/classNames";
+import { getTestIdSegment } from "@/lib/testIds";
 
 export const navItems = [
   { label: "Character Page", icon: CircleUserRound },
@@ -56,11 +57,11 @@ export function MainApplicationSidebar({
   theme
 }: MainApplicationSidebarProps) {
   return (
-    <AppSidebar aria-label="Primary navigation">
+    <AppSidebar aria-label="Primary navigation" data-testid="game_sidebar_aside">
       <MobileSidebarTop>
         <AppBrand isOpen={isMobileNavOpen} onToggle={onToggleMobileNav}>
           <Shield aria-hidden="true" size={24} />
-          <strong>Flyff Idle</strong>
+          <strong data-testid="game_sidebar_strong_brand">Flyff Idle</strong>
         </AppBrand>
         <ProfileActionsMenu
           characterName={characterName}
@@ -76,6 +77,7 @@ export function MainApplicationSidebar({
           <AppNavButton
             key={label}
             $active={activeNavItem === label}
+            data-testid={`game_sidebar_button_nav_${getTestIdSegment(label)}`}
             type="button"
             onClick={() => onSelectNavItem(label)}
           >
@@ -88,6 +90,7 @@ export function MainApplicationSidebar({
         {isAdmin ? (
           <AppNavButton
             $active={activeNavItem === "Admin"}
+            data-testid="game_sidebar_button_nav_admin"
             type="button"
             onClick={() => onSelectNavItem("Admin")}
           >
@@ -95,11 +98,21 @@ export function MainApplicationSidebar({
             <span>Admin</span>
           </AppNavButton>
         ) : null}
-        <AppNavButton $active={false} type="button" onClick={() => onSelectNavItem("Settings")}>
+        <AppNavButton
+          $active={false}
+          data-testid="game_sidebar_button_nav_settings"
+          type="button"
+          onClick={() => onSelectNavItem("Settings")}
+        >
           <Cog aria-hidden="true" size={18} />
           <span>Settings</span>
         </AppNavButton>
-        <AppNavButton type="button" $active={false} onClick={onThemeToggle}>
+        <AppNavButton
+          type="button"
+          $active={false}
+          data-testid="game_sidebar_button_theme_toggle"
+          onClick={onThemeToggle}
+        >
           {theme === "dark" ? <Sun aria-hidden="true" size={18} /> : <Moon aria-hidden="true" size={18} />}
           <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
         </AppNavButton>
@@ -130,6 +143,7 @@ function AppBrand({
     <div className="flex items-center gap-2.5 text-primary-strong [text-shadow:0_1px_2px_#000] max-[560px]:flex-1">
       <button
         className="hidden min-h-[42px] w-full cursor-pointer items-center justify-between rounded-control border-2 border-border bg-panel-muted px-3 text-left font-extrabold text-primary-strong shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[560px]:flex"
+        data-testid="game_sidebar_button_mobile_nav_toggle"
         type="button"
         aria-expanded={isOpen}
         aria-controls="mobile-primary-nav"
@@ -149,7 +163,12 @@ function AppBrand({
 
 function MobileSidebarTop({ children }: { children: ReactNode }) {
   return (
-    <div className="contents max-[560px]:flex max-[560px]:items-start max-[560px]:gap-2">{children}</div>
+    <div
+      className="contents max-[560px]:flex max-[560px]:items-start max-[560px]:gap-2"
+      data-testid="game_sidebar_div_mobile_top"
+    >
+      {children}
+    </div>
   );
 }
 
@@ -161,6 +180,7 @@ function AppNav({ children, isOpen }: { children: ReactNode; isOpen: boolean }) 
         !isOpen && "max-[560px]:hidden"
       )}
       id="mobile-primary-nav"
+      data-testid="game_sidebar_nav_primary"
     >
       {children}
     </nav>
@@ -174,6 +194,7 @@ function AppSidebarActions({ children, isOpen }: { children: ReactNode; isOpen: 
         "grid self-end gap-2 border-t border-border pt-3.5 shadow-[inset_0_1px_0_rgba(255,225,115,0.08)] max-[560px]:self-auto max-[560px]:pt-3",
         !isOpen && "max-[560px]:hidden"
       )}
+      data-testid="game_sidebar_div_actions"
     >
       {children}
     </div>

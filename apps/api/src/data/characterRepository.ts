@@ -62,28 +62,6 @@ type InventoryItemRow = {
 
 type InventorySortOption = "name" | "level" | "job" | "category";
 
-const equipmentColumnBySlot = {
-  helmet: "helmet",
-  suit: "suit",
-  gloves: "gloves",
-  boots: "boots",
-  flying: "flying",
-  csBoots: "cs_boots",
-  csGloves: "cs_gloves",
-  csSuit: "cs_suit",
-  csHelm: "cs_helm",
-  mask: "mask",
-  cloak: "cloak",
-  ammo: "ammo",
-  offhand: "offhand",
-  mainhand: "mainhand",
-  ringR: "ring_r",
-  earringR: "earring_r",
-  necklace: "necklace",
-  earringL: "earring_l",
-  ringL: "ring_l"
-} satisfies Record<keyof Character["equipment"], string>;
-
 const secondJobToFirstJob: Record<string, string> = {
   Blade: "Mercenary",
   Knight: "Mercenary",

@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import { getMonsterMarkerIconSrc, type MapRegionId, type MapMonsterMarker } from "@/lib/mapMonsterMarkers";
+import { getTestIdSegment } from "@/lib/testIds";
 
 const minMapZoom = 1;
 const maxMapZoom = 2.5;
@@ -330,10 +331,14 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   }
 
   return (
-    <section className="grid h-full min-h-0 grid-cols-[max-content_minmax(360px,1fr)] gap-4 max-[1100px]:grid-cols-1">
+    <section
+      className="grid h-full min-h-0 grid-cols-[max-content_minmax(360px,1fr)] gap-4 max-[1100px]:grid-cols-1"
+      data-testid="map_section_page"
+    >
       <Panel
         as="section"
         className="relative aspect-[1195/896] h-full min-h-0 max-h-full max-w-full justify-self-center overflow-hidden p-2"
+        data-testid="map_panel_canvas"
         aria-label={selectedRegion ? `${selectedRegion.label} region map` : "World map"}
       >
         <ZoomControls
@@ -349,6 +354,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
               "relative h-full w-full touch-none overflow-hidden",
               mapZoom > minMapZoom && (isPanning ? "cursor-grabbing" : "cursor-grab")
             )}
+            data-testid="map_div_region_viewport"
             onMouseDown={handlePanStart}
             onMouseLeave={handlePanEnd}
             onMouseMove={handlePanMove}
@@ -357,6 +363,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
           >
             <div
               className="absolute left-0 top-0 overflow-hidden"
+              data-testid="map_div_region_layer"
               style={{
                 height: `${mapZoom * 100}%`,
                 transform: `translate(${mapPan.x}px, ${mapPan.y}px)`,
@@ -373,7 +380,10 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                 unoptimized
               />
               {isMonsterFamilyLoading ? (
-                <div className="absolute inset-0 grid place-items-center bg-black/18 text-xs font-black uppercase tracking-wide text-[#fff1ba]">
+                <div
+                  className="absolute inset-0 grid place-items-center bg-black/18 text-xs font-black uppercase tracking-wide text-[#fff1ba]"
+                  data-testid="map_div_monsters_loading"
+                >
                   Loading monster data...
                 </div>
               ) : (
@@ -392,6 +402,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
               "relative h-full w-full touch-none overflow-hidden",
               mapZoom > minMapZoom && (isPanning ? "cursor-grabbing" : "cursor-grab")
             )}
+            data-testid="map_div_world_viewport"
             onMouseDown={handlePanStart}
             onMouseLeave={() => {
               setActiveRegionId(null);
@@ -403,6 +414,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
           >
             <div
               className="absolute left-0 top-0 overflow-hidden"
+              data-testid="map_div_world_layer"
               style={{
                 height: `${mapZoom * 100}%`,
                 transform: `translate(${mapPan.x}px, ${mapPan.y}px)`,
@@ -434,6 +446,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                 <button
                   key={region.id}
                   aria-label={`Select ${region.label}`}
+                  data-testid={`map_button_region_hotspot_${getTestIdSegment(region.id)}`}
                   className="absolute rounded-[999px] border-2 border-transparent bg-transparent transition-colors hover:border-[#fff1ba]/80 focus-visible:border-[#fff1ba] focus-visible:bg-[#fff1ba]/10 focus-visible:outline-none"
                   onClick={() => setSelectedRegionId(region.id)}
                   onFocus={() => setActiveRegionId(region.id)}
@@ -447,15 +460,17 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
           </div>
         )}
       </Panel>
-      <Panel as="aside" className="h-full content-start gap-4">
-        <div className="flex items-start justify-between gap-3">
+      <Panel as="aside" className="h-full content-start gap-4" data-testid="map_panel_regions">
+        <div className="flex items-start justify-between gap-3" data-testid="map_div_region_header">
           <SectionHeading
             eyebrow={selectedRegion ? "Region Map" : "World Map"}
+            testId="map_heading_region"
             title={panelRegion?.label ?? "Select a region"}
           />
           {selectedRegion ? (
             <Button
               type="button"
+              data-testid="map_button_back_to_world"
               variant="secondary"
               className="min-h-10 shrink-0 px-3"
               onClick={() => setSelectedRegionId(null)}
@@ -464,15 +479,16 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
             </Button>
           ) : null}
         </div>
-        <MutedText>
+        <MutedText data-testid="map_p_region_description">
           {panelRegion
             ? panelRegion.description
             : "Hover over a region to preview its highlighted world location, then select it to open the region map."}
         </MutedText>
-        <div className="grid gap-2">
+        <div className="grid gap-2" data-testid="map_div_region_list">
           {regions.map((region) => (
             <button
               key={region.id}
+              data-testid={`map_button_region_list_${getTestIdSegment(region.id)}`}
               className={cx(
                 "min-h-10 rounded-control border-2 px-3 text-left text-sm font-extrabold transition-colors",
                 panelRegion?.id === region.id
@@ -505,9 +521,13 @@ function ZoomControls({
   zoom: number;
 }) {
   return (
-    <div className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-control border border-border bg-black/72 p-1 shadow-menu backdrop-blur-sm">
+    <div
+      className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-control border border-border bg-black/72 p-1 shadow-menu backdrop-blur-sm"
+      data-testid="map_div_zoom_controls"
+    >
       <button
         type="button"
+        data-testid="map_button_zoom_out"
         className="grid h-8 w-8 place-items-center rounded-control border border-border bg-panel-muted text-base font-black text-foreground transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
         disabled={zoom <= minMapZoom}
         onClick={onZoomOut}
@@ -518,6 +538,7 @@ function ZoomControls({
       </button>
       <button
         type="button"
+        data-testid="map_button_zoom_reset"
         className="min-w-14 rounded-control px-2 text-xs font-black text-[#fff1ba] transition-colors hover:bg-panel-muted"
         onClick={onReset}
         aria-label="Reset zoom"
@@ -527,6 +548,7 @@ function ZoomControls({
       </button>
       <button
         type="button"
+        data-testid="map_button_zoom_in"
         className="grid h-8 w-8 place-items-center rounded-control border border-border bg-panel-muted text-base font-black text-foreground transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
         disabled={zoom >= maxMapZoom}
         onClick={onZoomIn}
@@ -553,7 +575,7 @@ function MonsterMarkerLayer({
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0" data-testid="map_div_monster_marker_layer">
       {markers.map((marker) => (
         <MonsterMarker
           key={marker.id}
@@ -581,6 +603,7 @@ function MonsterMarker({
     <button
       aria-describedby={`${marker.id}-description`}
       aria-label={markerLabel}
+      data-testid={`map_button_monster_marker_${getTestIdSegment(marker.id)}`}
       className="group absolute grid aspect-square w-[4.35%] -translate-x-1/2 -translate-y-1/2 place-items-center transition-transform hover:z-20 hover:scale-110 focus-visible:z-20 focus-visible:scale-110 focus-visible:outline-none"
       onMouseDown={(event) => event.stopPropagation()}
       onClick={() => {
@@ -592,8 +615,14 @@ function MonsterMarker({
       title={markerLabel}
       type="button"
     >
-      <span className="pointer-events-none grid h-full w-full place-items-center overflow-hidden rounded-full border border-[#fff1ba]/70 bg-black/45 shadow-[0_2px_8px_rgba(0,0,0,0.65)] group-focus-visible:border-[#fff1ba] group-focus-visible:ring-2 group-focus-visible:ring-[#fff1ba]/70">
-        <span className="grid h-[82%] w-[82%] place-items-center">
+      <span
+        className="pointer-events-none grid h-full w-full place-items-center overflow-hidden rounded-full border border-[#fff1ba]/70 bg-black/45 shadow-[0_2px_8px_rgba(0,0,0,0.65)] group-focus-visible:border-[#fff1ba] group-focus-visible:ring-2 group-focus-visible:ring-[#fff1ba]/70"
+        data-testid={`map_span_monster_marker_frame_${getTestIdSegment(marker.id)}`}
+      >
+        <span
+          className="grid h-[82%] w-[82%] place-items-center"
+          data-testid={`map_span_monster_marker_icon_${getTestIdSegment(marker.id)}`}
+        >
           <Image
             className="pointer-events-none h-full w-full object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]"
             src={marker.iconSrc}
@@ -621,17 +650,24 @@ function MonsterTooltip({
     <span
       id={`${marker.id}-description`}
       role="tooltip"
+      data-testid={`map_span_monster_tooltip_${getTestIdSegment(marker.id)}`}
       className={cx(
         "pointer-events-none absolute z-30 grid w-max min-w-64 max-w-[min(32rem,calc(100vw-2rem))] gap-2 rounded-control border border-[#fff1ba]/70 bg-black/90 px-3 py-2 text-left opacity-0 shadow-menu transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100",
         getMonsterTooltipPlacement(marker)
       )}
     >
-      <span className="text-xs font-black uppercase tracking-wide text-[#fff1ba]">
+      <span
+        className="text-xs font-black uppercase tracking-wide text-[#fff1ba]"
+        data-testid={`map_span_monster_tooltip_name_${getTestIdSegment(marker.id)}`}
+      >
         {monsterFamily?.name ?? marker.label}
       </span>
       {monsterFamily ? (
         <>
-          <span className="grid gap-1">
+          <span
+            className="grid gap-1"
+            data-testid={`map_span_monster_tooltip_variants_${getTestIdSegment(marker.id)}`}
+          >
             {monsterFamily.variants.map((variant) => (
               <MonsterVariantRow key={`${variant.variantRank}-${variant.id}`} variant={variant} />
             ))}
@@ -639,7 +675,12 @@ function MonsterTooltip({
           <MonsterQuestDropBox monsterFamily={monsterFamily} />
         </>
       ) : (
-        <span className="text-xs font-bold leading-snug text-foreground">{marker.description}</span>
+        <span
+          className="text-xs font-bold leading-snug text-foreground"
+          data-testid={`map_span_monster_tooltip_description_${getTestIdSegment(marker.id)}`}
+        >
+          {marker.description}
+        </span>
       )}
     </span>
   );
@@ -647,7 +688,10 @@ function MonsterTooltip({
 
 function MonsterVariantRow({ variant }: { variant: MonsterFamilyVariant }) {
   return (
-    <span className="grid grid-cols-[54px_minmax(0,1fr)_18px] items-center gap-2 rounded-[4px] border border-[rgba(187,161,89,0.2)] bg-[rgba(255,255,255,0.04)] px-2 py-1">
+    <span
+      className="grid grid-cols-[54px_minmax(0,1fr)_18px] items-center gap-2 rounded-[4px] border border-[rgba(187,161,89,0.2)] bg-[rgba(255,255,255,0.04)] px-2 py-1"
+      data-testid={`map_span_monster_variant_${getTestIdSegment(String(variant.id))}`}
+    >
       <span
         className={cx(
           "text-[0.68rem] font-black uppercase leading-none text-text-muted",
@@ -656,8 +700,17 @@ function MonsterVariantRow({ variant }: { variant: MonsterFamilyVariant }) {
       >
         {variant.variantRank}
       </span>
-      <span className="min-w-0 whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground">
-        Lv. {formatMonsterValue(variant.level)} <span className="text-text-muted">{variant.name}</span>
+      <span
+        className="min-w-0 whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground"
+        data-testid={`map_span_monster_variant_level_${getTestIdSegment(String(variant.id))}`}
+      >
+        Lv. {formatMonsterValue(variant.level)}{" "}
+        <span
+          className="text-text-muted"
+          data-testid={`map_span_monster_variant_name_${getTestIdSegment(String(variant.id))}`}
+        >
+          {variant.name}
+        </span>
       </span>
       <MonsterElementIcon element={variant.element} />
     </span>
@@ -684,20 +737,40 @@ function MonsterElementIcon({ element }: { element: string | null }) {
 }
 
 function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }) {
+  const monsterTestId = getTestIdSegment(monsterFamily.name);
+
   if (monsterFamily.questDrops.length === 0) {
     return (
-      <span className="rounded-[4px] border border-[rgba(187,161,89,0.2)] bg-[rgba(0,0,0,0.35)] px-2 py-1.5 text-[0.7rem] font-bold text-text-muted">
+      <span
+        className="rounded-[4px] border border-[rgba(187,161,89,0.2)] bg-[rgba(0,0,0,0.35)] px-2 py-1.5 text-[0.7rem] font-bold text-text-muted"
+        data-testid={`map_span_monster_quest_drop_empty_${monsterTestId}`}
+      >
         Quest drop: none found
       </span>
     );
   }
 
   return (
-    <span className="grid gap-1 rounded-[4px] border border-[rgba(194,123,255,0.35)] bg-[rgba(20,9,31,0.72)] px-2 py-1.5">
-      <span className="text-[0.62rem] font-black uppercase tracking-wide text-[#c27bff]">Quest drop</span>
+    <span
+      className="grid gap-1 rounded-[4px] border border-[rgba(194,123,255,0.35)] bg-[rgba(20,9,31,0.72)] px-2 py-1.5"
+      data-testid={`map_span_monster_quest_drops_${monsterTestId}`}
+    >
+      <span
+        className="text-[0.62rem] font-black uppercase tracking-wide text-[#c27bff]"
+        data-testid={`map_span_monster_quest_drops_label_${monsterTestId}`}
+      >
+        Quest drop
+      </span>
       {monsterFamily.questDrops.map((item) => (
-        <span key={String(item.id)} className="grid grid-cols-[22px_1fr] items-center gap-2">
-          <span className="grid h-[22px] w-[22px] place-items-center rounded-[3px] border border-[rgba(187,161,89,0.3)] bg-black/55">
+        <span
+          key={String(item.id)}
+          className="grid grid-cols-[22px_1fr] items-center gap-2"
+          data-testid={`map_span_monster_quest_drop_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
+        >
+          <span
+            className="grid h-[22px] w-[22px] place-items-center rounded-[3px] border border-[rgba(187,161,89,0.3)] bg-black/55"
+            data-testid={`map_span_monster_quest_drop_icon_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
+          >
             {item.icon ? (
               <Image
                 className="h-[18px] w-[18px] object-contain"
@@ -710,7 +783,10 @@ function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }
               />
             ) : null}
           </span>
-          <span className="whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground">
+          <span
+            className="whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground"
+            data-testid={`map_span_monster_quest_drop_name_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
+          >
             {item.name}
           </span>
         </span>

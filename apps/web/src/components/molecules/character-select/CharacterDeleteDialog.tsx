@@ -43,6 +43,7 @@ export function CharacterDeleteDialog({
   return (
     <div
       className="fixed inset-0 z-20 grid place-items-center bg-[rgba(8,12,18,0.72)] p-[18px]"
+      data-testid="characters_delete_div_overlay"
       role="presentation"
     >
       <section
@@ -50,20 +51,26 @@ export function CharacterDeleteDialog({
         aria-labelledby="delete-character-title"
         aria-modal="true"
         className="w-full max-w-[420px] rounded-card border border-border bg-panel-shell p-6 shadow-shell"
+        data-testid="characters_delete_section_dialog"
         role="dialog"
       >
-        <Stack as="form" onSubmit={handleSubmit}>
+        <Stack as="form" data-testid="characters_delete_form" onSubmit={handleSubmit}>
           <Stack>
-            <h2 className="m-0 text-[1.15rem]" id="delete-character-title">
+            <h2
+              className="m-0 text-[1.15rem]"
+              data-testid="characters_delete_h2_title"
+              id="delete-character-title"
+            >
               Delete {character.name}
             </h2>
-            <MutedText id="delete-character-description">
+            <MutedText data-testid="characters_delete_p_description" id="delete-character-description">
               Enter the character name to permanently delete this slot.
             </MutedText>
           </Stack>
-          {error ? <ErrorMessage message={error} /> : null}
+          {error ? <ErrorMessage message={error} testId="characters_delete_error" /> : null}
           <TextField
             autoComplete="off"
+            data-testid="characters_delete_input_name"
             id="delete-character-name"
             label="Character name"
             onChange={(event) => setName(event.target.value)}
@@ -71,10 +78,15 @@ export function CharacterDeleteDialog({
             value={name}
           />
           <Actions>
-            <Button variant="secondary" type="button" onClick={onCancel}>
+            <Button
+              data-testid="characters_delete_button_cancel"
+              variant="secondary"
+              type="button"
+              onClick={onCancel}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!canConfirm}>
+            <Button data-testid="characters_delete_button_confirm" type="submit" disabled={!canConfirm}>
               {isDeleting ? "Deleting..." : "Delete character"}
             </Button>
           </Actions>

@@ -46,20 +46,32 @@ export function InventoryPage({
   const selectedItem = selectedInventoryItem ? itemsById[selectedInventoryItem.itemId] : null;
 
   return (
-    <section className="grid h-full min-h-0 grid-cols-[3fr_1fr] items-stretch gap-4 max-[1100px]:grid-cols-1">
+    <section
+      className="grid h-full min-h-0 grid-cols-[3fr_1fr] items-stretch gap-4 max-[1100px]:grid-cols-1"
+      data-testid="inventory_section_page"
+    >
       <Panel
         as="section"
         className="h-full min-h-0 content-start gap-4 overflow-hidden [grid-template-rows:auto_minmax(0,1fr)]"
+        data-testid="inventory_panel_grid"
       >
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <SectionHeading eyebrow="Inventory" title={`${inventorySlotCount} slots`} />
-          <MutedText>
+        <div className="flex flex-wrap items-end justify-between gap-3" data-testid="inventory_div_toolbar">
+          <SectionHeading
+            eyebrow="Inventory"
+            testId="inventory_heading_grid"
+            title={`${inventorySlotCount} slots`}
+          />
+          <MutedText data-testid="inventory_p_occupied_count">
             {character.inventory.items.length} / {inventorySlotCount} occupied
           </MutedText>
-          <label className="grid min-w-[180px] gap-1 text-xs font-black uppercase tracking-[0.08em] text-text-muted">
+          <label
+            className="grid min-w-[180px] gap-1 text-xs font-black uppercase tracking-[0.08em] text-text-muted"
+            data-testid="inventory_label_sort"
+          >
             Sort
             <select
               className="h-10 rounded-control border-2 border-border bg-panel-muted px-3 text-sm font-black normal-case tracking-normal text-foreground outline-none transition-colors hover:border-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+              data-testid="inventory_select_sort"
               defaultValue=""
               disabled={isActionPending}
               onChange={(event) => {
@@ -102,6 +114,7 @@ export function InventoryPage({
                 $selected={isSelected}
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
+                data-testid={`inventory_button_slot_${slotIndex}`}
                 draggable={Boolean(inventoryItem) && !isActionPending}
                 key={slotIndex}
                 onDragOver={(event) => {
@@ -150,11 +163,17 @@ export function InventoryPage({
       >
         {selectedInventoryItem && onEquipSlot ? (
           <div className="grid gap-2">
-            <span className="text-[0.78rem] font-extrabold uppercase text-text-muted">Equip to set</span>
-            <div className="grid grid-cols-3 gap-2">
+            <span
+              className="text-[0.78rem] font-extrabold uppercase text-text-muted"
+              data-testid="inventory_span_equip_label"
+            >
+              Equip to set
+            </span>
+            <div className="grid grid-cols-3 gap-2" data-testid="inventory_div_equip_actions">
               {[0, 1, 2].map((equipmentSet) => (
                 <button
                   aria-label={`Equip to set ${equipmentSet + 1}`}
+                  data-testid={`inventory_button_equip_set_${equipmentSet}`}
                   className={cx(
                     "min-h-10 rounded-control border-2 px-2 text-sm font-black transition-colors disabled:cursor-wait disabled:opacity-60",
                     activeEquipmentSet === equipmentSet

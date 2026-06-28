@@ -16,6 +16,7 @@ import {
   type SkillTreeTab,
   type SkillTreeTier
 } from "@/lib/skillTrees";
+import { getTestIdSegment } from "@/lib/testIds";
 
 type CharacterSkillsPanelProps = {
   availableSkillPoints: number;
@@ -59,11 +60,20 @@ function SkillRequirements({
   const isLevelMet = character.level >= skill.requiredLevel;
 
   return (
-    <span className={cx("grid gap-1 text-xs font-bold", className)}>
-      <span className="text-[0.68rem] font-black uppercase tracking-[0.08em] text-text-muted">
+    <span
+      className={cx("grid gap-1 text-xs font-bold", className)}
+      data-testid={`character_skills_span_requirements_${getTestIdSegment(skill.id)}`}
+    >
+      <span
+        className="text-[0.68rem] font-black uppercase tracking-[0.08em] text-text-muted"
+        data-testid={`character_skills_span_requirements_label_${getTestIdSegment(skill.id)}`}
+      >
         Requirements
       </span>
-      <span className={cx(isLevelMet ? "text-[#54d978]" : "text-[#ff5a58]")}>
+      <span
+        className={cx(isLevelMet ? "text-[#54d978]" : "text-[#ff5a58]")}
+        data-testid={`character_skills_span_requirement_level_${getTestIdSegment(skill.id)}`}
+      >
         Level {skill.requiredLevel}
       </span>
       {skill.requirements.map((requirement) => {
@@ -72,6 +82,7 @@ function SkillRequirements({
         return (
           <span
             className={cx(requirementMet ? "text-[#54d978]" : "text-[#ff5a58]")}
+            data-testid={`character_skills_span_requirement_${getTestIdSegment(skill.id)}_${getTestIdSegment(requirement.skill)}`}
             key={`${skill.id}-${requirement.skill}`}
           >
             {requirement.skillName} Lv. {requirement.level}
@@ -142,10 +153,10 @@ export function CharacterSkillsPanel({
     : false;
 
   return (
-    <Panel as="section" className="h-full w-full content-start">
-      <SectionHeading eyebrow="Skills" />
+    <Panel as="section" className="h-full w-full content-start" data-testid="character_skills_panel">
+      <SectionHeading eyebrow="Skills" testId="character_skills_heading" />
       <div className="grid gap-3">
-        <div className="relative pt-[38px]">
+        <div className="relative pt-[38px]" data-testid="character_skills_div_tree_shell">
           <div
             className="absolute left-[3px] top-0 z-[2] flex flex-wrap justify-start"
             role="tablist"
@@ -161,6 +172,7 @@ export function CharacterSkillsPanel({
                     "bg-[linear-gradient(180deg,rgba(255,225,115,0.2),rgba(29,26,18,0.98))] text-foreground"
                 )}
                 id={`skill-tab-${tab.tier}`}
+                data-testid={`character_skills_button_tab_${getTestIdSegment(tab.tier)}`}
                 key={tab.tier}
                 onClick={() => setActiveTier(tab.tier)}
                 role="tab"
@@ -175,11 +187,13 @@ export function CharacterSkillsPanel({
             aria-labelledby={`skill-tab-${activeTab.tier}`}
             className="relative z-[3] grid min-h-[180px] place-items-center rounded-card border-[3px] border-border bg-[radial-gradient(circle_at_50%_38%,rgba(255,230,119,0.08),transparent_34%),linear-gradient(180deg,rgba(14,14,11,0.94),rgba(0,0,0,0.98))] p-4 shadow-[inset_0_0_0_2px_rgba(255,225,115,0.12)]"
             id={`skill-tree-${activeTab.tier}`}
+            data-testid={`character_skills_div_tree_${getTestIdSegment(activeTab.tier)}`}
             onClick={() => setSelectedSkillId("")}
             role="tabpanel"
           >
             <div
               className="relative w-full max-w-[500px]"
+              data-testid={`character_skills_div_tree_canvas_${getTestIdSegment(activeTab.tier)}`}
               style={{ aspectRatio: `${activeTab.imageWidth} / ${activeTab.imageHeight}` }}
             >
               <Image
@@ -201,6 +215,7 @@ export function CharacterSkillsPanel({
                 return (
                   <button
                     aria-label={`Select ${skill.name}`}
+                    data-testid={`character_skills_button_select_${getTestIdSegment(skill.id)}`}
                     className={cx(
                       "group absolute grid h-[50px] w-[50px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[5px] border-2 border-[#12100c] bg-black/55 shadow-[0_2px_0_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,255,255,0.24)] transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe173]",
                       !isUnlocked && "opacity-75",
@@ -248,20 +263,35 @@ export function CharacterSkillsPanel({
                               ? "[text-shadow:-2px_-2px_0_#b72b2b,0_-2px_0_#b72b2b,2px_-2px_0_#b72b2b,-2px_0_0_#b72b2b,2px_0_0_#b72b2b,-2px_2px_0_#b72b2b,0_2px_0_#b72b2b,2px_2px_0_#b72b2b,0_1px_2px_rgba(0,0,0,0.95)]"
                               : "[text-shadow:0_1px_2px_rgba(0,0,0,0.95)]"
                         )}
+                        data-testid={`character_skills_span_level_${getTestIdSegment(skill.id)}`}
                       >
                         {level >= skill.maxLevel ? "MAX" : level}
                       </span>
                     )}
                     <span
                       className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-[50] hidden w-[220px] -translate-x-1/2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.98),rgba(9,9,7,0.98))] p-2.5 text-left text-xs text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.5)] group-hover:block group-focus-visible:block"
+                      data-testid={`character_skills_span_tooltip_${getTestIdSegment(skill.id)}`}
                       role="tooltip"
                     >
-                      <strong className="block text-sm">{skill.name}</strong>
-                      <span className="mt-0.5 block font-bold text-text-muted">
+                      <strong
+                        className="block text-sm"
+                        data-testid={`character_skills_strong_tooltip_name_${getTestIdSegment(skill.id)}`}
+                      >
+                        {skill.name}
+                      </strong>
+                      <span
+                        className="mt-0.5 block font-bold text-text-muted"
+                        data-testid={`character_skills_span_tooltip_level_${getTestIdSegment(skill.id)}`}
+                      >
                         Level {level}/{skill.maxLevel} · {skill.costPerLevel} SP per level
                       </span>
                       {skill.description && (
-                        <span className="mt-2 block leading-4 text-text-muted">{skill.description}</span>
+                        <span
+                          className="mt-2 block leading-4 text-text-muted"
+                          data-testid={`character_skills_span_tooltip_description_${getTestIdSegment(skill.id)}`}
+                        >
+                          {skill.description}
+                        </span>
                       )}
                       <SkillRequirements
                         character={character}
@@ -278,7 +308,10 @@ export function CharacterSkillsPanel({
         </div>
 
         {selectedSkill && (
-          <div className="grid h-[240px] grid-cols-[72px_minmax(0,1fr)_94px] items-center gap-3 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(9,9,7,0.96))] p-2.5 max-[560px]:h-[340px] max-[560px]:grid-cols-1">
+          <div
+            className="grid h-[240px] grid-cols-[72px_minmax(0,1fr)_94px] items-center gap-3 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(9,9,7,0.96))] p-2.5 max-[560px]:h-[340px] max-[560px]:grid-cols-1"
+            data-testid={`character_skills_div_selected_${getTestIdSegment(selectedSkill.id)}`}
+          >
             <div
               className="relative grid h-[58px] w-[58px] place-items-center overflow-hidden rounded-[6px] border-2 border-[#12100c] bg-black/55 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28)]"
               aria-hidden="true"
@@ -297,13 +330,27 @@ export function CharacterSkillsPanel({
                 width={58}
               />
             </div>
-            <div className="min-w-0 pr-1">
-              <strong className="block truncate text-sm">{selectedSkill.name}</strong>
-              <span className="text-xs font-bold text-text-muted">
+            <div
+              className="min-w-0 pr-1"
+              data-testid={`character_skills_div_selected_content_${getTestIdSegment(selectedSkill.id)}`}
+            >
+              <strong
+                className="block truncate text-sm"
+                data-testid={`character_skills_strong_selected_name_${getTestIdSegment(selectedSkill.id)}`}
+              >
+                {selectedSkill.name}
+              </strong>
+              <span
+                className="text-xs font-bold text-text-muted"
+                data-testid={`character_skills_span_selected_level_${getTestIdSegment(selectedSkill.id)}`}
+              >
                 Level {selectedLevel}/{selectedSkill.maxLevel} · {selectedSkill.costPerLevel} SP per level
               </span>
               {selectedSkill.description && (
-                <span className="mt-1 block text-xs leading-4 text-text-muted">
+                <span
+                  className="mt-1 block text-xs leading-4 text-text-muted"
+                  data-testid={`character_skills_span_selected_description_${getTestIdSegment(selectedSkill.id)}`}
+                >
                   {selectedSkill.description}
                 </span>
               )}
@@ -314,7 +361,10 @@ export function CharacterSkillsPanel({
                 skillLevels={displayedSkillLevels}
               />
               {selectedPendingLevel > 0 && (
-                <span className="mt-1 block text-xs font-black text-[#54d978]">
+                <span
+                  className="mt-1 block text-xs font-black text-[#54d978]"
+                  data-testid={`character_skills_span_selected_pending_${getTestIdSegment(selectedSkill.id)}`}
+                >
                   +{selectedPendingLevel} pending
                 </span>
               )}
@@ -323,6 +373,7 @@ export function CharacterSkillsPanel({
               <span className="group relative grid">
                 <AllocationButton
                   type="button"
+                  data-testid={`character_skills_button_remove_${getTestIdSegment(selectedSkill.id)}`}
                   aria-label={`Remove pending ${selectedSkill.name} level`}
                   onClick={() => onRemoveSkillLevel(selectedSkill)}
                   disabled={!canRemoveSelectedSkillLevel}
@@ -344,11 +395,13 @@ export function CharacterSkillsPanel({
                       ? "text-[#ff5a58]"
                       : "text-text-muted"
                 )}
+                data-testid={`character_skills_span_selected_value_${getTestIdSegment(selectedSkill.id)}`}
               >
                 {isSelectedMaxed ? "MAX" : selectedLevel}
               </span>
               <AllocationButton
                 type="button"
+                data-testid={`character_skills_button_add_${getTestIdSegment(selectedSkill.id)}`}
                 aria-label={`Add ${selectedSkill.name} level`}
                 onClick={() => onAddSkillLevel(selectedSkill)}
                 disabled={
@@ -361,15 +414,26 @@ export function CharacterSkillsPanel({
           </div>
         )}
       </div>
-      <PointsSummary>
-        <span>Available skill points</span>
-        <strong>{availableSkillPoints}</strong>
+      <PointsSummary testId="character_skills_div_points_summary">
+        <span data-testid="character_skills_span_available_label">Available skill points</span>
+        <strong data-testid="character_skills_strong_available_value">{availableSkillPoints}</strong>
       </PointsSummary>
       <Actions gap={10}>
-        <Button type="button" onClick={onApplySkills} disabled={!hasPendingSkills}>
+        <Button
+          data-testid="character_skills_button_apply"
+          type="button"
+          onClick={onApplySkills}
+          disabled={!hasPendingSkills}
+        >
           Apply
         </Button>
-        <Button variant="secondary" type="button" onClick={onResetSkills} disabled={!hasPendingSkills}>
+        <Button
+          data-testid="character_skills_button_reset"
+          variant="secondary"
+          type="button"
+          onClick={onResetSkills}
+          disabled={!hasPendingSkills}
+        >
           Reset
         </Button>
       </Actions>
