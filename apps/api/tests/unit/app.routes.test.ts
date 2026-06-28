@@ -14,19 +14,19 @@ describe("app routes", () => {
     await disconnectTestDatabase();
   });
 
-  it("returns health and OpenAPI documents", async () => {
+  it("returns health and Swagger docs", async () => {
     await expect(request(app).get("/health")).resolves.toMatchObject({
       status: 200,
       body: { status: "ok" }
     });
 
-    const yamlResponse = await request(app).get("/docs/openapi.yaml");
-    expect(yamlResponse.status).toBe(200);
-    expect(yamlResponse.text).toContain("openapi:");
+    const swaggerResponse = await request(app).get("/swagger");
+    expect(swaggerResponse.status).toBe(200);
+    expect(swaggerResponse.text).toContain("SwaggerUIBundle");
+    expect(swaggerResponse.text).toContain('"openapi":"3.0.3"');
 
-    const jsonResponse = await request(app).get("/docs/openapi.json");
-    expect(jsonResponse.status).toBe(200);
-    expect(jsonResponse.body).toHaveProperty("openapi");
+    await expect(request(app).get("/docs/openapi.yaml")).resolves.toMatchObject({ status: 404 });
+    await expect(request(app).get("/docs/openapi.json")).resolves.toMatchObject({ status: 404 });
   });
 
   it("validates auth route input and duplicate registrations", async () => {

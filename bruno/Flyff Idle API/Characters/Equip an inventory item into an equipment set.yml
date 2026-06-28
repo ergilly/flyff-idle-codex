@@ -1,0 +1,227 @@
+info:
+  name: Equip an inventory item into an equipment set
+  type: http
+  seq: 5
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/equip"
+  params:
+    - name: characterId
+      value: ""
+      type: path
+    - name: slotIndex
+      value: "0"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "equipmentSet": 0
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: Updated character
+    request:
+      url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/equip"
+      method: POST
+      params:
+        - name: characterId
+          value: ""
+          type: path
+        - name: slotIndex
+          value: "0"
+          type: path
+      body:
+        type: json
+        data: |-
+          {
+            "equipmentSet": 0
+          }
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "character": {
+              "id": "",
+              "slotIndex": 0,
+              "name": "",
+              "gender": "male",
+              "job": "",
+              "progressionRank": "normal",
+              "level": 0,
+              "exp": 0,
+              "penya": 0,
+              "stats": {
+                "str": 15,
+                "sta": 15,
+                "dex": 15,
+                "int": 15
+              },
+              "skillLevels": {
+                "vagrant-clean-hit": 1
+              },
+              "equipment": {
+                "helmet": "",
+                "suit": "",
+                "gloves": "",
+                "boots": "",
+                "flying": "",
+                "csBoots": "",
+                "csGloves": "",
+                "csSuit": "",
+                "csHelm": "",
+                "mask": "",
+                "cloak": "",
+                "ammo": "",
+                "offhand": "",
+                "mainhand": "",
+                "ringR": "",
+                "earringR": "",
+                "necklace": "",
+                "earringL": "",
+                "ringL": ""
+              },
+              "equipmentSets": [
+                {
+                  "helmet": "",
+                  "suit": "",
+                  "gloves": "",
+                  "boots": "",
+                  "flying": "",
+                  "csBoots": "",
+                  "csGloves": "",
+                  "csSuit": "",
+                  "csHelm": "",
+                  "mask": "",
+                  "cloak": "",
+                  "ammo": "",
+                  "offhand": "",
+                  "mainhand": "",
+                  "ringR": "",
+                  "earringR": "",
+                  "necklace": "",
+                  "earringL": "",
+                  "ringL": ""
+                }
+              ],
+              "inventory": {
+                "size": 50,
+                "items": [
+                  {
+                    "slotIndex": 0,
+                    "itemId": "",
+                    "quantity": 0
+                  }
+                ]
+              }
+            }
+          }
+  - name: 400 Response
+    description: Invalid request body or parameters
+    request:
+      url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/equip"
+      method: POST
+      params:
+        - name: characterId
+          value: ""
+          type: path
+        - name: slotIndex
+          value: "0"
+          type: path
+      body:
+        type: json
+        data: |-
+          {
+            "equipmentSet": 0
+          }
+    response:
+      status: 400
+      statusText: Bad Request
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": ""
+          }
+  - name: 401 Response
+    description: Missing or invalid bearer token, or invalid credentials
+    request:
+      url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/equip"
+      method: POST
+      params:
+        - name: characterId
+          value: ""
+          type: path
+        - name: slotIndex
+          value: "0"
+          type: path
+      body:
+        type: json
+        data: |-
+          {
+            "equipmentSet": 0
+          }
+    response:
+      status: 401
+      statusText: Unauthorized
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": ""
+          }
+  - name: 404 Response
+    description: Requested resource was not found
+    request:
+      url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/equip"
+      method: POST
+      params:
+        - name: characterId
+          value: ""
+          type: path
+        - name: slotIndex
+          value: "0"
+          type: path
+      body:
+        type: json
+        data: |-
+          {
+            "equipmentSet": 0
+          }
+    response:
+      status: 404
+      statusText: Not Found
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": ""
+          }

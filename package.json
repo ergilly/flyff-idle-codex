@@ -9,7 +9,6 @@
   "scripts": {
     "prepare": "husky",
     "dev": "concurrently \"npm run dev -w @flyff-idle/api\" \"npm run dev -w @flyff-idle/web\"",
-    "generate:map-monster-icons": "node --use-system-ca scripts/generate-map-monster-icons.cjs",
     "build": "npm run build -w @flyff-idle/api && npm run build -w @flyff-idle/web",
     "typecheck": "npm run typecheck -w @flyff-idle/api && npm run typecheck -w @flyff-idle/web",
     "test": "npm run test -w @flyff-idle/api && npm run test -w @flyff-idle/web",

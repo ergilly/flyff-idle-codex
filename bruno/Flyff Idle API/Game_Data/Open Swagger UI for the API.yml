@@ -1,0 +1,33 @@
+info:
+  name: Open Swagger UI for the API
+  type: http
+  seq: 4
+  tags:
+    - Game_Data
+
+http:
+  method: GET
+  url: "{{baseUrl}}/swagger"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+examples:
+  - name: 200 Response
+    description: Swagger UI HTML page
+    request:
+      url: "{{baseUrl}}/swagger"
+      method: GET
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: text/html
+      body:
+        type: html
+        data: ""
