@@ -15,6 +15,7 @@ jobs:
 
     env:
       CI: true
+      DATABASE_URL: file:./test.db
       PLAYWRIGHT_BROWSER: chromium
 
     steps:
@@ -34,6 +35,11 @@ jobs:
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+
+      - name: Prepare API test database
+        run: |
+          npm run db:migrate -w @flyff-idle/api
+          npm run db:seed -w @flyff-idle/api
 
       - name: Run API Playwright tests
         run: npm run test:api
