@@ -1,0 +1,52 @@
+{
+  "1808": {
+    "id": 1808,
+    "name": "Giant Bang",
+    "family": "bang",
+    "location": {
+      "region": "flaris",
+      "x": 58,
+      "y": 39
+    }
+  },
+  "2699": {
+    "id": 2699,
+    "name": "Captain Bang",
+    "family": "bang",
+    "location": {
+      "region": "flaris",
+      "x": 58,
+      "y": 39
+    }
+  },
+  "3801": {
+    "id": 3801,
+    "name": "Bang",
+    "family": "bang",
+    "location": {
+      "region": "flaris",
+      "x": 58,
+      "y": 39
+    }
+  },
+  "5647": {
+    "id": 5647,
+    "name": "Boss Bang",
+    "family": "bang",
+    "location": {
+      "region": "flaris",
+      "x": 58,
+      "y": 39
+    }
+  },
+  "9999": {
+    "id": 9999,
+    "name": "Mushpang",
+    "family": "mushpang",
+    "location": {
+      "region": "flaris",
+      "x": 10,
+      "y": 10
+    }
+  }
+}

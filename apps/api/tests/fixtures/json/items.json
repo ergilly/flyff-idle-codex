@@ -1,0 +1,155 @@
+{
+  "1": {
+    "id": 1,
+    "name": "Revantu Boots",
+    "category": "armor",
+    "subcategory": "boots",
+    "level": 102,
+    "sex": "male",
+    "stack": 1
+  },
+  "10": {
+    "id": 10,
+    "name": "Qurion Bow",
+    "category": "weapon",
+    "subcategory": "bow",
+    "level": 85,
+    "stack": 1,
+    "twoHanded": true
+  },
+  "40": {
+    "id": 40,
+    "name": "Dragon Cloak of the Master",
+    "category": "fashion",
+    "subcategory": "cloak",
+    "level": 1,
+    "stack": 1
+  },
+  "42": {
+    "id": 42,
+    "name": "Steel Piece",
+    "category": "quest",
+    "level": 1,
+    "stack": 999
+  },
+  "1764": {
+    "id": 1764,
+    "name": "Arek Ring",
+    "category": "jewelry",
+    "subcategory": "ring",
+    "level": 1,
+    "stack": 1
+  },
+  "1855": {
+    "id": 1855,
+    "name": "Larva Carapace Shield",
+    "category": "armor",
+    "subcategory": "shield",
+    "level": 1,
+    "stack": 1
+  },
+  "1871": {
+    "id": 1871,
+    "name": "Giant Turtle Shield",
+    "category": "armor",
+    "subcategory": "shield",
+    "level": 1,
+    "stack": 1
+  },
+  "3314": {
+    "id": 3314,
+    "name": "Cotton Suit",
+    "category": "armor",
+    "subcategory": "suit",
+    "level": 1,
+    "sex": "male",
+    "stack": 1
+  },
+  "3497": {
+    "id": 3497,
+    "name": "Wooden Sword",
+    "description": "Starter wooden sword",
+    "category": "weapon",
+    "subcategory": "sword",
+    "level": 1,
+    "stack": 1,
+    "twoHanded": false
+  },
+  "3896": {
+    "id": 3896,
+    "name": "Town Blinkwing",
+    "category": "blinkwing",
+    "subcategory": "selectblinkwing",
+    "level": 1,
+    "stack": 999
+  },
+  "4750": {
+    "id": 4750,
+    "name": "Cotton Boots",
+    "category": "armor",
+    "subcategory": "boots",
+    "level": 1,
+    "sex": "male",
+    "stack": 1
+  },
+  "5011": {
+    "id": 5011,
+    "name": "Cream Gauntlets",
+    "category": "armor",
+    "subcategory": "gauntlet",
+    "level": 1,
+    "sex": "female",
+    "stack": 1
+  },
+  "5325": {
+    "id": 5325,
+    "name": "Lollipop",
+    "category": "recovery",
+    "subcategory": "food",
+    "level": 1,
+    "stack": 9999
+  },
+  "5535": {
+    "id": 5535,
+    "name": "Cotton Gauntlets",
+    "category": "armor",
+    "subcategory": "gauntlet",
+    "level": 1,
+    "sex": "male",
+    "stack": 1
+  },
+  "5536": {
+    "id": 5536,
+    "name": "Vigor Ring",
+    "category": "jewelry",
+    "subcategory": "ring",
+    "level": 1,
+    "stack": 1
+  },
+  "6040": {
+    "id": 6040,
+    "name": "Cream Suit",
+    "category": "armor",
+    "subcategory": "suit",
+    "level": 1,
+    "sex": "female",
+    "stack": 1
+  },
+  "8195": {
+    "id": 8195,
+    "name": "Cream Boots",
+    "category": "armor",
+    "subcategory": "boots",
+    "level": 1,
+    "sex": "female",
+    "stack": 1
+  },
+  "9449": {
+    "id": 9449,
+    "name": "Biscuit",
+    "category": "recovery",
+    "subcategory": "food",
+    "level": 1,
+    "stack": 9999
+  }
+}
