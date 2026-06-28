@@ -141,6 +141,14 @@ function getEquipmentValue(equipment: Character["equipment"], slot: keyof Charac
   return equipment[slot] ?? "Empty";
 }
 
+function getTestIdSegment(value: string) {
+  return value
+    .replace(/([a-z])([A-Z])/g, "$1_$2")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 export function CharacterEquipmentPanel({
   actionError = "",
   activeEquipmentSet = 0,
@@ -166,8 +174,8 @@ export function CharacterEquipmentPanel({
 
   const content = (
     <>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionHeading eyebrow="Equipment" />
+      <div className="flex flex-wrap items-start justify-between gap-3" data-testid="equipment_div_header">
+        <SectionHeading eyebrow="Equipment" testId="equipment_heading" />
         {showSetSelector ? (
           <EquipmentSetSelector
             activeEquipmentSet={activeEquipmentSet}
@@ -195,6 +203,7 @@ export function CharacterEquipmentPanel({
                 $selected={isSelected}
                 $twoHandedOccupied={isOffhandBlockedByTwoHander}
                 key={slot}
+                data-testid={`equipment_button_slot_${getTestIdSegment(slot)}`}
                 type="button"
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
@@ -202,11 +211,18 @@ export function CharacterEquipmentPanel({
                 onClick={() => (itemId ? onSelectEquipmentItem(itemId) : undefined)}
                 disabled={!itemId}
               >
-                <EquipmentSlotLabel>{label}</EquipmentSlotLabel>
+                <EquipmentSlotLabel testId={`equipment_span_slot_label_${getTestIdSegment(slot)}`}>
+                  {label}
+                </EquipmentSlotLabel>
                 {iconUrl ? (
                   <EquipmentSlotIcon src={iconUrl} alt={value} loading="lazy" />
                 ) : (
-                  <EquipmentSlotValue $empty={!itemId}>{value}</EquipmentSlotValue>
+                  <EquipmentSlotValue
+                    $empty={!itemId}
+                    testId={`equipment_strong_slot_value_${getTestIdSegment(slot)}`}
+                  >
+                    {value}
+                  </EquipmentSlotValue>
                 )}
               </EquipmentSlot>
             );
@@ -247,7 +263,10 @@ function EquipmentSetSelector({
   onEquipmentSetChange?: (equipmentSet: number) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-1 rounded-control border border-border bg-black/35 p-1">
+    <div
+      className="grid grid-cols-3 gap-1 rounded-control border border-border bg-black/35 p-1"
+      data-testid="equipment_div_set_selector"
+    >
       {[0, 1, 2].map((equipmentSet) => {
         const isActive = activeEquipmentSet === equipmentSet;
 
@@ -255,6 +274,7 @@ function EquipmentSetSelector({
           <button
             aria-label={`Equipment set ${equipmentSet + 1}`}
             aria-pressed={isActive}
+            data-testid={`equipment_button_set_${equipmentSet}`}
             className={cx(
               "h-8 min-w-9 rounded-[4px] px-2 text-xs font-black transition-colors",
               isActive
@@ -275,7 +295,10 @@ function EquipmentSetSelector({
 
 function EquipmentPanelFrame({ children }: { children: ReactNode }) {
   return (
-    <section className="grid h-full content-start gap-4 rounded-card border-[3px] border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(5,6,5,0.98)),var(--panel)] p-[18px] shadow-[inset_0_0_0_2px_rgba(255,225,115,0.16),inset_0_16px_30px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.38)]">
+    <section
+      className="grid h-full content-start gap-4 rounded-card border-[3px] border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(5,6,5,0.98)),var(--panel)] p-[18px] shadow-[inset_0_0_0_2px_rgba(255,225,115,0.16),inset_0_16px_30px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.38)]"
+      data-testid="equipment_section_panel"
+    >
       {children}
     </section>
   );
@@ -296,6 +319,7 @@ function EquipmentPanelContent({
           ? "grid-cols-[minmax(280px,1fr)_minmax(220px,0.72fr)] max-[1500px]:grid-cols-1"
           : "grid-cols-1"
       )}
+      data-testid="equipment_div_content"
     >
       {children}
     </div>
@@ -306,6 +330,7 @@ function EquipmentLayout({ children, ...props }: HTMLAttributes<HTMLDivElement>)
   return (
     <div
       className="relative aspect-[8/9] w-full max-w-[560px] justify-self-center overflow-hidden rounded-card border-[3px] border-border bg-[radial-gradient(circle_at_50%_35%,rgba(255,230,119,0.08),transparent_30%),linear-gradient(180deg,rgba(26,25,19,0.98)_0%,rgba(4,4,3,0.99)_13%,rgba(0,0,0,1)_100%)] shadow-[inset_0_8px_0_rgba(255,255,255,0.08),inset_0_-8px_18px_rgba(0,0,0,0.72),0_18px_30px_rgba(0,0,0,0.34)]"
+      data-testid="equipment_div_layout"
       {...props}
     >
       {children}
@@ -351,9 +376,12 @@ function EquipmentSlot({
   );
 }
 
-function EquipmentSlotLabel({ children }: { children: ReactNode }) {
+function EquipmentSlotLabel({ children, testId }: { children: ReactNode; testId: string }) {
   return (
-    <span className="absolute h-px w-px overflow-hidden whitespace-nowrap text-[0.76rem] font-extrabold uppercase text-text-muted [clip-path:inset(50%)] [clip:rect(0_0_0_0)]">
+    <span
+      className="absolute h-px w-px overflow-hidden whitespace-nowrap text-[0.76rem] font-extrabold uppercase text-text-muted [clip-path:inset(50%)] [clip:rect(0_0_0_0)]"
+      data-testid={testId}
+    >
       {children}
     </span>
   );
@@ -384,13 +412,22 @@ function EquipmentSlotIcon({
   );
 }
 
-function EquipmentSlotValue({ $empty, children }: { $empty: boolean; children: ReactNode }) {
+function EquipmentSlotValue({
+  $empty,
+  children,
+  testId
+}: {
+  $empty: boolean;
+  children: ReactNode;
+  testId: string;
+}) {
   return (
     <strong
       className={cx(
         "max-w-full overflow-wrap-anywhere rounded-[3px] border border-[rgba(229,191,73,0.38)] bg-[rgba(0,0,0,0.62)] px-[5px] py-0.5 text-[0.72rem] leading-[1.15] text-[#f7e7a3] shadow-[0_0_12px_rgba(187,161,89,0.18)] [text-shadow:0_1px_2px_#000]",
         $empty && "opacity-0"
       )}
+      data-testid={testId}
     >
       {children}
     </strong>
@@ -401,6 +438,7 @@ function ModelViewerReserved(props: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className="pointer-events-none absolute left-[29%] top-[27%] grid h-[38%] w-[42%] place-items-center border-0 bg-transparent font-extrabold uppercase text-[rgba(205,208,177,0.26)]"
+      data-testid="equipment_div_model_preview"
       {...props}
     />
   );

@@ -24,6 +24,13 @@ type AdminPageProps = {
   onRefundStats: () => void;
 };
 
+function getTestIdSegment(value: string | number) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 export function AdminPage({
   addingInventoryItem,
   character,
@@ -95,25 +102,51 @@ export function AdminPage({
   }
 
   return (
-    <div className="grid max-w-[1120px] gap-4">
-      <Panel className="content-start gap-5">
-        <SectionHeading eyebrow="Admin" title="Point refunds" />
+    <div className="grid max-w-[1120px] gap-4" data-testid="admin_div_page">
+      <Panel className="content-start gap-5" data-testid="admin_panel_refunds">
+        <SectionHeading eyebrow="Admin" testId="admin_heading_refunds" title="Point refunds" />
         <Stack>
-          <MutedText>Refund all assigned stat and skill points for the current character.</MutedText>
-          <div className="grid gap-2 rounded-card border-2 border-border bg-panel-muted p-4">
-            <StatRow label="Character" value={character.name} />
-            <StatRow label="Assigned stat points" value={Math.max(0, assignedStatPoints)} />
-            <StatRow label="Assigned skill levels" value={assignedSkillLevels} />
+          <MutedText data-testid="admin_p_refunds_description">
+            Refund all assigned stat and skill points for the current character.
+          </MutedText>
+          <div
+            className="grid gap-2 rounded-card border-2 border-border bg-panel-muted p-4"
+            data-testid="admin_div_refund_summary"
+          >
+            <StatRow data-testid="admin_stat_character" label="Character" value={character.name} />
+            <StatRow
+              data-testid="admin_stat_assigned_stats"
+              label="Assigned stat points"
+              value={Math.max(0, assignedStatPoints)}
+            />
+            <StatRow
+              data-testid="admin_stat_assigned_skills"
+              label="Assigned skill levels"
+              value={assignedSkillLevels}
+            />
           </div>
-          {error ? <ErrorMessage message={error} /> : null}
-          <div className="grid grid-cols-2 gap-3 max-[560px]:grid-cols-1">
-            <Button type="button" onClick={onRefundStats} disabled={refundingAction !== null}>
+          {error ? <ErrorMessage message={error} testId="admin_error_refunds" /> : null}
+          <div
+            className="grid grid-cols-2 gap-3 max-[560px]:grid-cols-1"
+            data-testid="admin_div_refund_actions"
+          >
+            <Button
+              data-testid="admin_button_refund_stats"
+              type="button"
+              onClick={onRefundStats}
+              disabled={refundingAction !== null}
+            >
               <span className="inline-flex items-center gap-2">
                 <RotateCcw aria-hidden="true" size={18} />
                 {refundingAction === "stats" ? "Refunding..." : "Refund stat points"}
               </span>
             </Button>
-            <Button type="button" onClick={onRefundSkills} disabled={refundingAction !== null}>
+            <Button
+              data-testid="admin_button_refund_skills"
+              type="button"
+              onClick={onRefundSkills}
+              disabled={refundingAction !== null}
+            >
               <span className="inline-flex items-center gap-2">
                 <RotateCcw aria-hidden="true" size={18} />
                 {refundingAction === "skills" ? "Refunding..." : "Refund skill points"}
@@ -123,15 +156,20 @@ export function AdminPage({
         </Stack>
       </Panel>
 
-      <Panel as="section" className="content-start gap-5">
-        <SectionHeading eyebrow="Creative inventory" title="Add item" />
-        <div className="grid grid-cols-[minmax(280px,0.9fr)_minmax(320px,1.1fr)] gap-4 max-[920px]:grid-cols-1">
+      <Panel as="section" className="content-start gap-5" data-testid="admin_panel_inventory">
+        <SectionHeading eyebrow="Creative inventory" testId="admin_heading_inventory" title="Add item" />
+        <div
+          className="grid grid-cols-[minmax(280px,0.9fr)_minmax(320px,1.1fr)] gap-4 max-[920px]:grid-cols-1"
+          data-testid="admin_div_inventory_workspace"
+        >
           <Stack
             as="form"
             className="self-start rounded-card border-2 border-border bg-panel-muted p-4 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.08)]"
+            data-testid="admin_form_item_search"
             onSubmit={handleSearchItems}
           >
             <TextField
+              data-testid="admin_input_item_search"
               id="adminItemSearch"
               label="Item search"
               name="adminItemSearch"
@@ -140,11 +178,14 @@ export function AdminPage({
               value={itemQuery}
               onChange={(event) => setItemQuery(event.target.value)}
             />
-            <Button type="submit" disabled={isSearching}>
+            <Button data-testid="admin_button_item_search" type="submit" disabled={isSearching}>
               {isSearching ? "Searching..." : "Search items"}
             </Button>
-            {searchError ? <ErrorMessage message={searchError} /> : null}
-            <div className="themed-scrollbar grid h-[360px] content-start gap-2 overflow-y-auto pr-2">
+            {searchError ? <ErrorMessage message={searchError} testId="admin_error_item_search" /> : null}
+            <div
+              className="themed-scrollbar grid h-[360px] content-start gap-2 overflow-y-auto pr-2"
+              data-testid="admin_div_item_results"
+            >
               {itemResults.length > 0 ? (
                 itemResults.map((item) => (
                   <ItemResultButton
@@ -155,18 +196,38 @@ export function AdminPage({
                   />
                 ))
               ) : (
-                <div className="grid h-full place-items-center rounded-control border border-dashed border-border bg-panel text-center text-sm font-bold text-text-muted">
+                <div
+                  className="grid h-full place-items-center rounded-control border border-dashed border-border bg-panel text-center text-sm font-bold text-text-muted"
+                  data-testid="admin_div_item_results_empty"
+                >
                   Search results will appear here.
                 </div>
               )}
             </div>
           </Stack>
 
-          <Stack as="form" className="self-start" onSubmit={handleAddInventoryItem}>
-            <div className="grid gap-2 rounded-card border-2 border-border bg-panel-muted p-4">
-              <StatRow label="Selected item" value={selectedItem ? selectedItem.name : "None"} />
-              <StatRow label="Item id" value={selectedItem ? String(selectedItem.id) : "-"} />
+          <Stack
+            as="form"
+            className="self-start"
+            data-testid="admin_form_add_inventory_item"
+            onSubmit={handleAddInventoryItem}
+          >
+            <div
+              className="grid gap-2 rounded-card border-2 border-border bg-panel-muted p-4"
+              data-testid="admin_div_selected_item_summary"
+            >
               <StatRow
+                data-testid="admin_stat_selected_item"
+                label="Selected item"
+                value={selectedItem ? selectedItem.name : "None"}
+              />
+              <StatRow
+                data-testid="admin_stat_selected_item_id"
+                label="Item id"
+                value={selectedItem ? String(selectedItem.id) : "-"}
+              />
+              <StatRow
+                data-testid="admin_stat_next_open_slot"
                 label="Next open slot"
                 value={
                   nextOpenSlot !== undefined
@@ -178,6 +239,7 @@ export function AdminPage({
               />
             </div>
             <TextField
+              data-testid="admin_input_item_quantity"
               id="adminItemQuantity"
               label="Quantity"
               min={1}
@@ -187,6 +249,7 @@ export function AdminPage({
               onChange={(event) => setQuantity(Number(event.target.value))}
             />
             <Button
+              data-testid="admin_button_add_inventory_item"
               type="submit"
               disabled={
                 !selectedItem ||
@@ -220,6 +283,7 @@ function ItemResultButton({
         "flex min-h-[72px] w-full cursor-pointer items-center gap-3 rounded-control border-2 bg-panel-muted p-2.5 text-left transition-colors hover:border-primary",
         isSelected ? "border-primary text-foreground" : "border-border text-text-muted"
       )}
+      data-testid={`admin_button_item_result_${getTestIdSegment(item.id)}`}
       type="button"
       onClick={onClick}
     >
@@ -237,9 +301,20 @@ function ItemResultButton({
           />
         ) : null}
       </span>
-      <span className="grid min-w-0 flex-1 gap-1">
-        <strong className="line-clamp-2 text-sm leading-snug text-foreground">{item.name}</strong>
-        <span className="break-words text-xs font-bold uppercase leading-snug">
+      <span
+        className="grid min-w-0 flex-1 gap-1"
+        data-testid={`admin_span_item_result_content_${getTestIdSegment(item.id)}`}
+      >
+        <strong
+          className="line-clamp-2 text-sm leading-snug text-foreground"
+          data-testid={`admin_strong_item_result_name_${getTestIdSegment(item.id)}`}
+        >
+          {item.name}
+        </strong>
+        <span
+          className="break-words text-xs font-bold uppercase leading-snug"
+          data-testid={`admin_span_item_result_meta_${getTestIdSegment(item.id)}`}
+        >
           #{String(item.id)}
           {item.category ? ` - ${item.category}` : ""}
           {item.level !== null ? ` - Lv. ${item.level}` : ""}

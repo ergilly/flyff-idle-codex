@@ -38,25 +38,29 @@ export function StatAllocationContent({
 
   return (
     <>
-      <SectionHeading eyebrow="Stats" />
+      <SectionHeading eyebrow="Stats" testId="character_stats_heading" />
       {statKeys.map((stat) => (
-        <AllocationRow key={stat}>
+        <AllocationRow key={stat} testId={`character_stats_div_row_${stat}`}>
           <AllocationStatValue>
-            <StatLabel>{stat.toUpperCase()}</StatLabel>
-            <strong>{character.stats[stat] + appliedStats[stat] + pendingStats[stat]}</strong>
+            <StatLabel data-testid={`character_stats_span_label_${stat}`}>{stat.toUpperCase()}</StatLabel>
+            <strong data-testid={`character_stats_strong_value_${stat}`}>
+              {character.stats[stat] + appliedStats[stat] + pendingStats[stat]}
+            </strong>
           </AllocationStatValue>
           <AllocationControls>
             <AllocationButton
               type="button"
+              data-testid={`character_stats_button_remove_${stat}`}
               aria-label={`Remove pending ${stat.toUpperCase()} point`}
               onClick={() => onRemoveStat(stat)}
               disabled={pendingStats[stat] === 0}
             >
               <Minus aria-hidden="true" size={14} />
             </AllocationButton>
-            <span>{pendingStats[stat]}</span>
+            <span data-testid={`character_stats_span_pending_${stat}`}>{pendingStats[stat]}</span>
             <AllocationButton
               type="button"
+              data-testid={`character_stats_button_add_${stat}`}
               aria-label={`Add ${stat.toUpperCase()} point`}
               onClick={() => onAddStat(stat)}
               disabled={availableStatPoints === 0}
@@ -66,15 +70,26 @@ export function StatAllocationContent({
           </AllocationControls>
         </AllocationRow>
       ))}
-      <PointsSummary>
-        <span>Available stat points</span>
-        <strong>{availableStatPoints}</strong>
+      <PointsSummary testId="character_stats_div_points_summary">
+        <span data-testid="character_stats_span_available_label">Available stat points</span>
+        <strong data-testid="character_stats_strong_available_value">{availableStatPoints}</strong>
       </PointsSummary>
       <Actions gap={10}>
-        <Button type="button" onClick={onApplyStats} disabled={!hasPendingStats}>
+        <Button
+          data-testid="character_stats_button_apply"
+          type="button"
+          onClick={onApplyStats}
+          disabled={!hasPendingStats}
+        >
           Apply
         </Button>
-        <Button variant="secondary" type="button" onClick={onResetStats} disabled={!hasPendingStats}>
+        <Button
+          data-testid="character_stats_button_reset"
+          variant="secondary"
+          type="button"
+          onClick={onResetStats}
+          disabled={!hasPendingStats}
+        >
           Reset
         </Button>
       </Actions>
@@ -84,15 +99,22 @@ export function StatAllocationContent({
 
 export function StatAllocationPanel(props: StatAllocationPanelProps) {
   return (
-    <Panel className="[&_strong]:text-base" style={{ alignContent: "start" }}>
+    <Panel
+      className="[&_strong]:text-base"
+      data-testid="character_stats_panel"
+      style={{ alignContent: "start" }}
+    >
       <StatAllocationContent {...props} />
     </Panel>
   );
 }
 
-function AllocationRow({ children }: { children: ReactNode }) {
+function AllocationRow({ children, testId }: { children: ReactNode; testId?: string }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(9,9,7,0.96))] px-2.5 py-2 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] [&_strong]:text-[1rem]">
+    <div
+      className="flex items-center justify-between gap-2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(9,9,7,0.96))] px-2.5 py-2 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] [&_strong]:text-[1rem]"
+      data-testid={testId}
+    >
       {children}
     </div>
   );

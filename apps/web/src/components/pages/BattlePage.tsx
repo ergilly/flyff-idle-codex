@@ -50,6 +50,13 @@ function getSkillIconSrc(skill: SkillDefinition) {
   return `https://api.flyff.com/image/skill/colored/${skill.icon}`;
 }
 
+function getTestIdSegment(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 function formatBattleValue(value: number | string | null | undefined) {
   return value === null || value === undefined ? "Unknown" : String(value);
 }
@@ -99,9 +106,9 @@ function isValidActionSequence(skills: SkillDefinition[]) {
 }
 
 function getActionSequence(slots: ActionSlot[]) {
-  return actionSlotFillOrder.map((slotIndex) => slots[slotIndex]).filter((skill): skill is SkillDefinition =>
-    Boolean(skill)
-  );
+  return actionSlotFillOrder
+    .map((slotIndex) => slots[slotIndex])
+    .filter((skill): skill is SkillDefinition => Boolean(skill));
 }
 
 function getActionSequenceIndex(slotIndex: number) {
@@ -276,7 +283,10 @@ export function BattlePage({ character, itemsById, selectedMonsterFamily, skillT
   }
 
   return (
-    <section className="grid min-h-0 gap-4 xl:grid-cols-[minmax(280px,0.95fr)_minmax(420px,1.15fr)_minmax(300px,0.9fr)]">
+    <section
+      className="grid min-h-0 gap-4 xl:grid-cols-[minmax(280px,0.95fr)_minmax(420px,1.15fr)_minmax(300px,0.9fr)]"
+      data-testid="battle_section_page"
+    >
       <CharacterCombatPanel
         actionSlots={actionSlots}
         activeEquipmentSet={activeEquipmentSet}
@@ -303,17 +313,31 @@ export function BattlePage({ character, itemsById, selectedMonsterFamily, skillT
       <Panel
         as="section"
         className="min-h-[620px] content-between overflow-hidden bg-[radial-gradient(circle_at_50%_26%,rgba(226,179,63,0.16),transparent_34%),linear-gradient(180deg,rgba(20,20,15,0.94),rgba(3,3,3,0.98))]"
+        data-testid="battle_panel_arena"
       >
-        <div className="flex items-start justify-between gap-3">
-          <SectionHeading eyebrow="Battle" title={selectedMonsterFamily?.name ?? "Choose a monster"} />
-          <div className="rounded-control border border-border bg-black/35 px-3 py-2 text-right text-xs font-black uppercase tracking-wide text-[#fff1ba]">
+        <div className="flex items-start justify-between gap-3" data-testid="battle_div_arena_header">
+          <SectionHeading
+            eyebrow="Battle"
+            testId="battle_heading_arena"
+            title={selectedMonsterFamily?.name ?? "Choose a monster"}
+          />
+          <div
+            className="rounded-control border border-border bg-black/35 px-3 py-2 text-right text-xs font-black uppercase tracking-wide text-[#fff1ba]"
+            data-testid="battle_div_equipment_set"
+          >
             Set {activeEquipmentSet + 1}
           </div>
         </div>
-        <div className="grid min-h-[320px] place-items-center">
-          <div className="grid w-full max-w-[560px] grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="grid min-h-[320px] place-items-center" data-testid="battle_div_arena_stage">
+          <div
+            className="grid w-full max-w-[560px] grid-cols-[1fr_auto_1fr] items-center gap-4"
+            data-testid="battle_div_combatants"
+          >
             <CombatantBadge label={character.name} value={`ATK ${characterAttack}`} />
-            <div className="grid h-16 w-16 place-items-center rounded-full border-2 border-[#d7b84e] bg-black/45 text-[#ffe173] shadow-[0_0_24px_rgba(226,179,63,0.2)]">
+            <div
+              className="grid h-16 w-16 place-items-center rounded-full border-2 border-[#d7b84e] bg-black/45 text-[#ffe173] shadow-[0_0_24px_rgba(226,179,63,0.2)]"
+              data-testid="battle_div_versus_icon"
+            >
               <Swords aria-hidden="true" size={30} />
             </div>
             <CombatantBadge
@@ -323,19 +347,19 @@ export function BattlePage({ character, itemsById, selectedMonsterFamily, skillT
             />
           </div>
         </div>
-        <div className="grid gap-4">
+        <div className="grid gap-4" data-testid="battle_div_arena_timelines">
           <AttackTimeline label="Character attack" progress={68} />
         </div>
       </Panel>
 
-      <div className="grid min-h-0 content-start gap-4">
+      <div className="grid min-h-0 content-start gap-4" data-testid="battle_div_monster_column">
         <MonsterPanel
           monsterFamily={selectedMonsterFamily}
           selectedVariant={selectedVariant}
           monsterHp={monsterHp}
         />
-        <Panel as="section" className="content-start gap-4">
-          <SectionHeading eyebrow="Monster Actions" />
+        <Panel as="section" className="content-start gap-4" data-testid="battle_panel_monster_actions">
+          <SectionHeading eyebrow="Monster Actions" testId="battle_heading_monster_actions" />
           <AttackTimeline label="Attack" progress={46} tone="danger" />
           <MonsterSpecialBar selectedVariant={selectedVariant} />
         </Panel>
@@ -388,14 +412,35 @@ function CharacterCombatPanel({
   skills: SkillDefinition[];
 }) {
   return (
-    <Panel as="section" className="min-h-0 content-start gap-4">
-      <SectionHeading eyebrow="Character" title={character.name} />
-      <div className="grid gap-3">
-        <StatusBar label="HP" value={characterHp} max={characterHp} tone="hp" />
-        <StatusBar label="FP" value={characterFp} max={characterFp} tone="fp" />
-        <StatusBar label="MP" value={characterMp} max={characterMp} tone="mp" />
+    <Panel as="section" className="min-h-0 content-start gap-4" data-testid="battle_panel_character">
+      <SectionHeading eyebrow="Character" testId="battle_heading_character" title={character.name} />
+      <div className="grid gap-3" data-testid="battle_div_character_status">
+        <StatusBar
+          label="HP"
+          testIdPrefix="battle_character"
+          value={characterHp}
+          max={characterHp}
+          tone="hp"
+        />
+        <StatusBar
+          label="FP"
+          testIdPrefix="battle_character"
+          value={characterFp}
+          max={characterFp}
+          tone="fp"
+        />
+        <StatusBar
+          label="MP"
+          testIdPrefix="battle_character"
+          value={characterMp}
+          max={characterMp}
+          tone="mp"
+        />
       </div>
-      <div className="grid grid-cols-2 gap-1 rounded-control border border-border bg-black/35 p-1">
+      <div
+        className="grid grid-cols-2 gap-1 rounded-control border border-border bg-black/35 p-1"
+        data-testid="battle_div_character_tabs"
+      >
         {[
           { id: "equipment", label: "Equipment" },
           { id: "skills", label: "Skills" }
@@ -405,6 +450,7 @@ function CharacterCombatPanel({
           return (
             <button
               aria-pressed={isActive}
+              data-testid={`battle_button_character_tab_${getTestIdSegment(tab.id)}`}
               className={cx(
                 "min-h-9 rounded-[4px] px-2 text-sm font-black transition-colors",
                 isActive
@@ -430,7 +476,7 @@ function CharacterCombatPanel({
           selectedEquipmentItemId={selectedEquipmentItemId}
         />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-4" data-testid="battle_div_skills_and_actions">
           <BattleSkillTrees
             character={character}
             onAddSkillToActionSlot={onAddSkillToActionSlot}
@@ -484,11 +530,13 @@ function BattleEquipmentPanel({
 function StatusBar({
   label,
   max,
+  testIdPrefix,
   tone,
   value
 }: {
   label: string;
   max: number;
+  testIdPrefix: string;
   tone: "hp" | "fp" | "mp";
   value: number;
 }) {
@@ -498,18 +546,26 @@ function StatusBar({
     fp: "from-[#ffb14f] to-[#9b5317]",
     mp: "from-[#4f91ff] to-[#17459b]"
   }[tone];
+  const testId = `${testIdPrefix}_${getTestIdSegment(label)}`;
 
   return (
-    <div className="grid gap-1">
-      <div className="flex items-center justify-between gap-2 text-xs font-black uppercase tracking-wide">
-        <span>{label}</span>
-        <span className="text-text-muted">
+    <div className="grid gap-1" data-testid={`${testId}_div_status`}>
+      <div
+        className="flex items-center justify-between gap-2 text-xs font-black uppercase tracking-wide"
+        data-testid={`${testId}_div_status_header`}
+      >
+        <span data-testid={`${testId}_span_status_label`}>{label}</span>
+        <span className="text-text-muted" data-testid={`${testId}_span_status_value`}>
           {value} / {max}
         </span>
       </div>
-      <div className="h-5 overflow-hidden rounded-[4px] border border-border bg-black/55 shadow-[inset_0_2px_6px_rgba(0,0,0,0.72)]">
+      <div
+        className="h-5 overflow-hidden rounded-[4px] border border-border bg-black/55 shadow-[inset_0_2px_6px_rgba(0,0,0,0.72)]"
+        data-testid={`${testId}_div_status_track`}
+      >
         <div
           className={cx("h-full bg-gradient-to-r shadow-[inset_0_1px_0_rgba(255,255,255,0.32)]", toneClass)}
+          data-testid={`${testId}_div_status_fill`}
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -527,12 +583,18 @@ function AttackTimeline({
   tone?: "primary" | "danger";
 }) {
   return (
-    <div className="grid gap-1">
-      <div className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-text-muted">
-        <span>{label}</span>
-        <span>{progress}%</span>
+    <div className="grid gap-1" data-testid={`battle_div_timeline_${getTestIdSegment(label)}`}>
+      <div
+        className="flex items-center justify-between text-xs font-black uppercase tracking-wide text-text-muted"
+        data-testid={`battle_div_timeline_header_${getTestIdSegment(label)}`}
+      >
+        <span data-testid={`battle_span_timeline_label_${getTestIdSegment(label)}`}>{label}</span>
+        <span data-testid={`battle_span_timeline_value_${getTestIdSegment(label)}`}>{progress}%</span>
       </div>
-      <div className="h-4 overflow-hidden rounded-[999px] border border-border bg-black/55">
+      <div
+        className="h-4 overflow-hidden rounded-[999px] border border-border bg-black/55"
+        data-testid={`battle_div_timeline_track_${getTestIdSegment(label)}`}
+      >
         <div
           className={cx(
             "h-full rounded-[999px]",
@@ -540,6 +602,7 @@ function AttackTimeline({
               ? "bg-gradient-to-r from-[#ff7b58] to-[#c82c2c]"
               : "bg-gradient-to-r from-[#ffe173] to-[#d88f2e]"
           )}
+          data-testid={`battle_div_timeline_fill_${getTestIdSegment(label)}`}
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -567,21 +630,23 @@ function BattleSkillTrees({
   }, [activeTier, skillTabs]);
 
   if (!activeTab) {
-    return <MutedText>No skill trees are available yet.</MutedText>;
+    return <MutedText data-testid="battle_p_no_skill_trees">No skill trees are available yet.</MutedText>;
   }
 
   return (
-    <div className="grid gap-2">
-      <div className="relative pt-[34px]">
+    <div className="grid gap-2" data-testid="battle_div_skill_trees">
+      <div className="relative pt-[34px]" data-testid="battle_div_skill_tree_shell">
         <div
           aria-label="Battle skill trees"
           className="absolute left-[3px] top-0 z-[2] flex flex-wrap justify-start"
+          data-testid="battle_div_skill_tabs"
           role="tablist"
         >
           {skillTabs.map((tab) => (
             <button
               aria-controls={`battle-skill-tree-${tab.tier}`}
               aria-selected={activeTab.tier === tab.tier}
+              data-testid={`battle_skills_button_tab_${getTestIdSegment(tab.tier)}`}
               className={cx(
                 "min-h-[34px] w-[92px] rounded-t-control border-2 border-b-0 border-border bg-[linear-gradient(180deg,rgba(24,23,17,0.96),rgba(8,8,7,0.96))] px-2 py-1.5 text-xs font-extrabold text-text-muted shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] hover:bg-panel-muted hover:text-foreground",
                 activeTab.tier === tab.tier &&
@@ -601,11 +666,13 @@ function BattleSkillTrees({
         <div
           aria-labelledby={`battle-skill-tab-${activeTab.tier}`}
           className="relative z-[3] grid min-h-[168px] place-items-center rounded-card border-2 border-border bg-[radial-gradient(circle_at_50%_38%,rgba(255,230,119,0.08),transparent_34%),linear-gradient(180deg,rgba(14,14,11,0.94),rgba(0,0,0,0.98))] p-2 shadow-[inset_0_0_0_1px_rgba(255,225,115,0.12)]"
+          data-testid={`battle_div_skill_tree_${getTestIdSegment(activeTab.tier)}`}
           id={`battle-skill-tree-${activeTab.tier}`}
           role="tabpanel"
         >
           <div
             className="relative w-full"
+            data-testid={`battle_div_skill_tree_canvas_${getTestIdSegment(activeTab.tier)}`}
             style={{ aspectRatio: `${activeTab.imageWidth} / ${activeTab.imageHeight}` }}
           >
             <Image
@@ -623,6 +690,7 @@ function BattleSkillTrees({
               return (
                 <button
                   aria-label={`${canAddSkill ? "Add" : "Unavailable"} ${skill.name} to action bar`}
+                  data-testid={`battle_skills_button_add_${getTestIdSegment(skill.id)}`}
                   className={cx(
                     "group absolute grid aspect-square w-[15%] min-w-[46px] max-w-[72px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-[5px] border-2 border-[#12100c] bg-black/55 shadow-[0_2px_0_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,255,255,0.24)] transition hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe173]",
                     !canAddSkill && "opacity-70"
@@ -658,20 +726,37 @@ function BattleSkillTrees({
                     width={38}
                   />
                   {level > 0 && (
-                    <span className="absolute bottom-0 right-0.5 min-w-4 text-right text-[0.72rem] font-extrabold leading-3 text-white [text-shadow:-1px_-1px_0_#b72b2b,0_-1px_0_#b72b2b,1px_-1px_0_#b72b2b,-1px_0_0_#b72b2b,1px_0_0_#b72b2b,-1px_1px_0_#b72b2b,0_1px_0_#b72b2b,1px_1px_0_#b72b2b]">
+                    <span
+                      className="absolute bottom-0 right-0.5 min-w-4 text-right text-[0.72rem] font-extrabold leading-3 text-white [text-shadow:-1px_-1px_0_#b72b2b,0_-1px_0_#b72b2b,1px_-1px_0_#b72b2b,-1px_0_0_#b72b2b,1px_0_0_#b72b2b,-1px_1px_0_#b72b2b,0_1px_0_#b72b2b,1px_1px_0_#b72b2b]"
+                      data-testid={`battle_span_skill_level_${getTestIdSegment(skill.id)}`}
+                    >
                       {level >= skill.maxLevel ? "MAX" : level}
                     </span>
                   )}
                   <span
                     className="pointer-events-none absolute bottom-[calc(100%+8px)] left-1/2 z-[50] hidden w-[190px] -translate-x-1/2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.98),rgba(9,9,7,0.98))] p-2 text-left text-xs text-foreground shadow-[0_10px_24px_rgba(0,0,0,0.5)] group-hover:block group-focus-visible:block"
+                    data-testid={`battle_span_skill_tooltip_${getTestIdSegment(skill.id)}`}
                     role="tooltip"
                   >
-                    <strong className="block text-sm">{skill.name}</strong>
-                    <span className="mt-0.5 block font-bold text-text-muted">
+                    <strong
+                      className="block text-sm"
+                      data-testid={`battle_strong_skill_tooltip_name_${getTestIdSegment(skill.id)}`}
+                    >
+                      {skill.name}
+                    </strong>
+                    <span
+                      className="mt-0.5 block font-bold text-text-muted"
+                      data-testid={`battle_span_skill_tooltip_level_${getTestIdSegment(skill.id)}`}
+                    >
                       Level {level}/{skill.maxLevel}
                     </span>
                     {skill.description && (
-                      <span className="mt-1 block leading-4 text-text-muted">{skill.description}</span>
+                      <span
+                        className="mt-1 block leading-4 text-text-muted"
+                        data-testid={`battle_span_skill_tooltip_description_${getTestIdSegment(skill.id)}`}
+                      >
+                        {skill.description}
+                      </span>
                     )}
                   </span>
                 </button>
@@ -744,12 +829,21 @@ function ActionWheel({
   }
 
   return (
-    <div className="grid w-full justify-items-center gap-2">
-      <div className="flex w-full items-center justify-between gap-3">
-        <div className="text-xs font-black uppercase tracking-wide text-text-muted">Action Bar</div>
+    <div className="grid w-full justify-items-center gap-2" data-testid="battle_div_action_bar">
+      <div
+        className="flex w-full items-center justify-between gap-3"
+        data-testid="battle_div_action_bar_header"
+      >
+        <div
+          className="text-xs font-black uppercase tracking-wide text-text-muted"
+          data-testid="battle_div_action_bar_label"
+        >
+          Action Bar
+        </div>
       </div>
       <div
         aria-label="Action wheel"
+        data-testid="battle_div_action_wheel"
         className="relative aspect-square w-full max-w-[340px]"
         onDragOver={(event) => {
           event.preventDefault();
@@ -763,15 +857,18 @@ function ActionWheel({
         <div
           aria-hidden="true"
           className="absolute left-1/2 top-1/2 h-[75.5%] w-[75.5%] -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#2b2418] bg-[radial-gradient(circle,transparent_49%,rgba(255,225,115,0.13)_50%,rgba(255,225,115,0.08)_57%,transparent_58%),conic-gradient(from_270deg,rgba(255,225,115,0.12),rgba(0,0,0,0.28),rgba(255,225,115,0.12),rgba(0,0,0,0.28),rgba(255,225,115,0.12))] opacity-80 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.08),inset_0_0_24px_rgba(0,0,0,0.76),0_0_18px_rgba(255,225,115,0.08)]"
+          data-testid="battle_div_action_wheel_outer_ring"
         />
         <div
           aria-hidden="true"
           className="absolute left-1/2 top-1/2 h-[41.8%] w-[41.8%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[rgba(255,225,115,0.2)] bg-[radial-gradient(circle,rgba(255,225,115,0.1),rgba(0,0,0,0.14)_58%,transparent_62%)]"
+          data-testid="battle_div_action_wheel_inner_ring"
         />
         {actionSlots.map((skill, index) => (
           <button
             aria-label={`Action slot ${index + 1}${skill ? `: ${skill.name}` : ""}`}
             aria-pressed={selectedActionSlotIndex === index}
+            data-testid={`battle_button_action_slot_${index}`}
             className={cx(
               "absolute grid h-[22.7%] w-[22.7%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[3px] border-[#21190f] bg-[radial-gradient(circle_at_50%_42%,rgba(255,246,198,0.18),rgba(47,35,18,0.86)_42%,rgba(4,4,3,0.98)_72%)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2),inset_0_-5px_8px_rgba(0,0,0,0.58),0_2px_0_rgba(0,0,0,0.66)] transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffe173]",
               skill &&
@@ -819,6 +916,7 @@ function ActionWheel({
               <span
                 aria-hidden="true"
                 className="relative z-[2] block h-[84%] w-[84%] overflow-hidden rounded-full bg-black shadow-[inset_0_0_10px_rgba(0,0,0,0.78),0_0_0_5px_rgba(255,231,141,0.88),0_0_8px_rgba(255,225,115,0.28)] after:pointer-events-none after:absolute after:inset-0 after:z-[3] after:rounded-full after:bg-[radial-gradient(circle,transparent_62%,rgba(4,4,3,0.18)_79%,rgba(4,4,3,0.62)_100%)]"
+                data-testid={`battle_span_action_slot_icon_${index}`}
               >
                 <Image
                   alt=""
@@ -846,7 +944,10 @@ function ActionWheel({
             ) : null}
           </button>
         ))}
-        <div className="absolute left-1/2 top-1/2 grid h-[22.7%] w-[22.7%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full">
+        <div
+          className="absolute left-1/2 top-1/2 grid h-[22.7%] w-[22.7%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full"
+          data-testid="battle_div_action_wheel_center"
+        >
           <Image
             alt=""
             aria-hidden="true"
@@ -873,9 +974,13 @@ function MonsterPanel({
   selectedVariant: MonsterFamilyVariant | null;
 }) {
   return (
-    <Panel as="section" className="content-start gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <SectionHeading eyebrow="Monster" title={monsterFamily?.name ?? "No target"} />
+    <Panel as="section" className="content-start gap-4" data-testid="battle_panel_monster">
+      <div className="flex items-start justify-between gap-3" data-testid="battle_div_monster_header">
+        <SectionHeading
+          eyebrow="Monster"
+          testId="battle_heading_monster"
+          title={monsterFamily?.name ?? "No target"}
+        />
         {selectedVariant?.icon ? (
           <Image
             alt=""
@@ -888,9 +993,18 @@ function MonsterPanel({
           />
         ) : null}
       </div>
-      <StatusBar label="HP" value={Math.round(monsterHp * 0.74)} max={monsterHp} tone="hp" />
+      <StatusBar
+        label="HP"
+        testIdPrefix="battle_monster"
+        value={Math.round(monsterHp * 0.74)}
+        max={monsterHp}
+        tone="hp"
+      />
       {selectedVariant ? (
-        <div className="grid gap-2 rounded-control border border-[rgba(138,116,65,0.58)] bg-black/28 p-3 text-sm font-bold">
+        <div
+          className="grid gap-2 rounded-control border border-[rgba(138,116,65,0.58)] bg-black/28 p-3 text-sm font-bold"
+          data-testid="battle_div_monster_info"
+        >
           <InfoRow label="Variant" value={selectedVariant.name} />
           <InfoRow label="Level" value={formatBattleValue(selectedVariant.level)} />
           <InfoRow label="Rank" value={formatBattleValue(selectedVariant.rank)} />
@@ -907,7 +1021,9 @@ function MonsterPanel({
           />
         </div>
       ) : (
-        <MutedText>Select a monster from the map to prepare a battle target.</MutedText>
+        <MutedText data-testid="battle_p_no_monster_target">
+          Select a monster from the map to prepare a battle target.
+        </MutedText>
       )}
     </Panel>
   );
@@ -924,19 +1040,23 @@ function MonsterSpecialBar({ selectedVariant }: { selectedVariant: MonsterFamily
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-2" data-testid="battle_div_monster_specials">
       {specials.map((special) => (
         <div
           className={cx(
             "relative grid aspect-square place-items-center rounded-full border-[3px] border-[#21190f] bg-[radial-gradient(circle_at_50%_42%,rgba(255,246,198,0.16),rgba(47,35,18,0.82)_42%,rgba(4,4,3,0.98)_72%)] text-center text-[0.62rem] font-black uppercase leading-tight shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18),inset_0_-5px_8px_rgba(0,0,0,0.58),0_2px_0_rgba(0,0,0,0.66)]",
-            special.ready
-              ? "border-[#6b5523] text-[#ffe173]"
-              : "text-text-muted opacity-70"
+            special.ready ? "border-[#6b5523] text-[#ffe173]" : "text-text-muted opacity-70"
           )}
+          data-testid={`battle_div_monster_special_${getTestIdSegment(special.label)}`}
           key={special.label}
           title={special.label}
         >
-          <span className="relative px-1">{special.label}</span>
+          <span
+            className="relative px-1"
+            data-testid={`battle_span_monster_special_${getTestIdSegment(special.label)}`}
+          >
+            {special.label}
+          </span>
         </div>
       ))}
     </div>
@@ -958,18 +1078,39 @@ function CombatantBadge({
         "grid gap-1 rounded-control border border-border bg-black/35 p-3",
         align === "right" && "text-right"
       )}
+      data-testid={`battle_div_combatant_${getTestIdSegment(label)}`}
     >
-      <strong className="truncate text-sm">{label}</strong>
-      <span className="text-xs font-black uppercase tracking-wide text-text-muted">{value}</span>
+      <strong
+        className="truncate text-sm"
+        data-testid={`battle_strong_combatant_label_${getTestIdSegment(label)}`}
+      >
+        {label}
+      </strong>
+      <span
+        className="text-xs font-black uppercase tracking-wide text-text-muted"
+        data-testid={`battle_span_combatant_value_${getTestIdSegment(label)}`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[88px_1fr] gap-2">
-      <span className="text-text-muted">{label}</span>
-      <strong className="min-w-0 truncate text-right">{value}</strong>
+    <div
+      className="grid grid-cols-[88px_1fr] gap-2"
+      data-testid={`battle_div_info_row_${getTestIdSegment(label)}`}
+    >
+      <span className="text-text-muted" data-testid={`battle_span_info_label_${getTestIdSegment(label)}`}>
+        {label}
+      </span>
+      <strong
+        className="min-w-0 truncate text-right"
+        data-testid={`battle_strong_info_value_${getTestIdSegment(label)}`}
+      >
+        {value}
+      </strong>
     </div>
   );
 }

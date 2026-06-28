@@ -75,21 +75,26 @@ export function CharacterPageContent({
   statKeys
 }: CharacterPageContentProps) {
   return (
-    <div className="grid h-full min-h-0 gap-[18px] max-[1800px]:h-auto">
+    <div className="grid h-full min-h-0 gap-[18px] max-[1800px]:h-auto" data-testid="character_div_page">
       <CharacterPageWorkspace>
-        <Panel className="h-full content-start gap-4 [&_strong]:text-base">
-          <SectionHeading eyebrow="Info" />
+        <Panel className="h-full content-start gap-4 [&_strong]:text-base" data-testid="character_panel_info">
+          <SectionHeading eyebrow="Info" testId="character_heading_info" />
           <CharacterInfoSection>
-            <StatRow label="Name" value={character.name} />
-            <StatRow label="Job" value={character.job} />
-            <StatRow label="Level" value={character.level} />
+            <StatRow data-testid="character_stat_name" label="Name" value={character.name} />
+            <StatRow data-testid="character_stat_job" label="Job" value={character.job} />
+            <StatRow data-testid="character_stat_level" label="Level" value={character.level} />
           </CharacterInfoSection>
           <CharacterInfoSection>
             {detailStats.map((stat) => (
-              <StatRow key={stat.label} label={stat.label} value={stat.value} />
+              <StatRow
+                data-testid={`character_stat_detail_${stat.label.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`}
+                key={stat.label}
+                label={stat.label}
+                value={stat.value}
+              />
             ))}
           </CharacterInfoSection>
-          <div className="grid gap-2.5 border-t-2 border-border pt-4">
+          <div className="grid gap-2.5 border-t-2 border-border pt-4" data-testid="character_div_stats">
             <StatAllocationContent
               appliedStats={appliedStats}
               availableStatPoints={availableStatPoints}
@@ -134,7 +139,10 @@ export function CharacterPageContent({
 
 function CharacterPageWorkspace({ children }: { children: ReactNode }) {
   return (
-    <section className="grid h-full min-h-0 grid-cols-[minmax(240px,0.6fr)_minmax(600px,1.3fr)_minmax(580px,1fr)] items-stretch gap-4 max-[1800px]:h-auto max-[1800px]:grid-cols-1 max-[1800px]:items-start">
+    <section
+      className="grid h-full min-h-0 grid-cols-[minmax(240px,0.6fr)_minmax(600px,1.3fr)_minmax(580px,1fr)] items-stretch gap-4 max-[1800px]:h-auto max-[1800px]:grid-cols-1 max-[1800px]:items-start"
+      data-testid="character_section_workspace"
+    >
       {children}
     </section>
   );

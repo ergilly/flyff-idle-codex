@@ -1,9 +1,13 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-type EyebrowProps = {
+type EyebrowProps = HTMLAttributes<HTMLParagraphElement> & {
   children: ReactNode;
 };
 
-export function Eyebrow({ children }: EyebrowProps) {
-  return <p className="m-0 text-[0.78rem] font-extrabold uppercase text-accent">{children}</p>;
+export function Eyebrow({ children, ...props }: EyebrowProps) {
+  return (
+    <p className="m-0 text-[0.78rem] font-extrabold uppercase text-accent" {...props}>
+      {children}
+    </p>
+  );
 }

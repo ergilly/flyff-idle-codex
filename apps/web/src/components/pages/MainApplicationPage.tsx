@@ -675,7 +675,7 @@ export function MainApplicationPage() {
   if (isLoading) {
     return (
       <MainApplicationCenteredState>
-        <MutedText>Loading character...</MutedText>
+        <MutedText data-testid="game_p_loading_character">Loading character...</MutedText>
       </MainApplicationCenteredState>
     );
   }
@@ -684,8 +684,15 @@ export function MainApplicationPage() {
     return (
       <MainApplicationCenteredState>
         <MainApplicationErrorPanel>
-          <ErrorMessage message={error || "That character is no longer available."} />
-          <Button type="button" onClick={handleChangeCharacter}>
+          <ErrorMessage
+            message={error || "That character is no longer available."}
+            testId="game_error_selected_character"
+          />
+          <Button
+            data-testid="game_error_button_change_character"
+            type="button"
+            onClick={handleChangeCharacter}
+          >
             Change character
           </Button>
         </MainApplicationErrorPanel>

@@ -159,9 +159,13 @@ export function ItemDetailsPanel({
 }: ItemDetailsPanelProps) {
   if (!item) {
     return (
-      <aside className={cx(panelClassName, className)} aria-label="Item details">
-        <SectionHeading title="No item selected" />
-        <MutedText>{emptyDescription}</MutedText>
+      <aside
+        className={cx(panelClassName, className)}
+        aria-label="Item details"
+        data-testid="item_details_aside_empty"
+      >
+        <SectionHeading testId="item_details_heading_empty" title="No item selected" />
+        <MutedText data-testid="item_details_p_empty_description">{emptyDescription}</MutedText>
       </aside>
     );
   }
@@ -199,9 +203,16 @@ export function ItemDetailsPanel({
       className={cx(panelClassName, className)}
       aria-label={`${item.name} details`}
       data-slot={slotLabel ?? undefined}
+      data-testid="item_details_aside"
     >
-      <div className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-3">
-        <div className="grid h-[54px] w-[54px] place-items-center rounded-control border-2 border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]">
+      <div
+        className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-3"
+        data-testid="item_details_div_header"
+      >
+        <div
+          className="grid h-[54px] w-[54px] place-items-center rounded-control border-2 border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]"
+          data-testid="item_details_div_icon"
+        >
           {iconUrl ? (
             <Image
               className="h-[88%] w-[88%] object-contain"
@@ -215,32 +226,39 @@ export function ItemDetailsPanel({
             />
           ) : null}
         </div>
-        <div>
-          <h3 className={cx("m-0 text-[1.35rem] font-black leading-[1.2]", getRarityClass(item.rarity))}>
+        <div data-testid="item_details_div_title">
+          <h3
+            className={cx("m-0 text-[1.35rem] font-black leading-[1.2]", getRarityClass(item.rarity))}
+            data-testid="item_details_h3_name"
+          >
             {item.name}
           </h3>
         </div>
       </div>
 
       {metadataRows.length > 0 ? (
-        <dl className={detailsListClassName}>
-          {metadataRows.map(({ label, unmet, value }) => (
+        <dl className={detailsListClassName} data-testid="item_details_dl_metadata">
+          {metadataRows.map(({ label, unmet, value }, index) => (
             <div
               className={cx(
                 !label && "justify-start [&_dd]:text-left [&_dd]:uppercase [&_dd]:text-text-muted",
                 unmet && "[&_dd]:!text-[#ff4d4d]"
               )}
+              data-testid={`item_details_div_metadata_row_${index}`}
               key={`${label}-${value}`}
             >
-              {label ? <dt>{label}</dt> : null}
-              <dd>{value}</dd>
+              {label ? <dt data-testid={`item_details_dt_metadata_label_${index}`}>{label}</dt> : null}
+              <dd data-testid={`item_details_dd_metadata_value_${index}`}>{value}</dd>
             </div>
           ))}
         </dl>
       ) : null}
 
       {item.description ? (
-        <p className="m-0 text-[0.92rem] leading-normal text-[#d6cfb2]">
+        <p
+          className="m-0 text-[0.92rem] leading-normal text-[#d6cfb2]"
+          data-testid="item_details_p_description"
+        >
           {renderDescription(item.description, item.name)}
         </p>
       ) : null}
@@ -250,17 +268,28 @@ export function ItemDetailsPanel({
       {hasAwakeningStats ? <ItemEffectList label="Awakening" abilities={awakeningStats} /> : null}
 
       {canItemTypeAwaken(item) && !hasAwakeningStats ? (
-        <div className="mt-0.5 border-t border-[rgba(187,161,89,0.22)] pt-2.5">
-          <strong className="block text-center text-[0.82rem] uppercase text-[rgba(3,54,223,0.72)]">
+        <div
+          className="mt-0.5 border-t border-[rgba(187,161,89,0.22)] pt-2.5"
+          data-testid="item_details_div_awakening_available"
+        >
+          <strong
+            className="block text-center text-[0.82rem] uppercase text-[rgba(3,54,223,0.72)]"
+            data-testid="item_details_strong_awakening_available"
+          >
             Awakening Available
           </strong>
         </div>
       ) : null}
 
-      {actionError ? <ErrorMessage message={actionError} /> : null}
+      {actionError ? <ErrorMessage message={actionError} testId="item_details_error_action" /> : null}
 
       {actionLabel && onAction ? (
-        <Button type="button" onClick={onAction} disabled={actionDisabled}>
+        <Button
+          data-testid={`item_details_button_${actionLabel.toLowerCase().replace(/\s+/g, "_")}`}
+          type="button"
+          onClick={onAction}
+          disabled={actionDisabled}
+        >
           {actionLabel}
         </Button>
       ) : null}
@@ -271,11 +300,18 @@ export function ItemDetailsPanel({
 }
 
 function ItemEffectList({ abilities, label }: { abilities: ItemMetadata["abilities"]; label: string }) {
+  const testIdSegment = label.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+
   return (
-    <div className={effectListClassName}>
-      <StatLabel>{label}</StatLabel>
-      {abilities.map((ability) => (
-        <strong key={`${ability.parameter}-${ability.add}-${ability.rate}`}>{formatAbility(ability)}</strong>
+    <div className={effectListClassName} data-testid={`item_details_div_${testIdSegment}`}>
+      <StatLabel data-testid={`item_details_span_${testIdSegment}_label`}>{label}</StatLabel>
+      {abilities.map((ability, index) => (
+        <strong
+          data-testid={`item_details_strong_${testIdSegment}_${index}`}
+          key={`${ability.parameter}-${ability.add}-${ability.rate}`}
+        >
+          {formatAbility(ability)}
+        </strong>
       ))}
     </div>
   );

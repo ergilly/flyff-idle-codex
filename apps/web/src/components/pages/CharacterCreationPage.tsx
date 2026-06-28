@@ -71,13 +71,18 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
   return (
     <GameTemplate>
       <PageHeader
+        testId="character_create_header_page"
         eyebrow="Character Creation"
         title={`Slot ${slotNumber}`}
         description="Create the adventurer who will start your idle journey."
       />
-      <div className="grid grid-cols-[minmax(240px,0.85fr)_minmax(0,1.15fr)] gap-5 max-[920px]:grid-cols-1">
+      <div
+        className="grid grid-cols-[minmax(240px,0.85fr)_minmax(0,1.15fr)] gap-5 max-[920px]:grid-cols-1"
+        data-testid="character_create_div_workspace"
+      >
         <section
           className="grid min-h-[312px] content-center gap-[18px] rounded-card border border-border bg-panel p-[22px] text-center [&_h2]:m-0 [&_h2]:text-[1.15rem]"
+          data-testid="character_create_section_preview"
           aria-label="New character preview"
         >
           <Image
@@ -88,27 +93,32 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             height={96}
           />
           <Stack>
-            <h2>{name.trim() || "New Vagrant"}</h2>
-            <MutedText>Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}</MutedText>
+            <h2 data-testid="character_create_h2_preview_name">{name.trim() || "New Vagrant"}</h2>
+            <MutedText data-testid="character_create_p_preview_meta">
+              Level 1 Vagrant - {gender === "male" ? "Male" : "Female"}
+            </MutedText>
           </Stack>
           <div
             className="grid grid-cols-2 gap-2.5 [&_span]:rounded-control [&_span]:border [&_span]:border-border [&_span]:bg-panel-muted [&_span]:px-2.5 [&_span]:py-[9px] [&_span]:text-[0.88rem] [&_span]:font-extrabold [&_span]:text-text-muted"
+            data-testid="character_create_div_starting_stats"
             aria-label="Starting stats"
           >
-            <span>STR 15</span>
-            <span>STA 15</span>
-            <span>DEX 15</span>
-            <span>INT 15</span>
+            <span data-testid="character_create_span_starting_stat_str">STR 15</span>
+            <span data-testid="character_create_span_starting_stat_sta">STA 15</span>
+            <span data-testid="character_create_span_starting_stat_dex">DEX 15</span>
+            <span data-testid="character_create_span_starting_stat_int">INT 15</span>
           </div>
         </section>
 
         <Stack
           as="form"
           className="rounded-card border border-border bg-panel p-[22px]"
+          data-testid="character_create_form"
           onSubmit={handleSubmit}
         >
-          {error ? <ErrorMessage message={error} /> : null}
+          {error ? <ErrorMessage message={error} testId="character_create_error" /> : null}
           <TextField
+            data-testid="character_create_input_name"
             id="character-name"
             label="Character name"
             maxLength={16}
@@ -120,8 +130,15 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
             value={name}
           />
           <div className="grid gap-2">
-            <span className="text-[0.9rem] font-bold">Gender</span>
-            <div className="grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Gender">
+            <span className="text-[0.9rem] font-bold" data-testid="character_create_span_gender_label">
+              Gender
+            </span>
+            <div
+              className="grid grid-cols-2 gap-2.5"
+              data-testid="character_create_div_gender_group"
+              role="radiogroup"
+              aria-label="Gender"
+            >
               <label
                 className={cx(
                   "relative grid min-h-11 cursor-pointer place-items-center rounded-control border border-border bg-panel-muted font-extrabold text-text-muted has-focus-visible:outline-[2px_solid_rgba(88,166,201,0.28)] has-focus-visible:outline-offset-[2px]",
@@ -132,12 +149,15 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
                 <input
                   className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   checked={gender === "male"}
+                  data-testid="character_create_radio_male"
                   name="gender"
                   onChange={() => setGender("male")}
                   type="radio"
                   value="male"
                 />
-                <span className="pointer-events-none">Male</span>
+                <span className="pointer-events-none" data-testid="character_create_span_gender_male">
+                  Male
+                </span>
               </label>
               <label
                 className={cx(
@@ -149,20 +169,28 @@ export function CharacterCreationPage({ slot }: CharacterCreationPageProps) {
                 <input
                   className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                   checked={gender === "female"}
+                  data-testid="character_create_radio_female"
                   name="gender"
                   onChange={() => setGender("female")}
                   type="radio"
                   value="female"
                 />
-                <span className="pointer-events-none">Female</span>
+                <span className="pointer-events-none" data-testid="character_create_span_gender_female">
+                  Female
+                </span>
               </label>
             </div>
           </div>
           <Actions>
-            <Button variant="secondary" type="button" onClick={() => router.push("/characters")}>
+            <Button
+              data-testid="character_create_button_cancel"
+              variant="secondary"
+              type="button"
+              onClick={() => router.push("/characters")}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button data-testid="character_create_button_submit" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Create character"}
             </Button>
           </Actions>
