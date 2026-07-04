@@ -42,7 +42,17 @@ describe("app routes", () => {
       })
     ).resolves.toMatchObject({
       status: 401,
-      body: { error: "Invalid credentials" }
+      body: { error: "That password does not match this player account." }
+    });
+
+    await expect(
+      request(app).post("/api/auth/login").send({
+        email: "missing@flyff-idle.local",
+        password: "password123"
+      })
+    ).resolves.toMatchObject({
+      status: 404,
+      body: { error: "No player account exists for that email." }
     });
 
     await expect(request(app).post("/api/auth/register").send({ email: "bad" })).resolves.toMatchObject({

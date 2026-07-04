@@ -8,10 +8,15 @@
     "start": "next start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:ui",
     "test:unit": "jest --config jest.config.cjs",
     "test:coverage": "jest --config jest.config.cjs --coverage",
-    "test:e2e": "playwright test --config playwright.config.ts"
+    "pretest:ui": "npm run allure:clean",
+    "test:ui": "playwright test --config playwright.config.ts --pass-with-no-tests",
+    "posttest:ui": "npm run allure:generate",
+    "allure:clean": "node -e \"require('node:fs').rmSync('test/reports/allure-results', { recursive: true, force: true })\"",
+    "allure:generate": "allure generate test/reports/allure-results --clean -o test/reports/allure-report",
+    "allure:open": "allure open test/reports/allure-report"
   },
   "dependencies": {
     "lucide-react": "^1.17.0",
@@ -29,6 +34,8 @@
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
+    "allure-commandline": "^2.43.0",
+    "allure-playwright": "^3.10.2",
     "autoprefixer": "^10.5.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.3",

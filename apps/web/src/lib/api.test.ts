@@ -54,8 +54,23 @@ describe("api client", () => {
   });
 
   it("maps auth and character API failures to user-facing errors", async () => {
-    mockFetch({ ok: false, status: 401 });
-    await expect(login("pilot@example.com", "bad-password")).rejects.toThrow("Invalid email or password");
+    mockFetch({
+      ok: false,
+      status: 401,
+      json: jest.fn().mockResolvedValue({ error: "That password does not match this player account." })
+    });
+    await expect(login("pilot@example.com", "bad-password")).rejects.toThrow(
+      "That password does not match this player account."
+    );
+
+    mockFetch({
+      ok: false,
+      status: 404,
+      json: jest.fn().mockResolvedValue({ error: "No player account exists for that email." })
+    });
+    await expect(login("missing@example.com", "password123")).rejects.toThrow(
+      "No player account exists for that email."
+    );
 
     mockFetch({ ok: false, status: 409 });
     await expect(register("Pilot", "pilot@example.com", "password123")).rejects.toThrow(

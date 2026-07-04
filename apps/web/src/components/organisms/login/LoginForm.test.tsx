@@ -62,16 +62,14 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText("Password")).toHaveValue("password123");
   });
 
-  it("shows mode-specific errors", async () => {
-    (login as jest.Mock).mockRejectedValue(new Error("nope"));
-    (register as jest.Mock).mockRejectedValue(new Error("nope"));
+  it("shows tailored errors from failed auth requests", async () => {
+    (login as jest.Mock).mockRejectedValue(new Error("That password does not match this player account."));
+    (register as jest.Mock).mockRejectedValue(new Error("Email already registered"));
 
     render(<LoginForm />);
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
-    expect(
-      await screen.findByText("Those login details did not match a player account.")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("That password does not match this player account.")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Register" }));
     fireEvent.change(screen.getByLabelText("Display name"), { target: { value: "New Pilot" } });
@@ -79,8 +77,52 @@ describe("LoginForm", () => {
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password123" } });
     fireEvent.click(screen.getByRole("button", { name: "Create profile" }));
 
-    expect(
-      await screen.findByText("That profile could not be created. Try a different email.")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Email already registered")).toBeInTheDocument();
+  });
+
+  describe("login validation", () => {
+    it.each([
+      ["", "password123", "Please enter your email address"],
+      ["invalid-email", "password123", "Please enter a valid email address"],
+      ["test@flyff-idle.local", "", "Please enter your password"],
+      ["test@flyff-idle.local", "short", "Password must be at least 8 characters"]
+    ])("shows %s/%s validation errors", async (email, password, message) => {
+      render(<LoginForm />);
+
+      fireEvent.change(screen.getByLabelText("Email"), { target: { value: email } });
+      fireEvent.change(screen.getByLabelText("Password"), { target: { value: password } });
+      fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(login).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("register validation", () => {
+    it.each([
+      ["", "new@flyff-idle.local", "password123", "Please enter your display name"],
+      ["A", "new@flyff-idle.local", "password123", "Display name must be at least 2 characters"],
+      [
+        "A display name that is definitely too long",
+        "new@flyff-idle.local",
+        "password123",
+        "Display name must be 32 characters or fewer"
+      ],
+      ["New Pilot", "", "password123", "Please enter your email address"],
+      ["New Pilot", "invalid-email", "password123", "Please enter a valid email address"],
+      ["New Pilot", "new@flyff-idle.local", "", "Please enter your password"],
+      ["New Pilot", "new@flyff-idle.local", "short", "Password must be at least 8 characters"]
+    ])("shows register validation error: %s", async (displayName, email, password, message) => {
+      render(<LoginForm />);
+
+      fireEvent.click(screen.getByRole("button", { name: "Register" }));
+      fireEvent.change(screen.getByLabelText("Display name"), { target: { value: displayName } });
+      fireEvent.change(screen.getByLabelText("Email"), { target: { value: email } });
+      fireEvent.change(screen.getByLabelText("Password"), { target: { value: password } });
+      fireEvent.click(screen.getByRole("button", { name: "Create profile" }));
+
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(register).not.toHaveBeenCalled();
+    });
   });
 });

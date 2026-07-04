@@ -21,22 +21,22 @@ describe("auth service", () => {
     expect(verifyToken(session?.token ?? "")?.email).toBe("test@flyff-idle.local");
   });
 
-  it("rejects invalid credentials", async () => {
+  it("rejects invalid passwords with a specific reason", async () => {
     await expect(
       login({
         email: "test@flyff-idle.local",
         password: "wrong-password"
       })
-    ).resolves.toBeNull();
+    ).resolves.toEqual({ error: "invalid_password" });
   });
 
-  it("rejects login for unknown players", async () => {
+  it("rejects login for unknown players with a specific reason", async () => {
     await expect(
       login({
         email: "missing@flyff-idle.local",
         password: "password123"
       })
-    ).resolves.toBeNull();
+    ).resolves.toEqual({ error: "unknown_email" });
   });
 
   it("registers a new player profile and returns a verifiable token", async () => {

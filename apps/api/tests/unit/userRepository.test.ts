@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { characterRepository } from "../../src/data/characterRepository.js";
 import { seedDemoData } from "../../src/data/seedDemoData.js";
 import { userRepository } from "../../src/data/userRepository.js";
 import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
@@ -50,5 +51,15 @@ describe("user repository", () => {
         isAdmin: true
       })
     );
+    const emptyRosterUser = userRepository.findByEmail("empty@flyff-idle.local");
+
+    expect(emptyRosterUser).toEqual(
+      expect.objectContaining({
+        displayName: "Empty Roster Tester",
+        passwordHash,
+        isAdmin: false
+      })
+    );
+    expect(characterRepository.listByPlayerId(emptyRosterUser?.id ?? "")).toEqual([]);
   });
 });

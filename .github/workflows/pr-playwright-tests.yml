@@ -1,0 +1,77 @@
+name: PR Playwright Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright-tests:
+    name: Playwright tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      CI: true
+      DATABASE_URL: file:./test.db
+      PLAYWRIGHT_BROWSER: chromium
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare API test database
+        run: |
+          npm run db:migrate -w @flyff-idle/api
+          npm run db:seed -w @flyff-idle/api
+
+      - name: Run API Playwright tests
+        run: npm run test:api
+
+      - name: Run UI Playwright tests
+        run: npm run test:ui
+
+      - name: Upload API Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-playwright-report
+          path: apps/api/test/reports/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload web Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-playwright-report
+          path: apps/web/test/reports/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: |
+            apps/api/test/reports/test-results/
+            apps/web/test/reports/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

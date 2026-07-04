@@ -544,7 +544,8 @@ export async function login(email: string, password: string): Promise<AuthRespon
   });
 
   if (!response.ok) {
-    throw new Error("Invalid email or password");
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to log in");
   }
 
   return response.json() as Promise<AuthResponse>;

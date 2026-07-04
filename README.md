@@ -39,15 +39,21 @@ API runs at `http://localhost:4000`.
 
 API docs are available at `http://localhost:4000/swagger`.
 
-## Demo Account
+## Seeded Test Accounts
 
 - Email: `test@flyff-idle.local`
 - Password: `password123`
 
-The seed creates this player with two characters:
+The seed creates this admin player with a full eight-slot roster, including:
 
+- `Fresh Vagrant`, Vagrant, level 1
 - `Saint Morning`, Mercenary, level 15
 - `Buff Pang Jr`, Assist, level 18
+
+Additional seeded accounts use the same password:
+
+- `thirdjobs@flyff-idle.local`: admin player with third-job characters.
+- `empty@flyff-idle.local`: non-admin player with no characters.
 
 ## Frontend
 
@@ -159,7 +165,8 @@ Occupied inventory slots are stored in `character_inventory_items`:
 ```bash
 npm run test
 npm run test:unit
-npm run test:e2e
+npm run test:api
+npm run test:ui
 ```
 
 Test coverage currently includes:

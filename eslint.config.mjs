@@ -11,7 +11,10 @@ export default tseslint.config(
       "**/coverage/**",
       "**/playwright-report/**",
       "**/node_modules/**",
-      "**/next-env.d.ts"
+      "**/next-env.d.ts",
+      "**/.ms-playwright/**",
+      "**/bruno/**",
+      "**/test/reports/**"
     ]
   },
   js.configs.recommended,

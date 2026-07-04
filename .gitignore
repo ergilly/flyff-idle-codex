@@ -1,9 +1,13 @@
 node_modules
+.ms-playwright/
 .next
 dist
 coverage
 playwright-report
+allure-results
+allure-report
 test-results
+test/reports
 *.tsbuildinfo
 *.db
 *.db-journal

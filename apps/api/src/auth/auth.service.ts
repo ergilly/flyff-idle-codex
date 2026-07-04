@@ -18,6 +18,8 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 type AuthSession = { token: string; user: PublicUser };
+type LoginFailure = { error: "unknown_email" | "invalid_password" };
+type LoginResult = AuthSession | LoginFailure;
 
 function createSession(user: User): AuthSession {
   const payload: AuthTokenPayload = {
@@ -37,17 +39,21 @@ function createSession(user: User): AuthSession {
   };
 }
 
-export async function login(input: LoginInput): Promise<AuthSession | null> {
+export function isLoginFailure(result: LoginResult): result is LoginFailure {
+  return "error" in result;
+}
+
+export async function login(input: LoginInput): Promise<LoginResult> {
   const user = await userRepository.findByEmail(input.email);
 
   if (!user) {
-    return null;
+    return { error: "unknown_email" };
   }
 
   const validPassword = await bcrypt.compare(input.password, user.passwordHash);
 
   if (!validPassword) {
-    return null;
+    return { error: "invalid_password" };
   }
 
   return createSession(user);

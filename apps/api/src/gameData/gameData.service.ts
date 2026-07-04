@@ -26,7 +26,10 @@ const dataCache = new Map<DataSetName, CachedDataSet>();
 const reservedQueryParams = new Set(["fields", "ids", "limit", "maxLevel", "minLevel", "offset", "q"]);
 
 function getJsonDataPath(dataSetName: DataSetName) {
-  return path.resolve(process.cwd(), "../../docs/json", `${dataSetName}.json`);
+  return path.resolve(
+    process.env.JSON_DATA_DIR ?? path.resolve(process.cwd(), "../../docs/json"),
+    `${dataSetName}.json`
+  );
 }
 
 function isJsonDataRecord(value: unknown): value is JsonDataRecord {
