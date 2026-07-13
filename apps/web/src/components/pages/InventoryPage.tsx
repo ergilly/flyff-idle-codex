@@ -44,6 +44,10 @@ export function InventoryPage({
   const selectedInventoryItem =
     selectedSlotIndex !== null ? inventoryItemsBySlot.get(selectedSlotIndex) : undefined;
   const selectedItem = selectedInventoryItem ? itemsById[selectedInventoryItem.itemId] : null;
+  const activeEquipment = character.equipmentSets?.[activeEquipmentSet] ?? character.equipment;
+  const activeEquipmentItemIds = Object.values(activeEquipment).filter((itemId): itemId is string =>
+    Boolean(itemId)
+  );
 
   return (
     <section
@@ -158,6 +162,7 @@ export function InventoryPage({
         className="themed-scrollbar h-full max-h-full max-w-none overflow-y-auto border-border"
         character={character}
         emptyDescription="Select an inventory item to inspect its stats."
+        equippedItemIds={activeEquipmentItemIds}
         item={selectedItem}
         slotLabel={selectedSlotIndex !== null ? `Inventory ${selectedSlotIndex + 1}` : null}
       >

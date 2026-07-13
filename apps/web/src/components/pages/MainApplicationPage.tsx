@@ -55,6 +55,7 @@ import {
   type SkillDefinition,
   type SkillTreeTab
 } from "@/lib/skillTrees";
+import { getCombatStats } from "@/lib/combatStats";
 
 const storageKey = "flyffIdleTheme";
 const statKeys: StatKey[] = ["str", "sta", "dex", "int"];
@@ -64,15 +65,38 @@ function applyTheme(theme: MainApplicationTheme) {
   localStorage.setItem(storageKey, theme);
 }
 
-function getDetailStats(character: Character) {
-  const { dex, sta, str } = character.stats;
+function getDetailStats(
+  character: Character,
+  itemsById: Record<string, ItemMetadata>,
+  activeEquipmentSet: number
+) {
+  const combatStats = getCombatStats(character, itemsById, activeEquipmentSet);
+  const statsByLabel = new Map(combatStats.map((stat) => [stat.label, stat.value]));
 
   return [
-    { label: "ATK", value: Math.round(str * 4 + dex * 1.5 + character.level * 2) },
-    { label: "DEF", value: Math.round(sta * 3 + character.level * 1.8) },
-    { label: "Crit%", value: `${Math.min(100, Math.round(dex / 2))}%` },
-    { label: "Attk Speed", value: `${Math.min(100, Math.round(70 + dex / 3))}%` }
+    { label: "ATK", value: statsByLabel.get("Attack") ?? 0 },
+    { label: "DEF", value: statsByLabel.get("Defense") ?? 0 },
+    { label: "Crit%", value: statsByLabel.get("Critical Chance") ?? "0%" },
+    { label: "Attk Speed", value: statsByLabel.get("Attack Speed") ?? "0%" }
   ];
+}
+
+function getCharacterEquipmentSet(character: Character, equipmentSet: number) {
+  return character.equipmentSets?.[equipmentSet] ?? character.equipment;
+}
+
+function getChangedEquipmentSlot(
+  previousCharacter: Character,
+  nextCharacter: Character,
+  equipmentSet: number
+) {
+  const previousEquipment = getCharacterEquipmentSet(previousCharacter, equipmentSet);
+  const nextEquipment = getCharacterEquipmentSet(nextCharacter, equipmentSet);
+  const changedSlot = (Object.keys(nextEquipment) as CharacterEquipmentSlot[]).find(
+    (slot) => previousEquipment[slot] !== nextEquipment[slot]
+  );
+
+  return changedSlot ?? null;
 }
 
 export function MainApplicationPage() {
@@ -102,7 +126,7 @@ export function MainApplicationPage() {
   const [itemsById, setItemsById] = useState<Record<string, ItemMetadata>>({});
   const [selectedMonsterFamily, setSelectedMonsterFamily] = useState<MapMonsterFamily | null>(null);
   const [activeEquipmentSet, setActiveEquipmentSet] = useState(0);
-  const [selectedEquipmentItemId, setSelectedEquipmentItemId] = useState<string | null>(null);
+  const [selectedEquipmentSlot, setSelectedEquipmentSlot] = useState<CharacterEquipmentSlot | null>(null);
   const [selectedInventorySlotIndex, setSelectedInventorySlotIndex] = useState<number | null>(null);
   const [itemActionError, setItemActionError] = useState("");
   const [isItemActionPending, setIsItemActionPending] = useState(false);
@@ -150,8 +174,8 @@ export function MainApplicationPage() {
   );
 
   const detailStats = useMemo(
-    () => (selectedCharacter ? getDetailStats(selectedCharacter) : []),
-    [selectedCharacter]
+    () => (selectedCharacter ? getDetailStats(selectedCharacter, itemsById, activeEquipmentSet) : []),
+    [activeEquipmentSet, itemsById, selectedCharacter]
   );
 
   useEffect(() => {
@@ -216,7 +240,7 @@ export function MainApplicationPage() {
   useEffect(() => {
     if (!selectedCharacter) {
       setItemsById({});
-      setSelectedEquipmentItemId(null);
+      setSelectedEquipmentSlot(null);
       setSelectedInventorySlotIndex(null);
       return;
     }
@@ -224,13 +248,16 @@ export function MainApplicationPage() {
     const token = localStorage.getItem("flyffIdleToken");
     const itemIds = [
       ...getEquippedItemIds(selectedCharacter),
-      ...selectedCharacter.inventory.items.map((item) => item.itemId)
+      ...selectedCharacter.inventory.items.map((item) => item.itemId),
+      ...(selectedMonsterFamily?.variants?.flatMap(
+        (variant) => variant.drops?.map((drop) => String(drop.item)) ?? []
+      ) ?? [])
     ];
     let ignoreResult = false;
 
     if (!token || itemIds.length === 0) {
       setItemsById({});
-      setSelectedEquipmentItemId(null);
+      setSelectedEquipmentSlot(null);
       setSelectedInventorySlotIndex(null);
       return;
     }
@@ -250,21 +277,24 @@ export function MainApplicationPage() {
     return () => {
       ignoreResult = true;
     };
-  }, [selectedCharacter]);
+  }, [selectedCharacter, selectedMonsterFamily]);
 
   useEffect(() => {
-    if (!selectedCharacter || !selectedEquipmentItemId) {
+    if (!selectedCharacter || !selectedEquipmentSlot) {
       return;
     }
 
-    if (!getEquippedItemIds(selectedCharacter).includes(selectedEquipmentItemId)) {
-      setSelectedEquipmentItemId(null);
+    const selectedEquipment =
+      selectedCharacter.equipmentSets?.[activeEquipmentSet] ?? selectedCharacter.equipment;
+
+    if (!selectedEquipment[selectedEquipmentSlot]) {
+      setSelectedEquipmentSlot(null);
     }
-  }, [selectedCharacter, selectedEquipmentItemId]);
+  }, [activeEquipmentSet, selectedCharacter, selectedEquipmentSlot]);
 
   function handleEquipmentSetChange(equipmentSet: number) {
     setActiveEquipmentSet(equipmentSet);
-    setSelectedEquipmentItemId(null);
+    setSelectedEquipmentSlot(null);
   }
 
   useEffect(() => {
@@ -429,9 +459,9 @@ export function MainApplicationPage() {
     setIsMobileNavOpen(false);
   }
 
-  function handleSelectEquipmentItem(itemId: string) {
+  function handleSelectEquipmentSlot(slot: CharacterEquipmentSlot) {
     setItemActionError("");
-    setSelectedEquipmentItemId(itemId);
+    setSelectedEquipmentSlot(slot);
   }
 
   function handleSelectInventorySlot(slotIndex: number | null) {
@@ -547,7 +577,6 @@ export function MainApplicationPage() {
     }
 
     const token = localStorage.getItem("flyffIdleToken");
-    const inventoryItem = selectedCharacter.inventory.items.find((item) => item.slotIndex === slotIndex);
 
     if (!token) {
       router.replace("/");
@@ -562,7 +591,7 @@ export function MainApplicationPage() {
       updateCharacter(updatedCharacter);
       setSelectedInventorySlotIndex(null);
       setActiveEquipmentSet(equipmentSet);
-      setSelectedEquipmentItemId(inventoryItem?.itemId ?? null);
+      setSelectedEquipmentSlot(getChangedEquipmentSlot(selectedCharacter, updatedCharacter, equipmentSet));
     } catch (equipError) {
       setItemActionError(equipError instanceof Error ? equipError.message : "Unable to equip item");
     } finally {
@@ -645,7 +674,7 @@ export function MainApplicationPage() {
     try {
       const updatedCharacter = await unequipItem(token, selectedCharacter.id, equipmentSlot, equipmentSet);
       updateCharacter(updatedCharacter);
-      setSelectedEquipmentItemId(null);
+      setSelectedEquipmentSlot(null);
     } catch (unequipError) {
       setItemActionError(unequipError instanceof Error ? unequipError.message : "Unable to unequip item");
     } finally {
@@ -751,11 +780,11 @@ export function MainApplicationPage() {
             onRemoveStat={handleRemoveStat}
             onResetSkills={handleResetSkills}
             onResetStats={handleResetStats}
-            onSelectEquipmentItem={handleSelectEquipmentItem}
+            onSelectEquipmentSlot={handleSelectEquipmentSlot}
             onUnequipEquipmentSlot={handleUnequipEquipmentSlot}
             pendingSkillLevels={pendingSkillLevels}
             pendingStats={pendingStats}
-            selectedEquipmentItemId={selectedEquipmentItemId}
+            selectedEquipmentSlot={selectedEquipmentSlot}
             skillTabs={skillTabs}
             statKeys={statKeys}
           />
@@ -778,6 +807,7 @@ export function MainApplicationPage() {
           <BattlePage
             character={selectedCharacter}
             itemsById={itemsById}
+            onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
             selectedMonsterFamily={selectedMonsterFamily}
             skillTabs={skillTabs}
           />

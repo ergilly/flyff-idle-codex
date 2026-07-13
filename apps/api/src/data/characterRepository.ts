@@ -84,6 +84,8 @@ const thirdJobToSecondJob: Record<string, string> = {
   Crackshooter: "Ranger"
 };
 
+const dualWieldJobs = new Set(["Blade", "Slayer"]);
+
 type EquipmentSlot = keyof Character["equipment"];
 type EquipmentSetIndex = 0 | 1 | 2;
 
@@ -1072,12 +1074,30 @@ function getFirstOpenPairSlot(
   return equipment[leftSlot] ? rightSlot : leftSlot;
 }
 
+function canDualWieldOneHandedWeapons(character: Character) {
+  return dualWieldJobs.has(character.job);
+}
+
+function isOneHandedWeapon(item: ItemMetadata | undefined) {
+  return item?.category === "weapon" && item.twoHanded === false;
+}
+
 function getEquipmentSlotForItem(
   character: Character,
   item: ItemMetadata,
   equipment = character.equipment
 ): EquipmentSlot | null {
   if (item.category === "weapon") {
+    const [mainhandItem] = equipment.mainhand ? findItemsByIds([equipment.mainhand]) : [];
+
+    if (
+      canDualWieldOneHandedWeapons(character) &&
+      isOneHandedWeapon(item) &&
+      isOneHandedWeapon(mainhandItem)
+    ) {
+      return "offhand";
+    }
+
     return "mainhand";
   }
 

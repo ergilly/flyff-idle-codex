@@ -471,6 +471,60 @@ describe("character repository", () => {
     });
   });
 
+  it("equips Blade and Slayer one-handed weapons into the first empty hand", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+
+    for (const [job, slotIndex] of [
+      ["Blade", 19],
+      ["Slayer", 20]
+    ] as const) {
+      const character = characterRepository.create({
+        playerId: user!.id,
+        slotIndex,
+        name: `${job}DualWield`,
+        gender: "male"
+      });
+
+      db.prepare("UPDATE characters SET level = ?, job = ?, mainhand = ?, offhand = ? WHERE id = ?").run(
+        130,
+        job,
+        null,
+        null,
+        character!.id
+      );
+
+      characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+        slotIndex: 3,
+        itemId: "3497",
+        quantity: 1
+      });
+
+      expect(
+        characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 3).character?.equipment
+      ).toEqual(
+        expect.objectContaining({
+          mainhand: "3497",
+          offhand: null
+        })
+      );
+
+      characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+        slotIndex: 4,
+        itemId: "3497",
+        quantity: 1
+      });
+
+      expect(
+        characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 4).character?.equipment
+      ).toEqual(
+        expect.objectContaining({
+          mainhand: "3497",
+          offhand: "3497"
+        })
+      );
+    }
+  });
+
   it("updates persisted stats and skill levels for the owning player", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({

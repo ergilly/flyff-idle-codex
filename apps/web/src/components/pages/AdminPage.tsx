@@ -46,13 +46,19 @@ export function AdminPage({
   const nextOpenSlot = Array.from({ length: character.inventory.size }, (_slot, index) => index).find(
     (index) => !character.inventory.items.some((item) => item.slotIndex === index)
   );
+  const openSlotCount = Array.from({ length: character.inventory.size }, (_slot, index) => index).filter(
+    (index) => !character.inventory.items.some((item) => item.slotIndex === index)
+  ).length;
   const selectedItemStackSize = selectedItem?.stack && selectedItem.stack > 0 ? selectedItem.stack : 1;
-  const hasAvailableStackSpace = Boolean(
-    selectedItem &&
-    character.inventory.items.some(
-      (item) => item.itemId === String(selectedItem.id) && item.quantity < selectedItemStackSize
-    )
-  );
+  const availableStackQuantity = selectedItem
+    ? character.inventory.items
+        .filter((item) => item.itemId === String(selectedItem.id) && item.quantity < selectedItemStackSize)
+        .reduce((total, item) => total + selectedItemStackSize - item.quantity, 0)
+    : 0;
+  const availableAddQuantity = selectedItem
+    ? Math.min(9999, availableStackQuantity + openSlotCount * selectedItemStackSize)
+    : 0;
+  const hasAvailableStackSpace = Boolean(selectedItem && availableStackQuantity > 0);
 
   async function handleSearchItems(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,11 +98,16 @@ export function AdminPage({
       return;
     }
 
-    onAddInventoryItem(String(selectedItem.id), Math.min(9999, Math.max(1, quantity || 1)));
+    if (availableAddQuantity <= 0) {
+      setSearchError("Not enough inventory space.");
+      return;
+    }
+
+    onAddInventoryItem(String(selectedItem.id), Math.min(availableAddQuantity, Math.max(1, quantity || 1)));
   }
 
   return (
-    <div className="grid max-w-[1120px] gap-4" data-testid="admin_div_page">
+    <div className="grid h-full min-h-0 max-w-[1120px] content-start gap-4" data-testid="admin_div_page">
       <Panel className="content-start gap-5" data-testid="admin_panel_refunds">
         <SectionHeading eyebrow="Admin" testId="admin_heading_refunds" title="Point refunds" />
         <Stack>
@@ -237,7 +248,7 @@ export function AdminPage({
               id="adminItemQuantity"
               label="Quantity"
               min={1}
-              max={9999}
+              max={Math.max(1, availableAddQuantity)}
               type="number"
               value={quantity}
               onChange={(event) => setQuantity(Number(event.target.value))}
@@ -245,11 +256,7 @@ export function AdminPage({
             <Button
               data-testid="admin_button_add_inventory_item"
               type="submit"
-              disabled={
-                !selectedItem ||
-                addingInventoryItem ||
-                (nextOpenSlot === undefined && !hasAvailableStackSpace)
-              }
+              disabled={!selectedItem || addingInventoryItem || availableAddQuantity <= 0}
             >
               {addingInventoryItem ? "Adding..." : "Add to inventory"}
             </Button>

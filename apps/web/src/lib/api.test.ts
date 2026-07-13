@@ -205,6 +205,23 @@ describe("api client", () => {
     );
   });
 
+  it("ignores invalid item ids before loading item metadata", async () => {
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        items: [{ id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }]
+      })
+    });
+
+    await expect(fetchItems("token", ["3497", "missing", "", " 3314 "])).resolves.toEqual([
+      { id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }
+    ]);
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/items?ids=3497,3314",
+      expect.any(Object)
+    );
+  });
+
   it("loads filtered JSON data sets from the API", async () => {
     mockFetch({
       ok: true,
@@ -712,6 +729,15 @@ describe("api client", () => {
     mockFetch({ ok: false, status: 404 });
     await expect(addCharacterInventoryItem("token", "char-1", { itemId: "40", quantity: 1 })).rejects.toThrow(
       "Item or character not found"
+    );
+
+    mockFetch({
+      ok: false,
+      status: 400,
+      json: jest.fn().mockResolvedValue({ error: "Not enough inventory space" })
+    });
+    await expect(addCharacterInventoryItem("token", "char-1", { itemId: "40", quantity: 1 })).rejects.toThrow(
+      "Not enough inventory space"
     );
 
     mockFetch({ ok: false, status: 500 });

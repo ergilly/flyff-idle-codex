@@ -9,7 +9,7 @@ import {
   type StatKey
 } from "@/components/molecules/main-application/StatAllocationPanel";
 import type { ReactNode } from "react";
-import type { Character, ItemMetadata } from "@/lib/api";
+import type { Character, CharacterEquipmentSlot, ItemMetadata } from "@/lib/api";
 import type { SkillDefinition, SkillTreeTab } from "@/lib/skillTrees";
 import { getTestIdSegment } from "@/lib/testIds";
 
@@ -37,12 +37,12 @@ type CharacterPageContentProps = {
   onRemoveStat: (stat: StatKey) => void;
   onResetSkills: () => void;
   onResetStats: () => void;
-  onSelectEquipmentItem: (itemId: string) => void;
+  onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
   equipmentActionError?: string;
   isEquipmentActionPending?: boolean;
   pendingSkillLevels: Character["skillLevels"];
   pendingStats: Record<StatKey, number>;
-  selectedEquipmentItemId: string | null;
+  selectedEquipmentSlot: CharacterEquipmentSlot | null;
   skillTabs: SkillTreeTab[];
   statKeys: StatKey[];
 };
@@ -66,12 +66,12 @@ export function CharacterPageContent({
   onRemoveStat,
   onResetSkills,
   onResetStats,
-  onSelectEquipmentItem,
+  onSelectEquipmentSlot,
   equipmentActionError = "",
   isEquipmentActionPending = false,
   pendingSkillLevels,
   pendingStats,
-  selectedEquipmentItemId,
+  selectedEquipmentSlot,
   skillTabs,
   statKeys
 }: CharacterPageContentProps) {
@@ -118,8 +118,8 @@ export function CharacterPageContent({
           itemsById={itemsById}
           onEquipmentSetChange={onEquipmentSetChange}
           onUnequipEquipmentSlot={onUnequipEquipmentSlot}
-          onSelectEquipmentItem={onSelectEquipmentItem}
-          selectedEquipmentItemId={selectedEquipmentItemId}
+          onSelectEquipmentSlot={onSelectEquipmentSlot}
+          selectedEquipmentSlot={selectedEquipmentSlot}
         />
 
         <CharacterSkillsPanel

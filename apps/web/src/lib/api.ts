@@ -92,6 +92,7 @@ export type ItemMetadata = {
   minDefense: number | null;
   maxDefense: number | null;
   stack?: number | null;
+  consumable?: boolean | null;
   abilities: Array<{
     parameter: string;
     add: number | null;
@@ -202,7 +203,9 @@ export function getMonsterIconUrl(icon: string) {
 }
 
 export async function fetchItems(token: string, itemIds: string[]): Promise<ItemMetadata[]> {
-  const uniqueItemIds = Array.from(new Set(itemIds.filter(Boolean)));
+  const uniqueItemIds = Array.from(
+    new Set(itemIds.map((itemId) => String(itemId).trim()).filter((itemId) => /^\d+$/.test(itemId)))
+  );
 
   if (uniqueItemIds.length === 0) {
     return [];
@@ -689,12 +692,13 @@ export async function addCharacterInventoryItem(
   });
 
   if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(
       response.status === 403
         ? "Admin access is required"
         : response.status === 404
           ? "Item or character not found"
-          : "Unable to add item"
+          : (data?.error ?? "Unable to add item")
     );
   }
 

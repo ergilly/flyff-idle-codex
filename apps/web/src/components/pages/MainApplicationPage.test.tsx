@@ -118,7 +118,7 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
     onRemoveStat,
     onResetSkills,
     onResetStats,
-    onSelectEquipmentItem,
+    onSelectEquipmentSlot,
     onUnequipEquipmentSlot,
     availableStatPoints,
     pendingSkillLevels,
@@ -145,7 +145,7 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
     onRemoveStat: (stat: "str") => void;
     onResetSkills: () => void;
     onResetStats: () => void;
-    onSelectEquipmentItem: (itemId: string) => void;
+    onSelectEquipmentSlot: (slot: "cloak") => void;
     onUnequipEquipmentSlot: (slot: "cloak", equipmentSet: number) => void;
     pendingSkillLevels: Record<string, number>;
     pendingStats: Record<string, number>;
@@ -189,7 +189,7 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
         <button type="button" onClick={onResetSkills}>
           Reset Skills
         </button>
-        <button type="button" onClick={() => onSelectEquipmentItem("40")}>
+        <button type="button" onClick={() => onSelectEquipmentSlot("cloak")}>
           Select Equipment
         </button>
         <button type="button" onClick={() => onUnequipEquipmentSlot("cloak", 0)}>
