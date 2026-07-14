@@ -21,6 +21,7 @@ export type Character = {
   penya: number;
   stats: CharacterStats;
   skillLevels: CharacterSkillLevels;
+  consumableLoadout: CharacterConsumableLoadout;
   equipment: CharacterEquipment;
   equipmentSets: CharacterEquipment[];
   inventory: CharacterInventory;
@@ -37,6 +38,15 @@ export type CharacterStats = {
 };
 
 export type CharacterSkillLevels = Record<string, number>;
+
+export type CharacterConsumableResource = "hp" | "mp" | "fp";
+
+export type CharacterConsumableSlot = {
+  itemId: string;
+  quantity: number;
+} | null;
+
+export type CharacterConsumableLoadout = Record<CharacterConsumableResource, CharacterConsumableSlot>;
 
 export type CharacterEquipment = {
   helmet: string | null;

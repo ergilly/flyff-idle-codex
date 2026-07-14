@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
 import { startingEquipmentByGender, startingInventoryItems, startingMainhand } from "./starterLoadout.js";
-import type { Character, CharacterGender } from "../types.js";
+import type { Character, CharacterConsumableResource, CharacterGender } from "../types.js";
 import { findDataRecord, type JsonDataRecord } from "../gameData/gameData.service.js";
 import { findItemsByIds } from "../items/itemIconRepository.js";
 import type { ItemMetadata } from "../data/generated/itemIconIndex.js";
@@ -30,6 +30,7 @@ type CharacterRow = {
   dex: number;
   int: number;
   skillLevels: string;
+  consumableLoadout: string;
   equipmentSets: string;
   helmet: string | null;
   suit: string | null;
@@ -90,6 +91,7 @@ type EquipmentSlot = keyof Character["equipment"];
 type EquipmentSetIndex = 0 | 1 | 2;
 
 const equipmentSetIndexes = [0, 1, 2] as const;
+const consumableResources: CharacterConsumableResource[] = ["hp", "mp", "fp"];
 
 export const characterRepository = {
   create({ playerId, slotIndex, name, gender }: CreateCharacterInput) {
@@ -122,6 +124,7 @@ export const characterRepository = {
         sta,
         dex,
         int,
+        consumable_loadout,
         equipment_sets,
         suit,
         gloves,
@@ -129,7 +132,7 @@ export const characterRepository = {
         mainhand,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       playerId,
@@ -146,6 +149,7 @@ export const characterRepository = {
       15,
       15,
       15,
+      "{}",
       JSON.stringify(equipmentSets),
       equipment.suit,
       equipment.gloves,
@@ -230,6 +234,47 @@ export const characterRepository = {
 
     return this.findById(id);
   },
+  addInventoryItemsForPlayer(
+    id: string,
+    playerId: string,
+    inventoryItems: Array<{ itemId: string; quantity: number }>
+  ) {
+    try {
+      db.exec("BEGIN");
+      const character = this.findById(id);
+
+      if (!character || character.playerId !== playerId) {
+        db.exec("ROLLBACK");
+        return { character: null, error: "Character not found" };
+      }
+
+      const now = new Date().toISOString();
+
+      for (const inventoryItem of inventoryItems) {
+        const currentCharacter = this.findById(id);
+
+        if (
+          !currentCharacter ||
+          !addInventoryQuantity(id, currentCharacter, inventoryItem.itemId, inventoryItem.quantity, now)
+        ) {
+          throw new Error("Not enough inventory space");
+        }
+      }
+
+      db.exec("COMMIT");
+
+      return { character: this.findById(id), error: null };
+    } catch (error) {
+      if (db.isTransaction) {
+        db.exec("ROLLBACK");
+      }
+
+      return {
+        character: null,
+        error: error instanceof Error ? error.message : "Unable to add inventory items"
+      };
+    }
+  },
   moveInventoryItemForPlayer(id: string, playerId: string, fromSlotIndex: number, toSlotIndex: number) {
     const character = this.findById(id);
 
@@ -289,6 +334,34 @@ export const characterRepository = {
     }
 
     swapInventorySlots(id, fromSlotIndex, toSlotIndex, now);
+    return { character: this.findById(id), error: null };
+  },
+  consumeInventoryItemForPlayer(id: string, playerId: string, slotIndex: number) {
+    const character = this.findById(id);
+
+    if (!character || character.playerId !== playerId) {
+      return { character: null, error: "Character not found" };
+    }
+
+    const inventoryItem = character.inventory.items.find((item) => item.slotIndex === slotIndex);
+
+    if (!inventoryItem) {
+      return { character: null, error: "Inventory item not found" };
+    }
+
+    const now = new Date().toISOString();
+
+    if (inventoryItem.quantity > 1) {
+      db.prepare(
+        "UPDATE character_inventory_items SET quantity = ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+      ).run(inventoryItem.quantity - 1, now, id, slotIndex);
+    } else {
+      db.prepare("DELETE FROM character_inventory_items WHERE character_id = ? AND slot_index = ?").run(
+        id,
+        slotIndex
+      );
+    }
+
     return { character: this.findById(id), error: null };
   },
   sortInventoryForPlayer(id: string, playerId: string, sortBy: InventorySortOption) {
@@ -415,10 +488,162 @@ export const characterRepository = {
 
     return { character: this.findById(id), error: null };
   },
+  equipConsumableItemForPlayer(
+    id: string,
+    playerId: string,
+    resource: CharacterConsumableResource,
+    slotIndex: number | null
+  ) {
+    const character = this.findById(id);
+
+    if (!character || character.playerId !== playerId) {
+      return { character: null, error: "Character not found" };
+    }
+
+    const now = new Date().toISOString();
+    const currentConsumable = character.consumableLoadout[resource];
+
+    if (slotIndex === null) {
+      if (!currentConsumable) {
+        return { character, error: null };
+      }
+
+      if (
+        !addInventoryQuantity(id, character, currentConsumable.itemId, currentConsumable.quantity, now, {
+          stackIntoEquippedConsumables: false
+        })
+      ) {
+        return { character: null, error: "Inventory is full" };
+      }
+
+      persistConsumableLoadout(id, { ...character.consumableLoadout, [resource]: null }, now);
+      return { character: this.findById(id), error: null };
+    }
+
+    const inventoryItem = character.inventory.items.find((item) => item.slotIndex === slotIndex);
+
+    if (!inventoryItem) {
+      return { character: null, error: "Inventory item not found" };
+    }
+
+    const [item] = findItemsByIds([inventoryItem.itemId]);
+
+    if (!item) {
+      return { character: null, error: "Item not found" };
+    }
+
+    if (!isRecoveryCategory(item) || !getRecoveryAbility(item, resource)) {
+      return { character: null, error: "That item cannot be equipped as this consumable" };
+    }
+
+    const maxStackSize = getMaxStackSize(inventoryItem.itemId);
+    const combinedConsumableQuantity =
+      currentConsumable?.itemId === inventoryItem.itemId
+        ? currentConsumable.quantity + inventoryItem.quantity
+        : null;
+
+    if (combinedConsumableQuantity !== null && combinedConsumableQuantity > maxStackSize) {
+      return { character: null, error: "Equipped consumable stack is full" };
+    }
+
+    try {
+      db.exec("BEGIN");
+
+      db.prepare("DELETE FROM character_inventory_items WHERE character_id = ? AND slot_index = ?").run(
+        id,
+        slotIndex
+      );
+
+      if (combinedConsumableQuantity !== null) {
+        persistConsumableLoadout(
+          id,
+          {
+            ...character.consumableLoadout,
+            [resource]: {
+              itemId: inventoryItem.itemId,
+              quantity: combinedConsumableQuantity
+            }
+          },
+          now
+        );
+        db.exec("COMMIT");
+        return { character: this.findById(id), error: null };
+      }
+
+      const characterWithoutEquippedStack = this.findById(id);
+
+      if (
+        currentConsumable &&
+        (!characterWithoutEquippedStack ||
+          !addInventoryQuantity(
+            id,
+            characterWithoutEquippedStack,
+            currentConsumable.itemId,
+            currentConsumable.quantity,
+            now,
+            { stackIntoEquippedConsumables: false }
+          ))
+      ) {
+        throw new Error("Inventory is full");
+      }
+
+      persistConsumableLoadout(
+        id,
+        {
+          ...character.consumableLoadout,
+          [resource]: {
+            itemId: inventoryItem.itemId,
+            quantity: inventoryItem.quantity
+          }
+        },
+        now
+      );
+
+      db.exec("COMMIT");
+    } catch (error) {
+      if (db.isTransaction) {
+        db.exec("ROLLBACK");
+      }
+
+      return {
+        character: null,
+        error: error instanceof Error ? error.message : "Unable to equip consumable"
+      };
+    }
+
+    return { character: this.findById(id), error: null };
+  },
+  consumeEquippedConsumableForPlayer(id: string, playerId: string, resource: CharacterConsumableResource) {
+    const character = this.findById(id);
+
+    if (!character || character.playerId !== playerId) {
+      return { character: null, error: "Character not found" };
+    }
+
+    const consumable = character.consumableLoadout[resource];
+
+    if (!consumable) {
+      return { character: null, error: "Consumable slot is empty" };
+    }
+
+    const now = new Date().toISOString();
+    const nextConsumable =
+      consumable.quantity > 1 ? { ...consumable, quantity: consumable.quantity - 1 } : null;
+
+    persistConsumableLoadout(id, { ...character.consumableLoadout, [resource]: nextConsumable }, now);
+
+    return { character: this.findById(id), error: null };
+  },
   updateProgressionForPlayer(
     id: string,
     playerId: string,
-    progression: { skillLevels?: Character["skillLevels"]; stats?: Character["stats"] }
+    progression: {
+      exp?: number;
+      level?: number;
+      penya?: number;
+      skillLevels?: Character["skillLevels"];
+      stats?: Character["stats"];
+    }
   ) {
     const character = this.findById(id);
 
@@ -428,6 +653,9 @@ export const characterRepository = {
 
     const nextStats = progression.stats ?? character.stats;
     const nextSkillLevels = progression.skillLevels ?? character.skillLevels;
+    const nextLevel = progression.level ?? character.level;
+    const nextExp = progression.exp ?? character.exp;
+    const nextPenya = progression.penya ?? character.penya;
     const now = new Date().toISOString();
 
     db.prepare(
@@ -436,6 +664,9 @@ export const characterRepository = {
             sta = ?,
             dex = ?,
             int = ?,
+            level = ?,
+            exp = ?,
+            penya = ?,
             skill_levels = ?,
             updated_at = ?
         WHERE id = ? AND player_id = ?`
@@ -444,6 +675,9 @@ export const characterRepository = {
       nextStats.sta,
       nextStats.dex,
       nextStats.int,
+      nextLevel,
+      nextExp,
+      nextPenya,
       JSON.stringify(nextSkillLevels),
       now,
       id,
@@ -476,7 +710,8 @@ export const characterRepository = {
           sta,
           dex,
           int,
-        skill_levels AS skillLevels,
+          skill_levels AS skillLevels,
+          consumable_loadout AS consumableLoadout,
           equipment_sets AS equipmentSets,
           helmet,
           suit,
@@ -527,7 +762,8 @@ export const characterRepository = {
           sta,
           dex,
           int,
-        skill_levels AS skillLevels,
+          skill_levels AS skillLevels,
+          consumable_loadout AS consumableLoadout,
           equipment_sets AS equipmentSets,
           helmet,
           suit,
@@ -591,6 +827,7 @@ export const characterRepository = {
         dex,
         int,
         skillLevels,
+        consumableLoadout,
         equipmentSets,
         helmet,
         suit,
@@ -646,6 +883,7 @@ export const characterRepository = {
             int
           },
           skillLevels: parseSkillLevels(skillLevels),
+          consumableLoadout: parseConsumableLoadout(consumableLoadout),
           equipment,
           equipmentSets: parseEquipmentSets(equipmentSets, equipment),
           inventory: {
@@ -678,6 +916,59 @@ function parseSkillLevels(skillLevels: string) {
   }
 }
 
+function createEmptyConsumableLoadout(): Character["consumableLoadout"] {
+  return {
+    fp: null,
+    hp: null,
+    mp: null
+  };
+}
+
+function parseConsumableLoadout(consumableLoadout: string) {
+  const fallback = createEmptyConsumableLoadout();
+
+  try {
+    const parsed = JSON.parse(consumableLoadout) as unknown;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return fallback;
+    }
+
+    const input = parsed as Partial<Record<CharacterConsumableResource, unknown>>;
+
+    return Object.fromEntries(
+      consumableResources.map((resource) => {
+        const value = input[resource];
+
+        if (typeof value === "string") {
+          return [resource, { itemId: value, quantity: 1 }];
+        }
+
+        if (
+          value &&
+          typeof value === "object" &&
+          !Array.isArray(value) &&
+          typeof (value as { itemId?: unknown }).itemId === "string" &&
+          Number.isInteger((value as { quantity?: unknown }).quantity) &&
+          Number((value as { quantity: number }).quantity) > 0
+        ) {
+          return [
+            resource,
+            {
+              itemId: (value as { itemId: string }).itemId,
+              quantity: (value as { quantity: number }).quantity
+            }
+          ];
+        }
+
+        return [resource, null];
+      })
+    ) as Character["consumableLoadout"];
+  } catch {
+    return fallback;
+  }
+}
+
 function createEmptyEquipment(): Character["equipment"] {
   return {
     ammo: null,
@@ -700,6 +991,26 @@ function createEmptyEquipment(): Character["equipment"] {
     ringR: null,
     suit: null
   };
+}
+
+function persistConsumableLoadout(
+  characterId: string,
+  consumableLoadout: Character["consumableLoadout"],
+  now: string
+) {
+  db.prepare("UPDATE characters SET consumable_loadout = ?, updated_at = ? WHERE id = ?").run(
+    JSON.stringify(consumableLoadout),
+    now,
+    characterId
+  );
+}
+
+function isRecoveryCategory(item: ItemMetadata) {
+  return (item.category ?? "").toLowerCase().startsWith("recovery");
+}
+
+function getRecoveryAbility(item: ItemMetadata, resource: CharacterConsumableResource) {
+  return item.abilities.find((ability) => ability.parameter.toLowerCase() === resource) ?? null;
 }
 
 function normalizeEquipment(value: unknown, fallback: Character["equipment"]): Character["equipment"] {
@@ -936,21 +1247,68 @@ function addInventoryQuantity(
   character: Character,
   itemId: string,
   quantity: number,
-  now: string
+  now: string,
+  options: { stackIntoEquippedConsumables?: boolean } = {}
 ) {
   let remainingQuantity = quantity;
   const maxStackSize = getMaxStackSize(itemId);
+  const shouldStackIntoEquippedConsumables = options.stackIntoEquippedConsumables ?? true;
+  const matchingConsumableResources = shouldStackIntoEquippedConsumables
+    ? consumableResources.filter((resource) => {
+        const consumable = character.consumableLoadout[resource];
+
+        return consumable?.itemId === itemId && consumable.quantity < maxStackSize;
+      })
+    : [];
   const matchingStacks = character.inventory.items
     .filter((item) => item.itemId === itemId && item.quantity < maxStackSize)
     .sort((first, second) => first.slotIndex - second.slotIndex);
   const openSlots = getOpenInventorySlots(character);
+  const availableEquippedConsumableQuantity = matchingConsumableResources.reduce((total, resource) => {
+    const consumable = character.consumableLoadout[resource];
+
+    return total + (consumable ? maxStackSize - consumable.quantity : 0);
+  }, 0);
   const availableStackQuantity = matchingStacks.reduce(
     (total, stack) => total + maxStackSize - stack.quantity,
     0
   );
 
-  if (availableStackQuantity + openSlots.length * maxStackSize < quantity) {
+  if (
+    availableEquippedConsumableQuantity + availableStackQuantity + openSlots.length * maxStackSize <
+    quantity
+  ) {
     return false;
+  }
+
+  if (matchingConsumableResources.length > 0) {
+    const nextConsumableLoadout = { ...character.consumableLoadout };
+
+    for (const resource of matchingConsumableResources) {
+      const consumable = nextConsumableLoadout[resource];
+
+      if (!consumable) {
+        continue;
+      }
+
+      const addedQuantity = Math.min(maxStackSize - consumable.quantity, remainingQuantity);
+
+      nextConsumableLoadout[resource] = {
+        ...consumable,
+        quantity: consumable.quantity + addedQuantity
+      };
+      remainingQuantity -= addedQuantity;
+
+      if (remainingQuantity === 0) {
+        break;
+      }
+    }
+
+    persistConsumableLoadout(characterId, nextConsumableLoadout, now);
+
+    if (remainingQuantity === 0) {
+      return true;
+    }
   }
 
   for (const stack of matchingStacks) {

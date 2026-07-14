@@ -107,7 +107,9 @@
     "category": "recovery",
     "subcategory": "food",
     "level": 1,
-    "stack": 9999
+    "cooldown": 2.5,
+    "stack": 9999,
+    "consumable": true
   },
   "5535": {
     "id": 5535,

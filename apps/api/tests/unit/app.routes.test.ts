@@ -260,7 +260,7 @@ describe("app routes", () => {
 
     await expect(
       request(app)
-        .get("/api/items?ids=3497,3314,missing")
+        .get("/api/items?ids=3497,3314,5325,missing")
         .set("Authorization", `Bearer ${loginResponse.body.token}`)
     ).resolves.toMatchObject({
       status: 400,
@@ -268,13 +268,22 @@ describe("app routes", () => {
     });
 
     await expect(
-      request(app).get("/api/items?ids=3497,3314").set("Authorization", `Bearer ${loginResponse.body.token}`)
+      request(app)
+        .get("/api/items?ids=3497,3314,5325")
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
     ).resolves.toMatchObject({
       status: 200,
       body: {
         items: expect.arrayContaining([
           expect.objectContaining({ id: "3497", name: "Wooden Sword", icon: "weaswowooden.png" }),
-          expect.objectContaining({ id: "3314", name: "Cotton Suit", icon: "mvag01upper.png" })
+          expect.objectContaining({ id: "3314", name: "Cotton Suit", icon: "mvag01upper.png" }),
+          expect.objectContaining({
+            id: "5325",
+            name: "Lollipop",
+            cooldown: 2.5,
+            stack: 9999,
+            consumable: true
+          })
         ])
       }
     });
@@ -404,10 +413,42 @@ describe("app routes", () => {
       request(app)
         .patch(`/api/characters/${createResponse.body.character.id}/progression`)
         .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({ exp: 6, level: 2, penya: 42 })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          exp: 6,
+          level: 2,
+          penya: 42
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${createResponse.body.character.id}/inventory/loot`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .send({ items: [{ itemId: "5325", quantity: 2 }] })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          inventory: expect.objectContaining({
+            items: expect.arrayContaining([{ slotIndex: 0, itemId: "5325", quantity: 5 }])
+          })
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .patch(`/api/characters/${createResponse.body.character.id}/progression`)
+        .set("Authorization", `Bearer ${registerResponse.body.token}`)
         .send({})
     ).resolves.toMatchObject({
       status: 400,
-      body: { error: "Stats or skill levels are required" }
+      body: { error: "Progression update is required" }
     });
 
     await expect(

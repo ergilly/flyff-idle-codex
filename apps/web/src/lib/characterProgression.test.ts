@@ -1,6 +1,12 @@
 import {
   getAvailableStatPoints,
+  applyDeathExpPenalty,
+  applyExpGain,
+  getCharacterExpProgress,
+  getDeathExpPenaltyRate,
   getEffectiveSkillLevel,
+  getExpRequiredForNextLevel,
+  getMonsterExpReward,
   getSkillPointBonus,
   getSkillPointsFromLevels,
   getTotalSkillPoints,
@@ -116,5 +122,46 @@ describe("character progression", () => {
   it("combines level skill points and job bonuses", () => {
     expect(getTotalSkillPoints(character({ job: "Mercenary", level: 15 }))).toBe(88);
     expect(getTotalSkillPoints(character({ job: "Slayer", progressionRank: "hero", level: 130 }))).toBe(1278);
+  });
+
+  it("uses the pasted Flyff EXP table for next-level progress", () => {
+    expect(getExpRequiredForNextLevel(character({ level: 1 }))).toBe(14);
+    expect(getExpRequiredForNextLevel(character({ level: 65 }))).toBe(22280630);
+    expect(getExpRequiredForNextLevel(character({ progressionRank: "master", level: 120 }))).toBeNull();
+    expect(getExpRequiredForNextLevel(character({ progressionRank: "hero", level: 169 }))).toBe(
+      12770679495297
+    );
+    expect(getCharacterExpProgress(character({ level: 2, exp: 7 })).percent).toBe(35);
+  });
+
+  it("awards monster EXP from the monster's flat EXP value", () => {
+    expect(getMonsterExpReward(character({ level: 65 }), { experience: 250, level: 65 })).toBe(250);
+    expect(getMonsterExpReward(character({ level: 65 }), { experience: 1500, level: 66 })).toBe(1500);
+    expect(getMonsterExpReward(character({ level: 65 }), { experience: null, level: 65 })).toBe(0);
+    expect(getMonsterExpReward(character({ level: 65 }), { experience: 1000, level: 81 })).toBe(0);
+    expect(getMonsterExpReward(character({ level: 65 }), { experience: 1000, level: 80 })).toBe(1000);
+  });
+
+  it("levels up from current-level EXP and carries overflow", () => {
+    expect(applyExpGain(character({ level: 1, exp: 10 }), 10)).toEqual({ level: 2, exp: 6 });
+    expect(applyExpGain(character({ level: 119, exp: 20291626882 }), 1)).toEqual({
+      level: 120,
+      exp: 0
+    });
+  });
+
+  it("applies death EXP penalties by character level range", () => {
+    expect(getDeathExpPenaltyRate(20)).toBe(0);
+    expect(getDeathExpPenaltyRate(21)).toBe(0.06);
+    expect(getDeathExpPenaltyRate(30)).toBe(0.05);
+    expect(getDeathExpPenaltyRate(60)).toBe(0.04);
+    expect(getDeathExpPenaltyRate(90)).toBe(0.03);
+    expect(getDeathExpPenaltyRate(100)).toBe(0.02);
+    expect(getDeathExpPenaltyRate(110)).toBe(0.015);
+    expect(applyDeathExpPenalty(character({ level: 21, exp: 1000 }))).toEqual({
+      exp: 588,
+      expLoss: 412,
+      level: 21
+    });
   });
 });

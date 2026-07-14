@@ -31,13 +31,16 @@ type CharacterPageContentProps = {
   onApplySkills: () => void;
   onCanRemoveSkillLevel: (skill: SkillDefinition) => boolean;
   onApplyStats: () => void;
+  onClearStat: (stat: StatKey) => void;
   onEquipmentSetChange: (equipmentSet: number) => void;
+  onMaxStat: (stat: StatKey) => void;
   onUnequipEquipmentSlot?: (equipmentSlot: keyof Character["equipment"], equipmentSet: number) => void;
   onRemoveSkillLevel: (skill: SkillDefinition) => void;
   onRemoveStat: (stat: StatKey) => void;
   onResetSkills: () => void;
   onResetStats: () => void;
   onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
+  onSetStat: (stat: StatKey, value: number) => void;
   equipmentActionError?: string;
   isEquipmentActionPending?: boolean;
   pendingSkillLevels: Character["skillLevels"];
@@ -60,13 +63,16 @@ export function CharacterPageContent({
   onApplySkills,
   onCanRemoveSkillLevel,
   onApplyStats,
+  onClearStat,
   onEquipmentSetChange,
+  onMaxStat,
   onUnequipEquipmentSlot,
   onRemoveSkillLevel,
   onRemoveStat,
   onResetSkills,
   onResetStats,
   onSelectEquipmentSlot,
+  onSetStat,
   equipmentActionError = "",
   isEquipmentActionPending = false,
   pendingSkillLevels,
@@ -102,8 +108,11 @@ export function CharacterPageContent({
               character={character}
               onAddStat={onAddStat}
               onApplyStats={onApplyStats}
+              onClearStat={onClearStat}
+              onMaxStat={onMaxStat}
               onRemoveStat={onRemoveStat}
               onResetStats={onResetStats}
+              onSetStat={onSetStat}
               pendingStats={pendingStats}
               statKeys={statKeys}
             />

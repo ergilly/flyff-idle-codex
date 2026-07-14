@@ -7,6 +7,7 @@ import { StatLabel } from "@/components/atoms/StatRow";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
+import { isItemRequirementUnmet } from "@/lib/itemEquipment";
 import { findItemSetByPartId, type ItemSetMetadata } from "@/lib/itemSets";
 import { getTestIdSegment } from "@/lib/testIds";
 
@@ -60,28 +61,6 @@ const abilityLabelByParameter: Record<string, string> = {
   yoyoattack: "Yo-Yo Attack"
 };
 
-const secondJobToFirstJob: Record<string, string> = {
-  Blade: "Mercenary",
-  Knight: "Mercenary",
-  Elementor: "Magician",
-  Psykeeper: "Magician",
-  Billposter: "Assist",
-  Ringmaster: "Assist",
-  Jester: "Acrobat",
-  Ranger: "Acrobat"
-};
-
-const thirdJobToSecondJob: Record<string, string> = {
-  Slayer: "Blade",
-  Templar: "Knight",
-  Arcanist: "Elementor",
-  Mentalist: "Psykeeper",
-  Forcemaster: "Billposter",
-  Seraph: "Ringmaster",
-  Harlequin: "Jester",
-  Crackshooter: "Ranger"
-};
-
 function formatLabel(value: string) {
   const normalizedValue = value.toLowerCase().replace(/[\s_]+/g, "");
   const abilityLabel = abilityLabelByParameter[normalizedValue];
@@ -122,43 +101,6 @@ function canItemTypeAwaken(item: ItemMetadata) {
     item.subcategory !== null &&
     ["cloth", "glove", "hat", "mask", "shoes"].includes(item.subcategory)
   );
-}
-
-function normalizeRequirement(value: string) {
-  return value.toLowerCase().replace(/\s+/g, "");
-}
-
-function getJobLineage(job: string) {
-  const secondJob = thirdJobToSecondJob[job];
-  const firstJob = secondJob ? secondJobToFirstJob[secondJob] : secondJobToFirstJob[job];
-
-  return [job, secondJob, firstJob, "Vagrant"].filter((value): value is string => Boolean(value));
-}
-
-function meetsRequiredJob(character: Character, requiredJob: string) {
-  const normalizedRequirement = normalizeRequirement(requiredJob);
-
-  return getJobLineage(character.job).some((job) => normalizeRequirement(job) === normalizedRequirement);
-}
-
-function isRequirementUnmet(label: string, item: ItemMetadata, character?: Character) {
-  if (!character) {
-    return false;
-  }
-
-  if (label === "Gender" && item.sex) {
-    return item.sex !== character.gender;
-  }
-
-  if (label === "Req Job" && item.requiredJob) {
-    return !meetsRequiredJob(character, item.requiredJob);
-  }
-
-  if (label === "Level" && item.level !== null) {
-    return character.level < item.level;
-  }
-
-  return false;
 }
 
 function renderDescription(description: string, itemName: string): ReactNode {
@@ -226,7 +168,7 @@ export function ItemDetailsPanel({
     .filter((row): row is [string, string] => Boolean(row))
     .map(([label, value]) => ({
       label,
-      unmet: isRequirementUnmet(label, item, character),
+      unmet: isItemRequirementUnmet(label, item, character),
       value
     }));
   const hasAwakeningStats = awakeningStats.length > 0;

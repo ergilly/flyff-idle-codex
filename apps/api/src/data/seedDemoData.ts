@@ -87,6 +87,7 @@ function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly Seed
       sta,
       dex,
       int,
+      consumable_loadout,
       equipment_sets,
       helmet,
       suit,
@@ -109,7 +110,7 @@ function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly Seed
       ring_l,
       created_at,
       updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   const femaleEquipment = startingEquipmentByGender.female;
   const maleEquipment = startingEquipmentByGender.male;
@@ -141,6 +142,7 @@ function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly Seed
       stats.sta,
       stats.dex,
       stats.int,
+      "{}",
       JSON.stringify(createSeedEquipmentSets(equipment)),
       equipment.helmet,
       equipment.suit,

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MapPage } from "./MapPage";
 
 describe("MapPage", () => {
@@ -195,6 +195,45 @@ describe("MapPage", () => {
     expect(screen.getAllByRole("img", { name: "wind element" })).toHaveLength(3);
   });
 
+  it("shows town and dungeon markers on their assigned region maps", async () => {
+    render(<MapPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
+
+    const flarineMarker = screen.getByRole("button", { name: "Flarine Town" });
+    expect(flarineMarker).toBeInTheDocument();
+    expect(flarineMarker.getAttribute("style")).toContain("--map-marker-saturation: 30%");
+    expect(screen.getByRole("button", { name: "Mars Mine" })).toBeInTheDocument();
+    expect(
+      screen.getByTestId("map_span_monster_marker_icon_flaris_town_flarine_town").querySelector("img")
+    ).toHaveAttribute("src", "/images/maps/icons/town-flarine-256.png");
+    expect(
+      screen.getByTestId("map_span_monster_marker_icon_flaris_dungeon_mars_mine").querySelector("img")
+    ).toHaveAttribute("src", "/images/maps/icons/purple-background-regenerated/256px/dungeon-mars-mine.png");
+    await waitFor(() => expect(screen.queryByTestId("map_div_monsters_loading")).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to world" }));
+    fireEvent.click(screen.getByRole("button", { name: "Select Darkon 1 and 2" }));
+
+    expect(screen.getByRole("button", { name: "Darken City" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Floating Castle" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "The Wilds" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Savage Wilds" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Isle of Dreams" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Island of Nightmares" })).toBeInTheDocument();
+    expect(
+      screen.getByTestId("map_span_monster_marker_icon_darkon12_dungeon_floating_castle").querySelector("img")
+    ).toHaveAttribute("src", "/images/maps/icons/floating-fortress-saturated-256.png");
+    await waitFor(() => expect(screen.queryByTestId("map_div_monsters_loading")).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to world" }));
+    fireEvent.click(screen.getByRole("button", { name: "Select Bahara" }));
+
+    expect(screen.getByRole("button", { name: "Randera Camp" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Kalgas Cave" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId("map_div_monsters_loading")).not.toBeInTheDocument());
+  });
+
   it("renders explicit family names for Darkon 3 monsters", async () => {
     render(<MapPage />);
 
@@ -213,7 +252,9 @@ describe("MapPage", () => {
     render(<MapPage onSelectMonster={handleSelectMonster} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Aibatt" }));
+    const aibattMarker = await screen.findByRole("button", { name: "Aibatt" });
+    expect(aibattMarker.getAttribute("style")).not.toContain("--map-marker-saturation");
+    fireEvent.click(aibattMarker);
 
     expect(handleSelectMonster).toHaveBeenCalledWith(
       expect.objectContaining({

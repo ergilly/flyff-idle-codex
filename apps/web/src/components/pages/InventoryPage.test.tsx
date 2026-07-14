@@ -190,6 +190,47 @@ describe("InventoryPage", () => {
     expect(screen.getByText("Unable to equip item")).toBeInTheDocument();
   });
 
+  it("does not show equip actions for items without an equipment slot", () => {
+    render(
+      <InventoryPage
+        character={character}
+        itemsById={{ "5325": biscuit }}
+        onEquipSlot={jest.fn()}
+        onSelectSlot={jest.fn()}
+        selectedSlotIndex={2}
+      />
+    );
+
+    expect(screen.getByRole("complementary", { name: "Biscuit details" })).toBeInTheDocument();
+    expect(screen.queryByTestId("inventory_div_equip_actions")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Equip to set 1" })).not.toBeInTheDocument();
+  });
+
+  it("does not show equip actions for items with unmet requirements", () => {
+    const requirementCharacter: Character = {
+      ...character,
+      inventory: {
+        size: 5,
+        items: [{ slotIndex: 0, itemId: "822", quantity: 1 }]
+      }
+    };
+
+    render(
+      <InventoryPage
+        character={requirementCharacter}
+        itemsById={{ "822": alesGauntlets }}
+        onEquipSlot={jest.fn()}
+        onSelectSlot={jest.fn()}
+        selectedSlotIndex={0}
+      />
+    );
+
+    expect(screen.getByText("Billposter").parentElement?.getAttribute("class")).toContain(
+      "[&_dd]:!text-[#ff4d4d]"
+    );
+    expect(screen.queryByTestId("inventory_div_equip_actions")).not.toBeInTheDocument();
+  });
+
   it("shows equipped set pieces while inspecting set items in inventory", () => {
     const setCharacter: Character = {
       ...character,

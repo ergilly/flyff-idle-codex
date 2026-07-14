@@ -12,6 +12,7 @@ import {
   getItemIconUrl,
   getMonsterIconUrl,
   login,
+  lootInventoryItems,
   moveInventoryItem,
   register,
   refundCharacterSkills,
@@ -168,6 +169,7 @@ describe("api client", () => {
 
     await expect(
       updateCharacterProgression("token", "char-1", {
+        penya: 25,
         stats: { str: 16, sta: 15, dex: 15, int: 15 },
         skillLevels: { "vagrant-clean-hit": 1 }
       })
@@ -177,9 +179,32 @@ describe("api client", () => {
       expect.objectContaining({
         method: "PATCH",
         body: JSON.stringify({
+          penya: 25,
           stats: { str: 16, sta: 15, dex: 15, int: 15 },
           skillLevels: { "vagrant-clean-hit": 1 }
         })
+      })
+    );
+
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        character: {
+          ...character,
+          inventory: { size: 50, items: [{ slotIndex: 0, itemId: "9001", quantity: 2 }] }
+        }
+      })
+    });
+
+    await expect(lootInventoryItems("token", "char-1", [{ itemId: "9001", quantity: 2 }])).resolves.toEqual({
+      ...character,
+      inventory: { size: 50, items: [{ slotIndex: 0, itemId: "9001", quantity: 2 }] }
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/characters/char-1/inventory/loot",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ items: [{ itemId: "9001", quantity: 2 }] })
       })
     );
   });
@@ -256,7 +281,7 @@ describe("api client", () => {
       Aibatt: { id: 1, name: "Aibatt", level: 1, rank: "normal", element: "wind" }
     });
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:4000/api/data/monsters?name=Aibatt&fields=id%2Cname%2Clevel%2Crank%2Carea%2Celement%2Chp%2CminAttack%2CmaxAttack%2Cdefense%2CmagicDefense%2CminDropGold%2CmaxDropGold&limit=1"
+      "http://localhost:4000/api/data/monsters?name=Aibatt&fields=id%2Cname%2Cexperience%2Clevel%2Crank%2Carea%2Celement%2Chp%2CminAttack%2CmaxAttack%2Cdefense%2CmagicDefense%2Csta%2Cstr%2Cdex%2Cint%2ChitRate%2Cparry%2CnoLevelReduction%2CminDropGold%2CmaxDropGold&limit=1"
     );
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type MouseEvent, type WheelEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type MouseEvent, type WheelEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/atoms/Button";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
@@ -14,12 +14,19 @@ import {
   type MonsterFamilyVariant
 } from "@/lib/api";
 import { cx } from "@/lib/classNames";
-import { getMonsterMarkerIconSrc, type MapRegionId, type MapMonsterMarker } from "@/lib/mapMonsterMarkers";
+import {
+  getMonsterMarkerIconSrc,
+  mapLocationMarkers,
+  type MapRegionId,
+  type MapMonsterMarker
+} from "@/lib/mapMonsterMarkers";
 import { getTestIdSegment } from "@/lib/testIds";
 
 const minMapZoom = 1;
 const maxMapZoom = 2.5;
 const mapZoomStep = 0.25;
+const mapMarkerDesaturationPercent = 70;
+const mapMarkerSaturationPercent = 100 - mapMarkerDesaturationPercent;
 const zeroPan = { x: 0, y: 0 };
 const emptyMonsterMarkers: MapMonsterMarker[] = [];
 const emptyMonsterFamilies: MapMonsterFamily[] = [];
@@ -186,8 +193,14 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   const activeRegion =
     regions.find((region) => region.id === (activeRegionId ?? selectedRegionId)) ?? selectedRegion;
   const panelRegion = selectedRegion ?? activeRegion;
-  const selectedRegionMarkers = selectedRegion
+  const selectedRegionLocationMarkers = selectedRegion
+    ? mapLocationMarkers[selectedRegion.id]
+    : emptyMonsterMarkers;
+  const selectedRegionMonsterMarkers = selectedRegion
     ? createMapMonsterMarkers(monsterFamilies)
+    : emptyMonsterMarkers;
+  const selectedRegionMarkers = selectedRegion
+    ? [...selectedRegionLocationMarkers, ...selectedRegionMonsterMarkers]
     : emptyMonsterMarkers;
   const monsterFamiliesByMarkerId = getMonsterFamiliesByMarkerId(monsterFamilies);
 
@@ -379,20 +392,19 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                 priority
                 unoptimized
               />
+              <MonsterMarkerLayer
+                markers={selectedRegionMarkers}
+                monsterFamiliesByMarkerId={monsterFamiliesByMarkerId}
+                onSelectMonster={onSelectMonster}
+              />
               {isMonsterFamilyLoading ? (
                 <div
-                  className="absolute inset-0 grid place-items-center bg-black/18 text-xs font-black uppercase tracking-wide text-[#fff1ba]"
+                  className="pointer-events-none absolute inset-0 grid place-items-center bg-black/18 text-xs font-black uppercase tracking-wide text-[#fff1ba]"
                   data-testid="map_div_monsters_loading"
                 >
                   Loading monster data...
                 </div>
-              ) : (
-                <MonsterMarkerLayer
-                  markers={selectedRegionMarkers}
-                  monsterFamiliesByMarkerId={monsterFamiliesByMarkerId}
-                  onSelectMonster={onSelectMonster}
-                />
-              )}
+              ) : null}
             </div>
           </div>
         ) : (
@@ -575,7 +587,7 @@ function MonsterMarkerLayer({
   }
 
   return (
-    <div className="absolute inset-0" data-testid="map_div_monster_marker_layer">
+    <div className="absolute inset-0 z-10" data-testid="map_div_monster_marker_layer">
       {markers.map((marker) => (
         <MonsterMarker
           key={marker.id}
@@ -598,33 +610,51 @@ function MonsterMarker({
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
 }) {
   const markerLabel = monsterFamily?.name ?? marker.label;
+  const markerWidthPercent = marker.markerType === "monster" ? 4.35 : 6 * marker.scale;
+  const markerStyle: CSSProperties & Partial<Record<"--map-marker-saturation", string>> = {
+    left: `${marker.x}%`,
+    top: `${marker.y}%`,
+    width: `${markerWidthPercent}%`
+  };
+
+  if (marker.markerType !== "monster") {
+    markerStyle["--map-marker-saturation"] = `${mapMarkerSaturationPercent}%`;
+  }
 
   return (
     <button
       aria-describedby={`${marker.id}-description`}
       aria-label={markerLabel}
       data-testid={`map_button_monster_marker_${getTestIdSegment(marker.id)}`}
-      className="group absolute grid aspect-square w-[4.35%] -translate-x-1/2 -translate-y-1/2 place-items-center transition-transform hover:z-20 hover:scale-110 focus-visible:z-20 focus-visible:scale-110 focus-visible:outline-none"
+      className={cx(
+        "group absolute grid aspect-square -translate-x-1/2 -translate-y-1/2 place-items-center transition-[filter,transform] hover:z-40 hover:scale-110 focus-visible:z-40 focus-visible:scale-110 focus-visible:outline-none",
+        marker.markerType === "monster"
+          ? "z-10"
+          : "z-30 [filter:saturate(var(--map-marker-saturation))] hover:[filter:saturate(100%)] focus-visible:[filter:saturate(100%)]"
+      )}
       onMouseDown={(event) => event.stopPropagation()}
       onClick={() => {
         if (monsterFamily) {
           onSelectMonster?.(monsterFamily);
         }
       }}
-      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+      style={markerStyle}
       title={markerLabel}
       type="button"
     >
       <span
-        className="pointer-events-none grid h-full w-full place-items-center overflow-hidden rounded-full border border-[#fff1ba]/70 bg-black/45 shadow-[0_2px_8px_rgba(0,0,0,0.65)] group-focus-visible:border-[#fff1ba] group-focus-visible:ring-2 group-focus-visible:ring-[#fff1ba]/70"
+        className="pointer-events-none grid h-full w-full place-items-center overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-[#fff1ba]/70"
         data-testid={`map_span_monster_marker_frame_${getTestIdSegment(marker.id)}`}
       >
         <span
-          className="grid h-[82%] w-[82%] place-items-center"
+          className={cx(
+            "grid place-items-center",
+            marker.markerType === "monster" ? "h-[82%] w-[82%]" : "h-[88%] w-[88%]"
+          )}
           data-testid={`map_span_monster_marker_icon_${getTestIdSegment(marker.id)}`}
         >
           <Image
-            className="pointer-events-none h-full w-full object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]"
+            className="pointer-events-none h-full w-full object-contain"
             src={marker.iconSrc}
             alt=""
             aria-hidden="true"
@@ -662,6 +692,11 @@ function MonsterTooltip({
       >
         {monsterFamily?.name ?? marker.label}
       </span>
+      {!monsterFamily ? (
+        <span className="text-[0.62rem] font-black uppercase tracking-wide text-text-muted">
+          {marker.markerType}
+        </span>
+      ) : null}
       {monsterFamily ? (
         <>
           <span
@@ -823,6 +858,8 @@ function createMapMonsterMarkers(monsterFamilies: MapMonsterFamily[]) {
         iconSrc: getMonsterMarkerIconSrc(family.family),
         id: getMapMonsterMarkerId(family),
         label: family.name,
+        markerType: "monster" as const,
+        scale: 1,
         x: family.location.x,
         y: family.location.y
       }

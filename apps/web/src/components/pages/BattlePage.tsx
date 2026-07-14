@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Swords } from "lucide-react";
+import { ChevronDown, Droplet, Flame, HeartPulse, Swords, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { Button } from "@/components/atoms/Button";
 import { MutedText } from "@/components/atoms/MutedText";
@@ -12,6 +12,7 @@ import {
   getItemIconUrl,
   getMonsterIconUrl,
   type Character,
+  type CharacterConsumableResource,
   type CharacterEquipmentSlot,
   type ItemMetadata,
   type MapMonsterFamily,
@@ -22,10 +23,14 @@ import {
   getAutoAttackDamage,
   getAutoAttackTiming,
   getCombatStats,
+  getEffectiveHitRate,
+  rollMonsterAutoAttack,
+  rollPlayerAutoAttack,
   type AttackTiming,
   type AutoAttackDamage,
   type CombatStat
 } from "@/lib/combatStats";
+import { applyDeathExpPenalty, applyExpGain, getMonsterExpReward } from "@/lib/characterProgression";
 import {
   getUnlockedSkills,
   type SkillCombo,
@@ -35,16 +40,66 @@ import {
 import { getTestIdSegment } from "@/lib/testIds";
 
 type ActionSlot = SkillDefinition | null;
+type ConsumableResource = CharacterConsumableResource;
+type RecoveryInventoryItem = {
+  inventoryItem: Character["inventory"]["items"][number];
+  item: ItemMetadata;
+  recoverAmount: number | null;
+};
+type CharacterResourceState = {
+  fp: number;
+  hp: number;
+  mp: number;
+};
+type ConsumableCooldownState = Record<ConsumableResource, number>;
 
 type BattlePageProps = {
   character: Character;
+  initialBattleState?: BattlePersistenceState;
+  initialCharacterResources?: CharacterResourceState;
   itemsById: Record<string, ItemMetadata>;
+  onBattleStateChange?: (state: BattlePersistenceState) => void;
   onClearMonsterTarget?: () => void;
+  onCharacterResourcesChange?: (resources: CharacterResourceState) => void;
+  onConsumeInventoryItem?: (resource: ConsumableResource) => Promise<void> | void;
+  onEquipConsumableItem?: (resource: ConsumableResource, slotIndex: number | null) => void;
+  onLootInventoryItems?: (items: Array<{ itemId: string; quantity: number }>) => Promise<void> | void;
+  onUpdateCharacterProgression?: (progression: {
+    exp?: number;
+    level?: number;
+    penya?: number;
+  }) => Promise<void> | void;
   selectedMonsterFamily: MapMonsterFamily | null;
   skillTabs: SkillTreeTab[];
 };
 
 type CharacterPanelTab = "equipment" | "skills";
+type BattleOutcome = "fighting" | "playerDefeated" | "monsterDefeated";
+type BattleLogEntry = {
+  id: number;
+  message: string;
+  tone: "danger" | "muted" | "success";
+};
+type BattleDroppedItem = {
+  itemId: string;
+  quantity: number;
+};
+type BattlePersistenceState = {
+  droppedItems: BattleDroppedItem[];
+  log: BattleLogEntry[];
+};
+type BattleState = {
+  characterFp: number;
+  characterHp: number;
+  characterMp: number;
+  droppedItems: BattleDroppedItem[];
+  earnedPenya: number;
+  log: BattleLogEntry[];
+  monsterDefeatCount: number;
+  monsterHp: number | null;
+  outcome: BattleOutcome;
+  playerDefeatCount: number;
+};
 
 const actionSlotPositions = [
   { left: "50%", top: "18%" },
@@ -92,9 +147,89 @@ const dropCategoryLabels: Record<(typeof dropCategoryOrder)[number], string> = {
   upgradeMaterial: "Upgrade Materials",
   weapon: "Weapons"
 };
+const maxBattleLogEntries = 50;
+const passiveHpRegenIntervalMs = 5000;
+const passiveHpRegenRate = 0.05;
+const recoverySlots: Array<{
+  borderClassName: string;
+  icon: typeof HeartPulse;
+  label: string;
+  resource: ConsumableResource;
+}> = [
+  {
+    borderClassName: "border-[#ff6464]/78",
+    icon: HeartPulse,
+    label: "Food",
+    resource: "hp"
+  },
+  {
+    borderClassName: "border-[#5fb3ff]/78",
+    icon: Droplet,
+    label: "MP",
+    resource: "mp"
+  },
+  {
+    borderClassName: "border-[#64d875]/78",
+    icon: Flame,
+    label: "FP",
+    resource: "fp"
+  }
+];
+const emptyConsumableLoadout: NonNullable<Character["consumableLoadout"]> = {
+  fp: null,
+  hp: null,
+  mp: null
+};
+const emptyConsumableCooldowns: ConsumableCooldownState = {
+  fp: 0,
+  hp: 0,
+  mp: 0
+};
 
 function getSkillIconSrc(skill: SkillDefinition) {
   return `https://api.flyff.com/image/skill/colored/${skill.icon}`;
+}
+
+function clampResourceValue(value: number | null | undefined, max: number) {
+  return Math.max(0, Math.min(value ?? max, max));
+}
+
+function isRecoveryCategory(item: ItemMetadata) {
+  return (item.category ?? "").toLowerCase().startsWith("recovery");
+}
+
+function getRecoveryAbility(item: ItemMetadata, resource: ConsumableResource) {
+  return item.abilities.find((ability) => ability.parameter.toLowerCase() === resource) ?? null;
+}
+
+function getConsumableCooldownMs(item: ItemMetadata) {
+  return item.cooldown && item.cooldown > 0 ? item.cooldown * 1000 : 0;
+}
+
+function getRecoveryInventoryItems(
+  character: Character,
+  itemsById: Record<string, ItemMetadata>,
+  resource: ConsumableResource
+): RecoveryInventoryItem[] {
+  return character.inventory.items
+    .flatMap((inventoryItem) => {
+      const item = itemsById[inventoryItem.itemId];
+
+      if (!item || !isRecoveryCategory(item)) {
+        return [];
+      }
+
+      const ability = getRecoveryAbility(item, resource);
+
+      return ability ? [{ inventoryItem, item, recoverAmount: ability.add }] : [];
+    })
+    .sort((left, right) => {
+      const recoverDifference = (right.recoverAmount ?? 0) - (left.recoverAmount ?? 0);
+
+      return recoverDifference !== 0
+        ? recoverDifference
+        : left.item.name.localeCompare(right.item.name, undefined, { sensitivity: "base" });
+    });
 }
 
 function formatBattleValue(value: number | string | null | undefined) {
@@ -107,6 +242,72 @@ function getDropRarityTextClass(rarity: string | null | undefined) {
 
 function getDropRarityBorderClass(rarity: string | null | undefined) {
   return dropRarityBorderClassByName[rarity?.toLowerCase() ?? "common"] ?? dropRarityBorderClassByName.common;
+}
+
+function getDropChancePercent(drop: { probabilityRange?: string; prob?: string }) {
+  const chanceText = drop.probabilityRange ?? drop.prob ?? "";
+  const chanceValues = Array.from(chanceText.matchAll(/\d+(?:\.\d+)?/g)).map((match) => Number(match[0]));
+
+  if (chanceValues.length === 0) {
+    return 0;
+  }
+
+  const chance = Math.max(...chanceValues);
+
+  return chanceText.includes("%") || chance > 1 ? chance : chance * 100;
+}
+
+function rollMonsterDrops(
+  drops: MonsterFamilyVariant["drops"] | undefined,
+  random: () => number = Math.random
+): BattleDroppedItem[] {
+  return (drops ?? []).flatMap((drop) => {
+    const chancePercent = getDropChancePercent(drop);
+
+    if (chancePercent <= 0 || random() * 100 >= chancePercent) {
+      return [];
+    }
+
+    return [{ itemId: String(drop.item), quantity: 1 }];
+  });
+}
+
+function addDroppedItems(currentDrops: BattleDroppedItem[], nextDrops: BattleDroppedItem[]) {
+  if (nextDrops.length === 0) {
+    return currentDrops;
+  }
+
+  const dropsByItemId = new Map(currentDrops.map((drop) => [drop.itemId, { ...drop }]));
+
+  nextDrops.forEach((drop) => {
+    const existingDrop = dropsByItemId.get(drop.itemId);
+
+    if (existingDrop) {
+      existingDrop.quantity += drop.quantity;
+    } else {
+      dropsByItemId.set(drop.itemId, { ...drop });
+    }
+  });
+
+  return Array.from(dropsByItemId.values());
+}
+
+function removeDroppedItems(currentDrops: BattleDroppedItem[], removedDrops: BattleDroppedItem[]) {
+  const removedQuantityByItemId = new Map(removedDrops.map((drop) => [drop.itemId, drop.quantity]));
+
+  return currentDrops.flatMap((drop) => {
+    const removedQuantity = removedQuantityByItemId.get(drop.itemId) ?? 0;
+    const nextQuantity = drop.quantity - removedQuantity;
+
+    return nextQuantity > 0 ? [{ ...drop, quantity: nextQuantity }] : [];
+  });
+}
+
+function rollMonsterPenya(monster: MonsterFamilyVariant, random: () => number = Math.random) {
+  const minDropGold = Math.max(0, Math.floor(monster.minDropGold ?? 0));
+  const maxDropGold = Math.max(minDropGold, Math.floor(monster.maxDropGold ?? minDropGold));
+
+  return minDropGold + Math.floor(random() * (maxDropGold - minDropGold + 1));
 }
 
 function isQuestDropItem(item: ItemMetadata | undefined) {
@@ -268,8 +469,16 @@ function getDraggedActionSlotIndex(event: DragEvent<HTMLElement>) {
 
 export function BattlePage({
   character,
+  initialBattleState,
+  initialCharacterResources,
   itemsById,
+  onBattleStateChange,
   onClearMonsterTarget,
+  onCharacterResourcesChange,
+  onConsumeInventoryItem,
+  onEquipConsumableItem,
+  onLootInventoryItems,
+  onUpdateCharacterProgression,
   selectedMonsterFamily,
   skillTabs
 }: BattlePageProps) {
@@ -280,7 +489,13 @@ export function BattlePage({
   const [activeEquipmentSet, setActiveEquipmentSet] = useState(0);
   const [selectedEquipmentSlot, setSelectedEquipmentSlot] = useState<CharacterEquipmentSlot | null>(null);
   const [selectedActionSlotIndex, setSelectedActionSlotIndex] = useState(actionSlotFillOrder[0]);
+  const [selectedDroppedItemId, setSelectedDroppedItemId] = useState<string | null>(null);
+  const [isLootPending, setIsLootPending] = useState(false);
   const [isCombatInProgress, setIsCombatInProgress] = useState(false);
+  const [isPauseAfterCurrentMonster, setIsPauseAfterCurrentMonster] = useState(false);
+  const [consumableCooldownReadyAt, setConsumableCooldownReadyAt] =
+    useState<ConsumableCooldownState>(emptyConsumableCooldowns);
+  const [cooldownNow, setCooldownNow] = useState(() => Date.now());
   const [actionSlots, setActionSlots] = useState<ActionSlot[]>(() =>
     Array.from({ length: actionSlotPositions.length }, () => null)
   );
@@ -288,24 +503,466 @@ export function BattlePage({
     selectedMonsterFamily?.variants.find((variant) => variant.variantRank === "normal") ??
     selectedMonsterFamily?.variants[0] ??
     null;
-  const combatStats = getCombatStats(character, itemsById, activeEquipmentSet);
-  const characterAttackTiming = getAutoAttackTiming(character, combatStats);
+  const combatStats = useMemo(
+    () => getCombatStats(character, itemsById, activeEquipmentSet),
+    [activeEquipmentSet, character, itemsById]
+  );
+  const displayedCombatStats = useMemo(
+    () =>
+      selectedVariant
+        ? withEffectiveHitRate(
+            combatStats,
+            getEffectiveHitRate(character, itemsById, selectedVariant, activeEquipmentSet)
+          )
+        : combatStats,
+    [activeEquipmentSet, character, combatStats, itemsById, selectedVariant]
+  );
+  const characterAttackTiming = useMemo(
+    () => getAutoAttackTiming(character, combatStats, itemsById, activeEquipmentSet),
+    [activeEquipmentSet, character, combatStats, itemsById]
+  );
+  const recoveryItemsByResource = useMemo(
+    () => ({
+      fp: getRecoveryInventoryItems(character, itemsById, "fp"),
+      hp: getRecoveryInventoryItems(character, itemsById, "hp"),
+      mp: getRecoveryInventoryItems(character, itemsById, "mp")
+    }),
+    [character, itemsById]
+  );
   const characterHp = getCombatStatNumber(combatStats, "Max HP");
   const characterFp = getCombatStatNumber(combatStats, "Max FP");
   const characterMp = getCombatStatNumber(combatStats, "Max MP");
   const monsterHp = selectedVariant?.hp ?? null;
   const monsterAttack = selectedVariant ? getVariantPower(selectedVariant) : null;
-  const autoAttackDamage = selectedVariant
-    ? getAutoAttackDamage(character, itemsById, selectedVariant, activeEquipmentSet)
-    : null;
+  const autoAttackDamage = useMemo(
+    () =>
+      selectedVariant ? getAutoAttackDamage(character, itemsById, selectedVariant, activeEquipmentSet) : null,
+    [activeEquipmentSet, character, itemsById, selectedVariant]
+  );
+  const monsterExperience = selectedVariant?.experience ?? null;
+  const battleLogIdRef = useRef(
+    initialBattleState?.log.reduce((maxId, entry) => Math.max(maxId, entry.id), 0) ?? 0
+  );
+  const handledMonsterDefeatCountRef = useRef(0);
+  const handledPlayerDefeatCountRef = useRef(0);
+  const pendingLevelUpRestoreLevelRef = useRef<number | null>(null);
+  const [battleState, setBattleState] = useState<BattleState>(() => ({
+    characterFp: clampResourceValue(initialCharacterResources?.fp, characterFp),
+    characterHp: clampResourceValue(initialCharacterResources?.hp, characterHp),
+    characterMp: clampResourceValue(initialCharacterResources?.mp, characterMp),
+    droppedItems: initialBattleState?.droppedItems ?? [],
+    earnedPenya: 0,
+    log: initialBattleState?.log.slice(0, maxBattleLogEntries) ?? [],
+    monsterDefeatCount: 0,
+    monsterHp,
+    outcome: "fighting",
+    playerDefeatCount: 0
+  }));
+  const currentCharacterFp = Math.min(battleState.characterFp, characterFp);
+  const currentCharacterHp = Math.min(battleState.characterHp, characterHp);
+  const currentCharacterMp = Math.min(battleState.characterMp, characterMp);
+  const currentMonsterHp =
+    selectedVariant && battleState.monsterHp !== null
+      ? Math.min(battleState.monsterHp, monsterHp ?? 0)
+      : null;
+  const consumableCooldownRemainingByResource: ConsumableCooldownState = {
+    fp: Math.max(0, consumableCooldownReadyAt.fp - cooldownNow),
+    hp: Math.max(0, consumableCooldownReadyAt.hp - cooldownNow),
+    mp: Math.max(0, consumableCooldownReadyAt.mp - cooldownNow)
+  };
+  const canResolveCombat =
+    isCombatInProgress &&
+    selectedVariant !== null &&
+    battleState.outcome === "fighting" &&
+    currentMonsterHp !== null &&
+    currentMonsterHp > 0 &&
+    currentCharacterHp > 0;
+
+  function createBattleLogEntry(message: string, tone: BattleLogEntry["tone"]): BattleLogEntry {
+    battleLogIdRef.current += 1;
+
+    return {
+      id: battleLogIdRef.current,
+      message,
+      tone
+    };
+  }
+
+  function pushBattleLogEntry(currentLog: BattleLogEntry[], message: string, tone: BattleLogEntry["tone"]) {
+    return [createBattleLogEntry(message, tone), ...currentLog].slice(0, maxBattleLogEntries);
+  }
 
   useEffect(() => {
     setSelectedEquipmentSlot(null);
   }, [activeEquipmentSet]);
 
   useEffect(() => {
+    if (
+      selectedDroppedItemId &&
+      !battleState.droppedItems.some((drop) => drop.itemId === selectedDroppedItemId)
+    ) {
+      setSelectedDroppedItemId(null);
+    }
+  }, [battleState.droppedItems, selectedDroppedItemId]);
+
+  useEffect(() => {
     setIsCombatInProgress(false);
+    setIsPauseAfterCurrentMonster(false);
   }, [selectedMonsterFamily]);
+
+  useEffect(() => {
+    if (Object.values(consumableCooldownReadyAt).every((readyAt) => readyAt <= Date.now())) {
+      return undefined;
+    }
+
+    const cooldownInterval = window.setInterval(() => {
+      setCooldownNow(Date.now());
+    }, 100);
+
+    return () => window.clearInterval(cooldownInterval);
+  }, [consumableCooldownReadyAt]);
+
+  useEffect(() => {
+    setBattleState((current) => ({
+      ...current,
+      characterFp: clampResourceValue(current.characterFp, characterFp),
+      characterHp: clampResourceValue(current.characterHp, characterHp),
+      characterMp: clampResourceValue(current.characterMp, characterMp)
+    }));
+  }, [activeEquipmentSet, characterFp, characterHp, characterMp]);
+
+  useEffect(() => {
+    setBattleState((current) => ({
+      ...current,
+      monsterHp,
+      outcome: "fighting"
+    }));
+  }, [monsterHp, selectedVariant?.id]);
+
+  useEffect(() => {
+    if (
+      pendingLevelUpRestoreLevelRef.current === null ||
+      character.level < pendingLevelUpRestoreLevelRef.current
+    ) {
+      return;
+    }
+
+    pendingLevelUpRestoreLevelRef.current = null;
+    setBattleState((current) => ({
+      ...current,
+      characterFp,
+      characterHp,
+      characterMp
+    }));
+  }, [character.level, characterFp, characterHp, characterMp]);
+
+  useEffect(() => {
+    onCharacterResourcesChange?.({
+      fp: currentCharacterFp,
+      hp: currentCharacterHp,
+      mp: currentCharacterMp
+    });
+  }, [currentCharacterFp, currentCharacterHp, currentCharacterMp, onCharacterResourcesChange]);
+
+  useEffect(() => {
+    onBattleStateChange?.({
+      droppedItems: battleState.droppedItems,
+      log: battleState.log.slice(0, maxBattleLogEntries)
+    });
+  }, [battleState.droppedItems, battleState.log, onBattleStateChange]);
+
+  useEffect(() => {
+    setBattleState((current) => ({
+      ...current,
+      earnedPenya: 0
+    }));
+  }, [character.penya]);
+
+  useEffect(() => {
+    if (isCombatInProgress || characterHp <= 0) {
+      return undefined;
+    }
+
+    const regenAmount = Math.max(1, Math.floor(characterHp * passiveHpRegenRate));
+    const passiveRegenInterval = window.setInterval(() => {
+      setBattleState((current) => {
+        if (current.characterHp >= characterHp) {
+          return current;
+        }
+
+        return {
+          ...current,
+          characterHp: Math.min(characterHp, current.characterHp + regenAmount)
+        };
+      });
+    }, passiveHpRegenIntervalMs);
+
+    return () => window.clearInterval(passiveRegenInterval);
+  }, [characterHp, isCombatInProgress]);
+
+  useEffect(() => {
+    if (!canResolveCombat || !selectedVariant) {
+      return undefined;
+    }
+
+    const intervalMs = Math.max(100, characterAttackTiming.secondsPerAttack * 1000);
+    const playerAttackInterval = window.setInterval(() => {
+      setBattleState((current) => {
+        if (current.outcome !== "fighting" || current.monsterHp === null || current.monsterHp <= 0) {
+          return current;
+        }
+
+        const attack = rollPlayerAutoAttack(character, itemsById, selectedVariant, activeEquipmentSet);
+        const nextMonsterHp = Math.max(0, current.monsterHp - attack.damage);
+        const attackMessage = attack.isHit
+          ? `${character.name} ${attack.isCritical ? "critically hits" : "hits"} ${selectedVariant.name} for ${attack.damage}.`
+          : `${character.name} misses ${selectedVariant.name}.`;
+        let nextLog = pushBattleLogEntry(
+          current.log,
+          attackMessage,
+          attack.isHit ? (attack.isCritical ? "success" : "muted") : "danger"
+        );
+
+        if (nextMonsterHp <= 0) {
+          nextLog = pushBattleLogEntry(nextLog, `${selectedVariant.name} is defeated.`, "success");
+        }
+
+        return {
+          ...current,
+          log: nextLog,
+          monsterDefeatCount:
+            nextMonsterHp <= 0 ? current.monsterDefeatCount + 1 : current.monsterDefeatCount,
+          monsterHp: nextMonsterHp,
+          outcome: nextMonsterHp <= 0 ? "monsterDefeated" : "fighting"
+        };
+      });
+    }, intervalMs);
+
+    return () => window.clearInterval(playerAttackInterval);
+  }, [
+    activeEquipmentSet,
+    canResolveCombat,
+    character,
+    characterAttackTiming.secondsPerAttack,
+    itemsById,
+    selectedVariant
+  ]);
+
+  useEffect(() => {
+    if (!canResolveCombat || !selectedVariant) {
+      return undefined;
+    }
+
+    const monsterAttackInterval = window.setInterval(() => {
+      setBattleState((current) => {
+        if (current.outcome !== "fighting" || current.characterHp <= 0) {
+          return current;
+        }
+
+        const attack = rollMonsterAutoAttack(
+          selectedVariant,
+          character,
+          combatStats,
+          Math.random,
+          itemsById,
+          activeEquipmentSet
+        );
+        const nextCharacterHp = Math.max(0, current.characterHp - attack.damage);
+        const attackMessage = attack.isHit
+          ? `${selectedVariant.name} ${attack.isCritical ? "critically hits" : "hits"} ${character.name} for ${attack.damage}.`
+          : `${selectedVariant.name} misses ${character.name}.`;
+        let nextLog = pushBattleLogEntry(current.log, attackMessage, attack.isHit ? "danger" : "muted");
+
+        if (nextCharacterHp <= 0) {
+          nextLog = pushBattleLogEntry(nextLog, `${character.name} is defeated.`, "danger");
+        }
+
+        return {
+          ...current,
+          characterHp: nextCharacterHp,
+          log: nextLog,
+          outcome: nextCharacterHp <= 0 ? "playerDefeated" : "fighting",
+          playerDefeatCount: nextCharacterHp <= 0 ? current.playerDefeatCount + 1 : current.playerDefeatCount
+        };
+      });
+    }, 2400);
+
+    return () => window.clearInterval(monsterAttackInterval);
+  }, [activeEquipmentSet, canResolveCombat, character, combatStats, itemsById, selectedVariant]);
+
+  useEffect(() => {
+    if (battleState.outcome === "playerDefeated") {
+      setIsCombatInProgress(false);
+      setIsPauseAfterCurrentMonster(false);
+    }
+  }, [battleState.outcome]);
+
+  useEffect(() => {
+    if (
+      battleState.monsterDefeatCount === 0 ||
+      battleState.monsterDefeatCount === handledMonsterDefeatCountRef.current ||
+      !selectedVariant
+    ) {
+      return;
+    }
+
+    handledMonsterDefeatCountRef.current = battleState.monsterDefeatCount;
+    const penyaDrop = rollMonsterPenya(selectedVariant);
+    const droppedItems = rollMonsterDrops(selectedVariant.drops);
+    const nextPenya = character.penya + battleState.earnedPenya + penyaDrop;
+
+    setBattleState((current) => {
+      const nextDroppedItems = addDroppedItems(current.droppedItems, droppedItems);
+      const dropMessage =
+        droppedItems.length > 0
+          ? `${selectedVariant.name} dropped ${droppedItems
+              .map((drop) => itemsById[drop.itemId]?.name ?? `Item ${drop.itemId}`)
+              .join(", ")}.`
+          : `${selectedVariant.name} dropped no items.`;
+
+      return {
+        ...current,
+        droppedItems: nextDroppedItems,
+        earnedPenya: current.earnedPenya + penyaDrop,
+        log: pushBattleLogEntry(
+          pushBattleLogEntry(
+            current.log,
+            `${character.name} gains ${penyaDrop.toLocaleString()} Penya.`,
+            "success"
+          ),
+          dropMessage,
+          droppedItems.length > 0 ? "success" : "muted"
+        )
+      };
+    });
+
+    const expGain = getMonsterExpReward(character, selectedVariant);
+
+    if (expGain <= 0) {
+      setBattleState((current) => ({
+        ...current,
+        log: pushBattleLogEntry(current.log, `${character.name} gains no EXP.`, "muted")
+      }));
+      void Promise.resolve(onUpdateCharacterProgression?.({ penya: nextPenya })).catch(() => {
+        setBattleState((current) => ({
+          ...current,
+          log: pushBattleLogEntry(current.log, "Unable to save Penya gain.", "danger")
+        }));
+      });
+      return;
+    }
+
+    const nextProgression = applyExpGain(character, expGain);
+    const didLevelUp = nextProgression.level > character.level;
+    const levelUpResources = didLevelUp
+      ? getMaxCharacterResources(
+          { ...character, level: nextProgression.level },
+          itemsById,
+          activeEquipmentSet
+        )
+      : null;
+
+    if (didLevelUp) {
+      pendingLevelUpRestoreLevelRef.current = nextProgression.level;
+    }
+
+    setBattleState((current) => ({
+      ...current,
+      ...(levelUpResources
+        ? {
+            characterFp: levelUpResources.fp,
+            characterHp: levelUpResources.hp,
+            characterMp: levelUpResources.mp
+          }
+        : null),
+      log: pushBattleLogEntry(
+        current.log,
+        didLevelUp
+          ? `${character.name} gains ${expGain.toLocaleString()} EXP and reaches level ${nextProgression.level}.`
+          : `${character.name} gains ${expGain.toLocaleString()} EXP.`,
+        "success"
+      )
+    }));
+
+    void Promise.resolve(onUpdateCharacterProgression?.({ ...nextProgression, penya: nextPenya })).catch(
+      () => {
+        setBattleState((current) => ({
+          ...current,
+          log: pushBattleLogEntry(current.log, "Unable to save combat rewards.", "danger")
+        }));
+      }
+    );
+  }, [
+    activeEquipmentSet,
+    battleState.monsterDefeatCount,
+    character,
+    itemsById,
+    onUpdateCharacterProgression,
+    selectedVariant
+  ]);
+
+  useEffect(() => {
+    if (
+      battleState.playerDefeatCount === 0 ||
+      battleState.playerDefeatCount === handledPlayerDefeatCountRef.current
+    ) {
+      return;
+    }
+
+    handledPlayerDefeatCountRef.current = battleState.playerDefeatCount;
+    const nextProgression = applyDeathExpPenalty(character);
+
+    if (nextProgression.expLoss > 0) {
+      setBattleState((current) => ({
+        ...current,
+        log: pushBattleLogEntry(
+          current.log,
+          `${character.name} loses ${nextProgression.expLoss.toLocaleString()} EXP.`,
+          "danger"
+        )
+      }));
+    }
+
+    void Promise.resolve(
+      onUpdateCharacterProgression?.({
+        exp: nextProgression.exp,
+        level: nextProgression.level
+      })
+    ).catch(() => {
+      setBattleState((current) => ({
+        ...current,
+        log: pushBattleLogEntry(current.log, "Unable to save EXP penalty.", "danger")
+      }));
+    });
+  }, [battleState.playerDefeatCount, character, onUpdateCharacterProgression]);
+
+  useEffect(() => {
+    if (!isCombatInProgress || battleState.outcome !== "monsterDefeated" || !selectedVariant) {
+      return undefined;
+    }
+
+    const respawnTimeout = window.setTimeout(() => {
+      setBattleState((current) => ({
+        ...current,
+        log: pushBattleLogEntry(
+          current.log,
+          isPauseAfterCurrentMonster
+            ? `${selectedVariant.name} spawned. Combat paused.`
+            : `${selectedVariant.name} spawned.`,
+          "muted"
+        ),
+        monsterHp,
+        outcome: "fighting"
+      }));
+
+      if (isPauseAfterCurrentMonster) {
+        setIsCombatInProgress(false);
+        setIsPauseAfterCurrentMonster(false);
+      }
+    }, 2000);
+
+    return () => window.clearTimeout(respawnTimeout);
+  }, [battleState.outcome, isCombatInProgress, isPauseAfterCurrentMonster, monsterHp, selectedVariant]);
 
   function addSkillToFirstAvailableSlot(skill: SkillDefinition) {
     let nextSelectedActionSlotIndex: number | null = null;
@@ -422,7 +1079,173 @@ export function BattlePage({
 
   function handleRunAway() {
     setIsCombatInProgress(false);
+    setIsPauseAfterCurrentMonster(false);
     onClearMonsterTarget?.();
+  }
+
+  function handleStartCombat() {
+    setIsPauseAfterCurrentMonster(false);
+    setBattleState((current) => ({
+      characterFp: clampResourceValue(current.characterFp, characterFp),
+      characterHp: clampResourceValue(current.characterHp, characterHp),
+      characterMp: clampResourceValue(current.characterMp, characterMp),
+      droppedItems: current.droppedItems,
+      earnedPenya: current.earnedPenya,
+      log: selectedVariant
+        ? pushBattleLogEntry(current.log, `Combat started with ${selectedVariant.name}.`, "muted")
+        : current.log,
+      monsterDefeatCount: current.monsterDefeatCount,
+      monsterHp,
+      outcome: "fighting",
+      playerDefeatCount: current.playerDefeatCount
+    }));
+    setIsCombatInProgress(true);
+  }
+
+  async function handleUseRecoveryItem(
+    resource: ConsumableResource,
+    recoveryItem: RecoveryInventoryItem | null
+  ) {
+    if (!recoveryItem || !recoveryItem.recoverAmount || recoveryItem.recoverAmount <= 0) {
+      return;
+    }
+
+    const now = Date.now();
+    const cooldownRemainingMs = consumableCooldownReadyAt[resource] - now;
+
+    if (cooldownRemainingMs > 0) {
+      return;
+    }
+
+    const resourceKeyByResource = {
+      fp: "characterFp",
+      hp: "characterHp",
+      mp: "characterMp"
+    } as const;
+    const resourceMaxByResource = {
+      fp: characterFp,
+      hp: characterHp,
+      mp: characterMp
+    };
+    const resourceCurrentByResource = {
+      fp: currentCharacterFp,
+      hp: currentCharacterHp,
+      mp: currentCharacterMp
+    };
+    const resourceLabel = resource.toUpperCase();
+    const currentValue = Math.min(resourceCurrentByResource[resource], resourceMaxByResource[resource]);
+    const nextValue = Math.min(resourceMaxByResource[resource], currentValue + recoveryItem.recoverAmount);
+    const recoveredAmount = nextValue - currentValue;
+
+    if (recoveredAmount > 0) {
+      await Promise.resolve(onConsumeInventoryItem?.(resource));
+      const cooldownMs = getConsumableCooldownMs(recoveryItem.item);
+
+      if (cooldownMs > 0) {
+        setCooldownNow(now);
+        setConsumableCooldownReadyAt((current) => ({
+          ...current,
+          [resource]: now + cooldownMs
+        }));
+      }
+    }
+
+    setBattleState((current) => {
+      const resourceKey = resourceKeyByResource[resource];
+
+      return {
+        ...current,
+        [resourceKey]: nextValue,
+        log: pushBattleLogEntry(
+          current.log,
+          recoveredAmount > 0
+            ? `${recoveryItem.item.name} restores ${recoveredAmount.toLocaleString()} ${resourceLabel}.`
+            : `${resourceLabel} is already full.`,
+          recoveredAmount > 0 ? "success" : "muted"
+        )
+      };
+    });
+  }
+
+  function handlePauseCombat() {
+    setIsPauseAfterCurrentMonster(true);
+    setBattleState((current) => ({
+      ...current,
+      log: pushBattleLogEntry(current.log, "Combat will pause after this monster is defeated.", "muted")
+    }));
+  }
+
+  async function handleLootDroppedItems(dropsToLoot: BattleDroppedItem[]) {
+    if (dropsToLoot.length === 0 || isLootPending) {
+      return;
+    }
+
+    if (!onLootInventoryItems) {
+      setBattleState((current) => ({
+        ...current,
+        log: pushBattleLogEntry(current.log, "Unable to loot items.", "danger")
+      }));
+      return;
+    }
+
+    setIsLootPending(true);
+
+    try {
+      await Promise.resolve(onLootInventoryItems(dropsToLoot));
+      setBattleState((current) => ({
+        ...current,
+        droppedItems: removeDroppedItems(current.droppedItems, dropsToLoot),
+        log: pushBattleLogEntry(
+          current.log,
+          `Looted ${dropsToLoot
+            .map(
+              (drop) =>
+                `${drop.quantity.toLocaleString()}x ${itemsById[drop.itemId]?.name ?? `Item ${drop.itemId}`}`
+            )
+            .join(", ")}.`,
+          "success"
+        )
+      }));
+      setSelectedDroppedItemId(null);
+    } catch (lootError) {
+      setBattleState((current) => ({
+        ...current,
+        log: pushBattleLogEntry(
+          current.log,
+          lootError instanceof Error ? lootError.message : "Unable to loot items.",
+          "danger"
+        )
+      }));
+    } finally {
+      setIsLootPending(false);
+    }
+  }
+
+  function handleLootSelectedDroppedItem() {
+    const selectedDrop = battleState.droppedItems.find((drop) => drop.itemId === selectedDroppedItemId);
+
+    if (selectedDrop) {
+      void handleLootDroppedItems([selectedDrop]);
+    }
+  }
+
+  function handleDeleteDroppedItems() {
+    setBattleState((current) => ({
+      ...current,
+      droppedItems: [],
+      log:
+        current.droppedItems.length > 0
+          ? pushBattleLogEntry(current.log, "Deleted remaining dropped items.", "muted")
+          : current.log
+    }));
+    setSelectedDroppedItemId(null);
+  }
+
+  function handleClearBattleLog() {
+    setBattleState((current) => ({
+      ...current,
+      log: []
+    }));
   }
 
   return (
@@ -435,12 +1258,17 @@ export function BattlePage({
         activeEquipmentSet={activeEquipmentSet}
         activeTab={activeCharacterTab}
         character={character}
-        characterFp={characterFp}
-        characterHp={characterHp}
-        characterMp={characterMp}
+        characterFp={currentCharacterFp}
+        characterMaxFp={characterFp}
+        characterHp={currentCharacterHp}
+        characterMaxHp={characterHp}
+        characterMp={currentCharacterMp}
+        characterMaxMp={characterMp}
         characterAttackTiming={characterAttackTiming}
-        combatStats={combatStats}
-        isCombatInProgress={isCombatInProgress}
+        combatStats={displayedCombatStats}
+        cooldownRemainingByResource={consumableCooldownRemainingByResource}
+        battleLog={battleState.log}
+        isCombatInProgress={canResolveCombat}
         itemsById={itemsById}
         onAddSkillToActionSlot={addSkillToFirstAvailableSlot}
         onInsertSkillAtActionSlot={insertSkillAtActionSlot}
@@ -450,8 +1278,12 @@ export function BattlePage({
         onSelectEquipmentSlot={setSelectedEquipmentSlot}
         onSelectEquipmentSet={setActiveEquipmentSet}
         onTabChange={setActiveCharacterTab}
+        onClearBattleLog={handleClearBattleLog}
+        onEquipConsumableItem={onEquipConsumableItem}
+        onUseRecoveryItem={handleUseRecoveryItem}
         selectedActionSlotIndex={selectedActionSlotIndex}
         selectedEquipmentSlot={selectedEquipmentSlot}
+        recoveryItemsByResource={recoveryItemsByResource}
         skillTabs={skillTabs}
         skills={listedSkills}
       />
@@ -459,12 +1291,26 @@ export function BattlePage({
       <MonsterPanel
         itemsById={itemsById}
         autoAttackDamage={autoAttackDamage}
+        battleOutcome={battleState.outcome}
+        droppedItems={battleState.droppedItems}
+        isLootPending={isLootPending}
+        isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
         monsterAttack={monsterAttack}
+        monsterExperience={monsterExperience}
         isCombatInProgress={isCombatInProgress}
+        isAttackTimelineActive={canResolveCombat}
         monsterFamily={selectedMonsterFamily}
-        monsterHp={monsterHp}
+        monsterHp={currentMonsterHp}
+        monsterMaxHp={monsterHp}
         onRunAway={handleRunAway}
-        onStartCombat={() => setIsCombatInProgress(true)}
+        onPauseCombat={handlePauseCombat}
+        onStartCombat={handleStartCombat}
+        onDeleteDroppedItems={handleDeleteDroppedItems}
+        onLootAllDroppedItems={() => void handleLootDroppedItems(battleState.droppedItems)}
+        onLootDroppedItem={(drop) => void handleLootDroppedItems([drop])}
+        onLootSelectedDroppedItem={handleLootSelectedDroppedItem}
+        onSelectDroppedItem={setSelectedDroppedItemId}
+        selectedDroppedItemId={selectedDroppedItemId}
         selectedVariant={selectedVariant}
       />
     </section>
@@ -478,9 +1324,14 @@ function CharacterCombatPanel({
   character,
   characterAttackTiming,
   characterFp,
+  characterMaxFp,
   characterHp,
+  characterMaxHp,
   characterMp,
+  characterMaxMp,
   combatStats,
+  cooldownRemainingByResource,
+  battleLog,
   isCombatInProgress,
   itemsById,
   onMoveActionSlot,
@@ -490,6 +1341,10 @@ function CharacterCombatPanel({
   onSelectEquipmentSet,
   onTabChange,
   onAddSkillToActionSlot,
+  onClearBattleLog,
+  onEquipConsumableItem,
+  onUseRecoveryItem,
+  recoveryItemsByResource,
   selectedActionSlotIndex,
   selectedEquipmentSlot,
   onInsertSkillAtActionSlot,
@@ -502,12 +1357,19 @@ function CharacterCombatPanel({
   character: Character;
   characterAttackTiming: AttackTiming;
   characterFp: number;
+  characterMaxFp: number;
   characterHp: number;
+  characterMaxHp: number;
   characterMp: number;
+  characterMaxMp: number;
   combatStats: CombatStat[];
+  cooldownRemainingByResource: ConsumableCooldownState;
+  battleLog: BattleLogEntry[];
   isCombatInProgress: boolean;
   itemsById: Record<string, ItemMetadata>;
   onAddSkillToActionSlot: (skill: SkillDefinition) => void;
+  onClearBattleLog: () => void;
+  onEquipConsumableItem?: (resource: ConsumableResource, slotIndex: number | null) => void;
   onInsertSkillAtActionSlot: (skill: SkillDefinition, targetSlotIndex: number) => void;
   onMoveActionSlot: (sourceSlotIndex: number, targetSlotIndex: number) => void;
   onRemoveActionSlot: (slotIndex: number) => void;
@@ -515,27 +1377,46 @@ function CharacterCombatPanel({
   onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
   onSelectEquipmentSet: (setIndex: number) => void;
   onTabChange: (tab: CharacterPanelTab) => void;
+  onUseRecoveryItem: (resource: ConsumableResource, recoveryItem: RecoveryInventoryItem | null) => void;
+  recoveryItemsByResource: Record<ConsumableResource, RecoveryInventoryItem[]>;
   selectedActionSlotIndex: number;
   selectedEquipmentSlot: CharacterEquipmentSlot | null;
   skillTabs: SkillTreeTab[];
   skills: SkillDefinition[];
 }) {
   return (
-    <Panel as="section" className="h-full min-h-0 content-start gap-4" data-testid="battle_panel_character">
+    <Panel
+      as="section"
+      className="h-full min-h-0 gap-4 [grid-template-rows:auto_minmax(0,1fr)]"
+      data-testid="battle_panel_character"
+    >
       <CharacterCombatHeader
         attackTiming={characterAttackTiming}
         characterFp={characterFp}
+        characterMaxFp={characterMaxFp}
         characterHp={characterHp}
+        characterMaxHp={characterMaxHp}
         characterMp={characterMp}
+        characterMaxMp={characterMaxMp}
         isCombatInProgress={isCombatInProgress}
       />
-      <div className="grid min-h-0 items-start gap-4 lg:grid-cols-2">
-        <div className="grid min-w-0 content-start gap-4" data-testid="battle_div_character_control_column">
-          <FoodPanel />
+      <div className="grid min-h-0 items-stretch gap-4 lg:grid-cols-2">
+        <div
+          className="grid min-h-0 min-w-0 gap-4 [grid-template-rows:auto_auto_minmax(0,1fr)]"
+          data-testid="battle_div_character_control_column"
+        >
+          <FoodPanel
+            consumableLoadout={character.consumableLoadout ?? emptyConsumableLoadout}
+            cooldownRemainingByResource={cooldownRemainingByResource}
+            itemsById={itemsById}
+            onEquipConsumableItem={onEquipConsumableItem}
+            onUseRecoveryItem={onUseRecoveryItem}
+            recoveryItemsByResource={recoveryItemsByResource}
+          />
           <CharacterBattleTabs activeTab={activeTab} onTabChange={onTabChange} />
           <Panel
             as="section"
-            className="content-start gap-4 [&_[data-testid='equipment_div_content']]:justify-center [&_[data-testid='equipment_div_layout']]:!max-w-[190px]"
+            className="h-full min-h-0 content-start gap-4 overflow-y-auto [&_[data-testid='equipment_div_content']]:justify-center [&_[data-testid='equipment_div_layout']]:!max-w-[190px]"
             data-testid="battle_panel_character_loadout"
           >
             {activeTab === "equipment" ? (
@@ -568,7 +1449,13 @@ function CharacterCombatPanel({
             )}
           </Panel>
         </div>
-        <CharacterStatsPanel combatStats={combatStats} />
+        <div
+          className="grid min-h-0 min-w-0 gap-4 [grid-template-rows:auto_minmax(0,1fr)]"
+          data-testid="battle_div_character_stats_column"
+        >
+          <CharacterStatsPanel combatStats={combatStats} />
+          <MonsterLootBox battleLog={battleLog} onClearBattleLog={onClearBattleLog} />
+        </div>
       </div>
     </Panel>
   );
@@ -577,14 +1464,20 @@ function CharacterCombatPanel({
 function CharacterCombatHeader({
   attackTiming,
   characterFp,
+  characterMaxFp,
   characterHp,
+  characterMaxHp,
   characterMp,
+  characterMaxMp,
   isCombatInProgress
 }: {
   attackTiming: AttackTiming;
   characterFp: number;
+  characterMaxFp: number;
   characterHp: number;
+  characterMaxHp: number;
   characterMp: number;
+  characterMaxMp: number;
   isCombatInProgress: boolean;
 }) {
   return (
@@ -597,21 +1490,21 @@ function CharacterCombatHeader({
           label="HP"
           testIdPrefix="battle_character_header"
           value={characterHp}
-          max={characterHp}
+          max={characterMaxHp}
           tone="hp"
         />
         <StatusBar
           label="MP"
           testIdPrefix="battle_character_header"
           value={characterMp}
-          max={characterMp}
+          max={characterMaxMp}
           tone="mp"
         />
         <StatusBar
           label="FP"
           testIdPrefix="battle_character_header"
           value={characterFp}
-          max={characterFp}
+          max={characterMaxFp}
           tone="fp"
         />
       </div>
@@ -626,15 +1519,249 @@ function CharacterCombatHeader({
   );
 }
 
-function FoodPanel() {
+function FoodPanel({
+  consumableLoadout,
+  cooldownRemainingByResource,
+  itemsById,
+  onEquipConsumableItem,
+  onUseRecoveryItem,
+  recoveryItemsByResource
+}: {
+  consumableLoadout: NonNullable<Character["consumableLoadout"]>;
+  cooldownRemainingByResource: ConsumableCooldownState;
+  itemsById: Record<string, ItemMetadata>;
+  onEquipConsumableItem?: (resource: ConsumableResource, slotIndex: number | null) => void;
+  onUseRecoveryItem: (
+    resource: ConsumableResource,
+    recoveryItem: RecoveryInventoryItem | null
+  ) => Promise<void> | void;
+  recoveryItemsByResource: Record<ConsumableResource, RecoveryInventoryItem[]>;
+}) {
+  const [openRecoveryResource, setOpenRecoveryResource] = useState<ConsumableResource | null>(null);
+
+  useEffect(() => {
+    if (
+      openRecoveryResource &&
+      recoveryItemsByResource[openRecoveryResource].length === 0 &&
+      !consumableLoadout[openRecoveryResource]
+    ) {
+      setOpenRecoveryResource(null);
+    }
+  }, [consumableLoadout, openRecoveryResource, recoveryItemsByResource]);
+
   return (
     <Panel as="section" className="min-w-0 content-start gap-3" data-testid="battle_panel_food">
-      <SectionHeading eyebrow="Food" testId="battle_heading_food" title="Recovery" />
+      <SectionHeading eyebrow="Recovery" testId="battle_heading_food" />
       <div
-        className="grid min-h-[72px] place-items-center rounded-control border border-dashed border-[rgba(138,116,65,0.64)] bg-black/24 p-3 text-center text-sm font-bold text-text-muted"
-        data-testid="battle_div_food_empty"
+        className="grid grid-cols-3 gap-2 rounded-control border border-[rgba(138,116,65,0.58)] bg-black/24 p-2"
+        data-testid="battle_div_food_slots"
       >
-        No food selected
+        {recoverySlots.map((slot) => {
+          const Icon = slot.icon;
+          const items = recoveryItemsByResource[slot.resource];
+          const selectedConsumable = consumableLoadout[slot.resource];
+          const hasEquippedConsumable = Boolean(selectedConsumable);
+          const selectedItem = selectedConsumable ? itemsById[selectedConsumable.itemId] : null;
+          const selectedEntry =
+            selectedConsumable && selectedItem
+              ? {
+                  inventoryItem: {
+                    itemId: selectedConsumable.itemId,
+                    quantity: selectedConsumable.quantity,
+                    slotIndex: -1
+                  },
+                  item: selectedItem,
+                  recoverAmount: getRecoveryAbility(selectedItem, slot.resource)?.add ?? null
+                }
+              : null;
+          const menuLabel = `${slot.label} recovery item`;
+          const isOpen = openRecoveryResource === slot.resource;
+          const cooldownRemainingMs = cooldownRemainingByResource[slot.resource];
+          const isCoolingDown = cooldownRemainingMs > 0;
+          const cooldownRemainingSeconds = Math.ceil(cooldownRemainingMs / 1000);
+          const cooldownMs = selectedEntry ? getConsumableCooldownMs(selectedEntry.item) : 0;
+          const cooldownRemainingPercent =
+            cooldownMs > 0 ? Math.min(100, Math.max(0, (cooldownRemainingMs / cooldownMs) * 100)) : 0;
+          const cooldownElapsedPercent = 100 - cooldownRemainingPercent;
+          const canOpenMenu = items.length > 0 || hasEquippedConsumable;
+
+          return (
+            <div
+              className="relative grid min-w-0 gap-1"
+              data-testid={`battle_div_food_slot_${slot.resource}`}
+              key={slot.resource}
+            >
+              <div
+                className={cx(
+                  "grid h-[46px] w-full min-w-0 grid-cols-[minmax(0,1fr)_18px] overflow-hidden rounded-[4px] border-2 bg-black/42 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-black/30 focus:outline-none focus:ring-2 focus:ring-[#f5d451]/55 disabled:cursor-not-allowed disabled:opacity-60",
+                  slot.borderClassName,
+                  isOpen ? "bg-[rgba(245,212,81,0.12)]" : ""
+                )}
+                data-testid={`battle_div_food_control_${slot.resource}`}
+              >
+                <button
+                  aria-label={`Use ${slot.label} recovery item`}
+                  className="relative grid min-w-0 place-items-center p-1 disabled:cursor-not-allowed"
+                  data-testid={`battle_button_food_${slot.resource}`}
+                  disabled={!selectedEntry || isCoolingDown}
+                  onClick={() => onUseRecoveryItem(slot.resource, selectedEntry ?? null)}
+                  title={
+                    isCoolingDown
+                      ? `${selectedEntry?.item.name ?? slot.label} ready in ${cooldownRemainingSeconds}s`
+                      : (selectedEntry?.item.name ?? slot.label)
+                  }
+                  type="button"
+                >
+                  <span
+                    className="grid h-9 w-9 place-items-center"
+                    data-testid={`battle_span_food_icon_${slot.resource}`}
+                  >
+                    {selectedEntry?.item.icon ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="h-9 w-9 object-contain"
+                        height={36}
+                        src={getItemIconUrl(selectedEntry.item.icon)}
+                        unoptimized
+                        width={36}
+                      />
+                    ) : (
+                      <Icon aria-hidden="true" className="text-text-muted" size={20} />
+                    )}
+                  </span>
+                  {selectedEntry ? (
+                    <>
+                      <span
+                        className="absolute bottom-0.5 right-0.5 rounded-[3px] border border-black/60 bg-black/82 px-1 text-[0.72rem] font-black leading-4 text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+                        data-testid={`battle_span_food_quantity_${slot.resource}`}
+                      >
+                        x{selectedEntry.inventoryItem.quantity.toLocaleString()}
+                      </span>
+                      {selectedEntry.recoverAmount !== null ? (
+                        <span
+                          className="absolute left-0.5 top-0.5 px-1 text-[0.72rem] font-black leading-4 text-primary drop-shadow-[0_1px_1px_rgba(0,0,0,0.92)]"
+                          data-testid={`battle_span_food_recovery_${slot.resource}`}
+                        >
+                          +{selectedEntry.recoverAmount.toLocaleString()}
+                        </span>
+                      ) : null}
+                      {isCoolingDown ? (
+                        <>
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-0 rounded-[3px] opacity-95 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)]"
+                            data-testid={`battle_span_food_cooldown_clock_${slot.resource}`}
+                            style={{
+                              background: `conic-gradient(from 0deg, rgba(6,6,6,0.2) 0% ${cooldownElapsedPercent}%, rgba(6,6,6,0.82) ${cooldownElapsedPercent}% 100%)`
+                            }}
+                          />
+                          <span
+                            className="absolute inset-0 grid place-items-center rounded-[3px] bg-black/22 text-[0.78rem] font-black text-primary drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
+                            data-testid={`battle_span_food_cooldown_${slot.resource}`}
+                          >
+                            {cooldownRemainingSeconds}s
+                          </span>
+                        </>
+                      ) : null}
+                    </>
+                  ) : null}
+                </button>
+                <button
+                  aria-expanded={isOpen}
+                  aria-label={menuLabel}
+                  className="grid h-full place-items-center border-l border-white/10 bg-black/26 transition-colors hover:bg-[rgba(245,212,81,0.14)] disabled:cursor-not-allowed disabled:opacity-60"
+                  data-testid={`battle_button_food_menu_${slot.resource}`}
+                  disabled={!canOpenMenu}
+                  onClick={() =>
+                    setOpenRecoveryResource((current) => (current === slot.resource ? null : slot.resource))
+                  }
+                  type="button"
+                >
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={cx("text-text-muted transition-transform", isOpen ? "rotate-180" : "")}
+                    size={16}
+                  />
+                </button>
+              </div>
+              {isOpen ? (
+                <div
+                  aria-label={`${slot.label} recovery options`}
+                  className="absolute left-0 top-[52px] z-20 grid max-h-[220px] w-[min(240px,calc(100vw-2rem))] gap-1 overflow-y-auto rounded-control border border-[rgba(226,179,63,0.58)] bg-[linear-gradient(180deg,rgba(31,29,22,0.98),rgba(5,6,5,0.98))] p-2 shadow-[0_16px_30px_rgba(0,0,0,0.46)] [scrollbar-color:rgba(245,212,81,0.55)_rgba(0,0,0,0.28)] [scrollbar-width:thin]"
+                  data-testid={`battle_div_food_menu_${slot.resource}`}
+                  role="menu"
+                >
+                  {hasEquippedConsumable ? (
+                    <button
+                      className="grid min-w-0 grid-cols-[34px_minmax(0,1fr)] items-center gap-2 rounded-[4px] border border-transparent bg-black/20 p-2 text-left text-xs font-bold transition-colors hover:border-primary hover:bg-[rgba(245,212,81,0.1)]"
+                      data-testid={`battle_button_food_option_${slot.resource}_none`}
+                      onClick={() => {
+                        onEquipConsumableItem?.(slot.resource, null);
+                        setOpenRecoveryResource(null);
+                      }}
+                      role="menuitem"
+                      type="button"
+                    >
+                      <span className="grid h-[34px] w-[34px] place-items-center rounded-[4px] border border-[rgba(138,116,65,0.58)] bg-black/38">
+                        <Icon aria-hidden="true" className="text-text-muted" size={18} />
+                      </span>
+                      <span className="grid min-w-0 gap-0.5">
+                        <strong className="min-w-0 truncate text-foreground">None</strong>
+                        <span className="text-[0.68rem] font-black uppercase tracking-wide text-text-muted">
+                          Unequip
+                        </span>
+                      </span>
+                    </button>
+                  ) : null}
+                  {items.map((entry) => {
+                    const isSelected = entry.item.id === selectedEntry?.item.id;
+
+                    return (
+                      <button
+                        className={cx(
+                          "grid min-w-0 grid-cols-[34px_minmax(0,1fr)] items-center gap-2 rounded-[4px] border border-transparent bg-black/20 p-2 text-left text-xs font-bold transition-colors hover:border-primary hover:bg-[rgba(245,212,81,0.1)]",
+                          isSelected ? "border-[#f5d451]/60 bg-[rgba(245,212,81,0.14)]" : ""
+                        )}
+                        data-testid={`battle_button_food_option_${slot.resource}_${getTestIdSegment(entry.item.name)}`}
+                        key={`${slot.resource}-${entry.inventoryItem.slotIndex}`}
+                        onClick={() => {
+                          onEquipConsumableItem?.(slot.resource, entry.inventoryItem.slotIndex);
+                          setOpenRecoveryResource(null);
+                        }}
+                        role="menuitem"
+                        type="button"
+                      >
+                        <span className="grid h-[34px] w-[34px] place-items-center rounded-[4px] border border-[rgba(138,116,65,0.58)] bg-black/38">
+                          {entry.item.icon ? (
+                            <Image
+                              alt=""
+                              aria-hidden="true"
+                              className="h-8 w-8 object-contain"
+                              height={32}
+                              src={getItemIconUrl(entry.item.icon)}
+                              unoptimized
+                              width={32}
+                            />
+                          ) : (
+                            <Icon aria-hidden="true" className="text-text-muted" size={18} />
+                          )}
+                        </span>
+                        <span className="grid min-w-0 gap-0.5">
+                          <strong className="min-w-0 truncate text-foreground">{entry.item.name}</strong>
+                          <span className="text-[0.68rem] font-black uppercase tracking-wide text-text-muted">
+                            x{entry.inventoryItem.quantity}
+                            {entry.recoverAmount !== null ? ` / +${entry.recoverAmount}` : ""}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </Panel>
   );
@@ -649,7 +1776,7 @@ function CharacterBattleTabs({
 }) {
   return (
     <Panel as="section" className="min-w-0 content-start gap-3" data-testid="battle_panel_character_menu">
-      <SectionHeading eyebrow="Menu" testId="battle_heading_character_menu" title="Loadout" />
+      <SectionHeading eyebrow="Loadout" testId="battle_heading_character_menu" />
       <div
         className="grid grid-cols-2 gap-1 rounded-control border border-border bg-black/35 p-1"
         data-testid="battle_div_character_tabs"
@@ -719,7 +1846,7 @@ function CharacterStatsPanel({ combatStats }: { combatStats: CombatStat[] }) {
 
   return (
     <Panel as="section" className="min-w-0 content-start gap-4" data-testid="battle_panel_character_stats">
-      <SectionHeading eyebrow="Stats" testId="battle_heading_character_stats" title="Character" />
+      <SectionHeading eyebrow="Character" testId="battle_heading_character_stats" />
       <div
         className="grid gap-2 text-sm font-bold min-[520px]:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2"
         data-testid="battle_div_character_stats"
@@ -758,6 +1885,31 @@ function getCombatStatNumber(combatStats: CombatStat[], label: string) {
   const value = Number(stat?.value.replace(/,/g, ""));
 
   return Number.isFinite(value) ? value : 0;
+}
+
+function getMaxCharacterResources(
+  character: Character,
+  itemsById: Record<string, ItemMetadata>,
+  equipmentSet: number
+): CharacterResourceState {
+  const combatStats = getCombatStats(character, itemsById, equipmentSet);
+
+  return {
+    fp: getCombatStatNumber(combatStats, "Max FP"),
+    hp: getCombatStatNumber(combatStats, "Max HP"),
+    mp: getCombatStatNumber(combatStats, "Max MP")
+  };
+}
+
+function withEffectiveHitRate(combatStats: CombatStat[], effectiveHitRate: number) {
+  return combatStats.map((stat) =>
+    stat.label === "Hit Rate"
+      ? {
+          label: "Hit Rate",
+          value: `${effectiveHitRate.toFixed(0)}%`
+        }
+      : stat
+  );
 }
 
 function BattleEquipmentPanel({
@@ -1252,41 +2404,91 @@ function ActionWheel({
 
 function MonsterPanel({
   autoAttackDamage,
+  battleOutcome,
+  droppedItems,
+  isAttackTimelineActive,
   isCombatInProgress,
+  isLootPending,
+  isPauseAfterCurrentMonster,
   itemsById,
   monsterAttack,
+  monsterExperience,
   monsterFamily,
   monsterHp,
+  monsterMaxHp,
+  onDeleteDroppedItems,
+  onLootAllDroppedItems,
+  onLootDroppedItem,
+  onLootSelectedDroppedItem,
+  onPauseCombat,
   onRunAway,
+  onSelectDroppedItem,
   onStartCombat,
+  selectedDroppedItemId,
   selectedVariant
 }: {
   autoAttackDamage: AutoAttackDamage | null;
+  battleOutcome: BattleOutcome;
+  droppedItems: BattleDroppedItem[];
+  isAttackTimelineActive: boolean;
   isCombatInProgress: boolean;
+  isLootPending: boolean;
+  isPauseAfterCurrentMonster: boolean;
   itemsById: Record<string, ItemMetadata>;
   monsterAttack: number | null;
+  monsterExperience: number | null;
   monsterFamily: MapMonsterFamily | null;
   monsterHp: number | null;
+  monsterMaxHp: number | null;
+  onDeleteDroppedItems: () => void;
+  onLootAllDroppedItems: () => void;
+  onLootDroppedItem: (drop: BattleDroppedItem) => void;
+  onLootSelectedDroppedItem: () => void;
+  onPauseCombat: () => void;
   onRunAway: () => void;
+  onSelectDroppedItem: (itemId: string) => void;
   onStartCombat: () => void;
+  selectedDroppedItemId: string | null;
   selectedVariant: MonsterFamilyVariant | null;
 }) {
   const [isDropsOverlayOpen, setIsDropsOverlayOpen] = useState(false);
 
   return (
-    <Panel as="section" className="h-full min-h-0 content-start gap-4" data-testid="battle_panel_monster">
-      <MonsterCombatHeader isCombatInProgress={isCombatInProgress} monsterHp={monsterHp} />
+    <Panel
+      as="section"
+      className="h-full min-h-0 gap-4 [grid-template-rows:auto_auto_auto_minmax(0,1fr)]"
+      data-testid="battle_panel_monster"
+    >
+      <MonsterCombatHeader
+        isCombatInProgress={isAttackTimelineActive}
+        monsterHp={monsterHp}
+        monsterMaxHp={monsterMaxHp}
+      />
       <MonsterBasicPanel monsterFamily={monsterFamily} selectedVariant={selectedVariant} />
       <MonsterStatsAndOptionsPanel
         autoAttackDamage={autoAttackDamage}
+        battleOutcome={battleOutcome}
         isCombatInProgress={isCombatInProgress}
+        isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
         monsterAttack={monsterAttack}
+        monsterExperience={monsterExperience}
+        onPauseCombat={onPauseCombat}
         onRunAway={onRunAway}
         onStartCombat={onStartCombat}
         onViewDrops={() => setIsDropsOverlayOpen(true)}
         selectedVariant={selectedVariant}
       />
-      <MonsterLootBox />
+      <MonsterDroppedItemsSection
+        droppedItems={droppedItems}
+        isLootPending={isLootPending}
+        itemsById={itemsById}
+        onDeleteDroppedItems={onDeleteDroppedItems}
+        onLootAllDroppedItems={onLootAllDroppedItems}
+        onLootDroppedItem={onLootDroppedItem}
+        onLootSelectedDroppedItem={onLootSelectedDroppedItem}
+        onSelectDroppedItem={onSelectDroppedItem}
+        selectedDroppedItemId={selectedDroppedItemId}
+      />
       {isDropsOverlayOpen ? (
         <MonsterDropsOverlay
           itemsById={itemsById}
@@ -1301,10 +2503,12 @@ function MonsterPanel({
 
 function MonsterCombatHeader({
   isCombatInProgress,
-  monsterHp
+  monsterHp,
+  monsterMaxHp
 }: {
   isCombatInProgress: boolean;
   monsterHp: number | null;
+  monsterMaxHp: number | null;
 }) {
   return (
     <div
@@ -1321,8 +2525,8 @@ function MonsterCombatHeader({
         <StatusBar
           label="HP"
           testIdPrefix="battle_monster_header"
-          value={Math.round(monsterHp * 0.74)}
-          max={monsterHp}
+          value={monsterHp}
+          max={monsterMaxHp ?? monsterHp}
           tone="hp"
         />
       ) : (
@@ -1338,7 +2542,6 @@ function MonsterCombatHeader({
 }
 
 function MonsterBasicPanel({
-  monsterFamily,
   selectedVariant
 }: {
   monsterFamily: MapMonsterFamily | null;
@@ -1346,11 +2549,7 @@ function MonsterBasicPanel({
 }) {
   return (
     <Panel as="section" className="content-start gap-4" data-testid="battle_panel_monster_basic">
-      <SectionHeading
-        eyebrow="Target"
-        testId="battle_heading_monster_basic"
-        title={monsterFamily?.name ?? "No target"}
-      />
+      <SectionHeading eyebrow="Target" testId="battle_heading_monster_basic" />
       <div className="grid gap-4 min-[560px]:grid-cols-[96px_1fr] min-[560px]:items-start">
         {selectedVariant?.icon ? (
           <div
@@ -1377,7 +2576,7 @@ function MonsterBasicPanel({
         )}
         {selectedVariant ? (
           <div className="grid gap-2 text-sm font-bold" data-testid="battle_div_monster_info">
-            <InfoRow label="Variant" value={selectedVariant.name} />
+            <InfoRow label="Monster" value={selectedVariant.name} />
             <InfoRow label="Level" value={formatBattleValue(selectedVariant.level)} />
             <InfoRow label="Rank" value={formatBattleValue(selectedVariant.rank)} />
             <InfoRow label="Element" value={formatBattleValue(selectedVariant.element)} />
@@ -1394,16 +2593,24 @@ function MonsterBasicPanel({
 
 function MonsterStatsAndOptionsPanel({
   autoAttackDamage,
+  battleOutcome,
   isCombatInProgress,
+  isPauseAfterCurrentMonster,
   monsterAttack,
+  monsterExperience,
+  onPauseCombat,
   onRunAway,
   onStartCombat,
   onViewDrops,
   selectedVariant
 }: {
   autoAttackDamage: AutoAttackDamage | null;
+  battleOutcome: BattleOutcome;
   isCombatInProgress: boolean;
+  isPauseAfterCurrentMonster: boolean;
   monsterAttack: number | null;
+  monsterExperience: number | null;
+  onPauseCombat: () => void;
   onRunAway: () => void;
   onStartCombat: () => void;
   onViewDrops: () => void;
@@ -1411,7 +2618,7 @@ function MonsterStatsAndOptionsPanel({
 }) {
   return (
     <Panel as="section" className="content-start gap-4" data-testid="battle_panel_monster_stats">
-      <SectionHeading eyebrow="Stats" testId="battle_heading_monster_stats" title="Monster" />
+      <SectionHeading eyebrow="Monster" testId="battle_heading_monster_stats" />
       {selectedVariant ? (
         <div className="grid gap-3 min-[900px]:grid-cols-3" data-testid="battle_div_monster_more_stats">
           <div
@@ -1426,6 +2633,10 @@ function MonsterStatsAndOptionsPanel({
             </h3>
             <InfoRow label="Attack" value={String(monsterAttack || "?")} />
             <InfoRow
+              label="EXP"
+              value={monsterExperience === null ? "Unknown" : Math.floor(monsterExperience).toLocaleString()}
+            />
+            <InfoRow
               label="Damage"
               value={`${formatBattleValue(selectedVariant.minAttack)} - ${formatBattleValue(selectedVariant.maxAttack)}`}
             />
@@ -1436,10 +2647,7 @@ function MonsterStatsAndOptionsPanel({
                   label="Player DPS"
                   value={formatBattleValue(Math.round(autoAttackDamage.damagePerSecond))}
                 />
-                <InfoRow
-                  label="Hit Chance"
-                  value={`${autoAttackDamage.effectiveHitRate.toFixed(0)}%`}
-                />
+                <InfoRow label="Hit Chance" value={`${autoAttackDamage.effectiveHitRate.toFixed(0)}%`} />
                 <InfoRow
                   label="Time To Kill"
                   value={
@@ -1465,7 +2673,10 @@ function MonsterStatsAndOptionsPanel({
             <InfoRow label="Magic DEF" value={formatBattleValue(selectedVariant.magicDefense)} />
           </div>
           <MonsterCombatOptions
+            battleOutcome={battleOutcome}
             isCombatInProgress={isCombatInProgress}
+            isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
+            onPauseCombat={onPauseCombat}
             onRunAway={onRunAway}
             onStartCombat={onStartCombat}
             onViewDrops={onViewDrops}
@@ -1482,18 +2693,29 @@ function MonsterStatsAndOptionsPanel({
 }
 
 function MonsterCombatOptions({
+  battleOutcome,
   isCombatInProgress,
+  isPauseAfterCurrentMonster,
+  onPauseCombat,
   onRunAway,
   onStartCombat,
   onViewDrops,
   selectedVariant
 }: {
+  battleOutcome: BattleOutcome;
   isCombatInProgress: boolean;
+  isPauseAfterCurrentMonster: boolean;
+  onPauseCombat: () => void;
   onRunAway: () => void;
   onStartCombat: () => void;
   onViewDrops: () => void;
   selectedVariant: MonsterFamilyVariant | null;
 }) {
+  const startLabel =
+    battleOutcome === "monsterDefeated" || battleOutcome === "playerDefeated"
+      ? "Restart combat"
+      : "Start combat";
+
   return (
     <div
       className="grid content-start gap-3 rounded-control border border-[rgba(138,116,65,0.58)] bg-black/24 p-3"
@@ -1507,8 +2729,13 @@ function MonsterCombatOptions({
       </h3>
       <div className="grid gap-2" data-testid="battle_div_monster_combat_buttons">
         {isCombatInProgress ? (
-          <Button data-testid="battle_button_run_away" onClick={onRunAway} type="button" variant="secondary">
-            Run away
+          <Button
+            data-testid="battle_button_pause_combat"
+            disabled={isPauseAfterCurrentMonster}
+            onClick={onPauseCombat}
+            type="button"
+          >
+            {isPauseAfterCurrentMonster ? "Pausing..." : "Pause combat"}
           </Button>
         ) : (
           <Button
@@ -1517,7 +2744,7 @@ function MonsterCombatOptions({
             onClick={onStartCombat}
             type="button"
           >
-            Start combat
+            {startLabel}
           </Button>
         )}
         <Button
@@ -1528,20 +2755,200 @@ function MonsterCombatOptions({
         >
           View monster drops
         </Button>
+        {isCombatInProgress ? (
+          <Button data-testid="battle_button_run_away" onClick={onRunAway} type="button" variant="secondary">
+            Run away
+          </Button>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function MonsterLootBox() {
+function MonsterLootBox({
+  battleLog,
+  onClearBattleLog
+}: {
+  battleLog: BattleLogEntry[];
+  onClearBattleLog: () => void;
+}) {
   return (
-    <Panel as="section" className="content-start gap-3" data-testid="battle_panel_monster_loot_box">
-      <SectionHeading eyebrow="Loot" testId="battle_heading_monster_loot_box" title="Loot Box" />
+    <Panel
+      as="section"
+      className="h-full min-h-0 gap-3 [grid-template-rows:auto_minmax(0,1fr)]"
+      data-testid="battle_panel_monster_loot_box"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionHeading eyebrow="Combat Log" testId="battle_heading_monster_loot_box" />
+        <Button
+          className="min-h-9 px-3 text-sm"
+          data-testid="battle_button_clear_combat_log"
+          disabled={battleLog.length === 0}
+          onClick={onClearBattleLog}
+          type="button"
+          variant="secondary"
+        >
+          Clear
+        </Button>
+      </div>
       <div
-        className="grid min-h-[104px] place-items-center rounded-control border border-dashed border-[rgba(138,116,65,0.62)] bg-black/24 p-3"
+        className="grid min-h-0 overflow-y-auto rounded-control border border-dashed border-[rgba(138,116,65,0.62)] bg-black/24 p-3 pr-2 [scrollbar-color:rgba(245,212,81,0.55)_rgba(0,0,0,0.28)] [scrollbar-width:thin]"
         data-testid="battle_div_monster_loot_box_inventory"
       >
-        <MutedText data-testid="battle_p_monster_loot_box_empty">No loot collected yet.</MutedText>
+        {battleLog.length > 0 ? (
+          <ol className="grid content-start gap-1.5 text-sm font-bold" data-testid="battle_list_combat_log">
+            {battleLog.map((entry) => (
+              <li
+                className={cx(
+                  "rounded-[4px] border border-transparent bg-black/18 px-2 py-1",
+                  entry.tone === "danger"
+                    ? "text-[#ff9b86]"
+                    : entry.tone === "success"
+                      ? "text-[#94e6a7]"
+                      : "text-text-muted"
+                )}
+                data-testid={`battle_li_combat_log_${entry.id}`}
+                key={entry.id}
+              >
+                {entry.message}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="grid place-items-center">
+            <MutedText data-testid="battle_p_monster_loot_box_empty">No combat actions yet.</MutedText>
+          </div>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+function MonsterDroppedItemsSection({
+  droppedItems,
+  isLootPending,
+  itemsById,
+  onDeleteDroppedItems,
+  onLootAllDroppedItems,
+  onLootDroppedItem,
+  onLootSelectedDroppedItem,
+  onSelectDroppedItem,
+  selectedDroppedItemId
+}: {
+  droppedItems: BattleDroppedItem[];
+  isLootPending: boolean;
+  itemsById: Record<string, ItemMetadata>;
+  onDeleteDroppedItems: () => void;
+  onLootAllDroppedItems: () => void;
+  onLootDroppedItem: (drop: BattleDroppedItem) => void;
+  onLootSelectedDroppedItem: () => void;
+  onSelectDroppedItem: (itemId: string) => void;
+  selectedDroppedItemId: string | null;
+}) {
+  const hasDroppedItems = droppedItems.length > 0;
+
+  return (
+    <Panel
+      as="section"
+      className="h-full min-h-0 gap-3 [grid-template-rows:auto_minmax(0,1fr)]"
+      data-testid="battle_panel_monster_dropped_items"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionHeading eyebrow="Drops" testId="battle_heading_monster_dropped_items" />
+        <div className="flex flex-wrap gap-2" data-testid="battle_div_monster_dropped_item_actions">
+          <Button
+            className="min-h-9 px-3 text-sm"
+            data-testid="battle_button_loot_selected_drop"
+            disabled={!hasDroppedItems || !selectedDroppedItemId || isLootPending}
+            onClick={onLootSelectedDroppedItem}
+            type="button"
+          >
+            Loot
+          </Button>
+          <Button
+            className="min-h-9 px-3 text-sm"
+            data-testid="battle_button_loot_all_drops"
+            disabled={!hasDroppedItems || isLootPending}
+            onClick={onLootAllDroppedItems}
+            type="button"
+            variant="secondary"
+          >
+            Loot all
+          </Button>
+          <Button
+            aria-label="Delete remaining dropped items"
+            className="min-h-9 px-3 text-sm"
+            data-testid="battle_button_delete_drops"
+            disabled={!hasDroppedItems || isLootPending}
+            onClick={onDeleteDroppedItems}
+            title="Delete remaining dropped items"
+            type="button"
+            variant="secondary"
+          >
+            <Trash2 aria-hidden="true" size={16} />
+          </Button>
+        </div>
+      </div>
+      <div
+        className="grid min-h-0 overflow-y-auto rounded-control border border-dashed border-[rgba(138,116,65,0.62)] bg-black/24 p-3 pr-2 [scrollbar-color:rgba(245,212,81,0.55)_rgba(0,0,0,0.28)] [scrollbar-width:thin]"
+        data-testid="battle_div_monster_dropped_items_inventory"
+      >
+        {hasDroppedItems ? (
+          <ol
+            className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] content-start gap-2"
+            data-testid="battle_list_monster_dropped_items"
+          >
+            {droppedItems.map((drop) => {
+              const item = itemsById[drop.itemId];
+              const itemName = item?.name ?? `Item ${drop.itemId}`;
+              const isSelected = selectedDroppedItemId === drop.itemId;
+
+              return (
+                <li
+                  data-testid={`battle_li_monster_dropped_item_${getTestIdSegment(itemName)}`}
+                  key={drop.itemId}
+                >
+                  <button
+                    aria-label={`Select dropped item ${itemName}`}
+                    aria-pressed={isSelected}
+                    className={cx(
+                      "grid w-full min-w-0 grid-cols-[42px_1fr] items-center gap-3 rounded-control border bg-black/24 p-2 text-left text-sm font-bold transition-colors hover:border-primary disabled:cursor-wait disabled:opacity-70",
+                      getDropRarityBorderClass(item?.rarity),
+                      isSelected ? "bg-[rgba(245,212,81,0.14)] ring-2 ring-[#f5d451]/55" : ""
+                    )}
+                    data-testid={`battle_button_monster_dropped_item_${getTestIdSegment(itemName)}`}
+                    disabled={isLootPending}
+                    onClick={() => onSelectDroppedItem(drop.itemId)}
+                    onDoubleClick={() => onLootDroppedItem(drop)}
+                    type="button"
+                  >
+                    <DropItemImage icon={item?.icon} isQuestDrop={isQuestDropItem(item)} name={itemName} />
+                    <span className="grid min-w-0 gap-0.5">
+                      <strong
+                        className={cx("min-w-0 truncate", getDropRarityTextClass(item?.rarity))}
+                        data-testid={`battle_strong_monster_dropped_item_name_${getTestIdSegment(itemName)}`}
+                      >
+                        {itemName}
+                      </strong>
+                      <span
+                        className="text-xs font-black uppercase tracking-wide text-text-muted"
+                        data-testid={`battle_span_monster_dropped_item_quantity_${getTestIdSegment(itemName)}`}
+                      >
+                        x{drop.quantity.toLocaleString()}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <div className="grid place-items-center">
+            <MutedText data-testid="battle_p_monster_dropped_items_empty">
+              No items have dropped yet.
+            </MutedText>
+          </div>
+        )}
       </div>
     </Panel>
   );
