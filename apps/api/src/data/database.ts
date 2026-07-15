@@ -40,8 +40,19 @@ export function resolveDatabasePath(databaseUrl?: string) {
   return path.isAbsolute(filePath) ? filePath : path.resolve(getApiRoot(), filePath);
 }
 
-export const db = new DatabaseSync(resolveDatabasePath());
+const databasePath = resolveDatabasePath();
+
+if (databasePath !== ":memory:") {
+  fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+}
+
+export const db = new DatabaseSync(databasePath);
 db.exec("PRAGMA foreign_keys = ON");
+db.exec("PRAGMA busy_timeout = 5000");
+
+if (databasePath !== ":memory:") {
+  db.exec("PRAGMA journal_mode = WAL");
+}
 
 export function closeDatabase() {
   db.close();

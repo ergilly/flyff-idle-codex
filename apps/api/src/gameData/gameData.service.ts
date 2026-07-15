@@ -1,71 +1,27 @@
-import fs from "node:fs";
-import path from "node:path";
+import { loadStoredDataSet } from "./gameData.database.js";
+import { dataSetNames, type DataSetName, type JsonDataRecord } from "./gameData.types.js";
 
-export const dataSetNames = [
-  "items",
-  "jobs",
-  "mapMonsters",
-  "monsters",
-  "sets",
-  "skills",
-  "upgrades"
-] as const;
-
-export type DataSetName = (typeof dataSetNames)[number];
-export type JsonDataRecord = Record<string, unknown>;
+export { dataSetNames, type DataSetName, type JsonDataRecord } from "./gameData.types.js";
 
 type DataSet = Record<string, JsonDataRecord>;
-type CachedDataSet = {
-  dataSet: DataSet;
-  mtimeMs: number;
-};
-
 const dataSetNameSet = new Set<string>(dataSetNames);
-const dataCache = new Map<DataSetName, CachedDataSet>();
+const dataCache = new Map<DataSetName, DataSet>();
 
 const reservedQueryParams = new Set(["fields", "ids", "limit", "maxLevel", "minLevel", "offset", "q"]);
-
-function getJsonDataDir() {
-  if (process.env.JSON_DATA_DIR) {
-    return process.env.JSON_DATA_DIR;
-  }
-
-  const candidates = [
-    path.resolve(process.cwd(), "docs/json"),
-    path.resolve(process.cwd(), "../../docs/json")
-  ];
-
-  return candidates.find((candidate) => fs.existsSync(candidate)) ?? candidates[1];
-}
-
-function getJsonDataPath(dataSetName: DataSetName) {
-  return path.resolve(getJsonDataDir(), `${dataSetName}.json`);
-}
 
 function isJsonDataRecord(value: unknown): value is JsonDataRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function loadDataSet(dataSetName: DataSetName) {
-  const dataPath = getJsonDataPath(dataSetName);
-  const mtimeMs = fs.statSync(dataPath).mtimeMs;
   const cachedDataSet = dataCache.get(dataSetName);
 
-  if (cachedDataSet && cachedDataSet.mtimeMs === mtimeMs) {
-    return cachedDataSet.dataSet;
+  if (cachedDataSet) {
+    return cachedDataSet;
   }
 
-  const rawData = JSON.parse(fs.readFileSync(dataPath, "utf8")) as unknown;
-
-  if (!isJsonDataRecord(rawData)) {
-    throw new Error(`Invalid JSON data set: ${dataSetName}`);
-  }
-
-  const dataSet = Object.fromEntries(
-    Object.entries(rawData).filter((entry): entry is [string, JsonDataRecord] => isJsonDataRecord(entry[1]))
-  );
-
-  dataCache.set(dataSetName, { dataSet, mtimeMs });
+  const dataSet = loadStoredDataSet(dataSetName);
+  dataCache.set(dataSetName, dataSet);
   return dataSet;
 }
 

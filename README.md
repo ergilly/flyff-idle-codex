@@ -28,6 +28,7 @@ The app defaults to dark mode and includes a persisted light/dark theme toggle.
 
 ```bash
 npm install
+npm run game-data:build
 npm run db:migrate -w @flyff-idle/api
 npm run db:seed -w @flyff-idle/api
 npm run dev
@@ -85,9 +86,16 @@ Implemented endpoints:
 
 Authentication uses JWT bearer tokens. Passwords are hashed with `bcryptjs`.
 
-## Database
+## Databases
 
-The API uses SQLite through Node 24's built-in `node:sqlite` module. The local database file is `apps/api/dev.db` and is ignored by Git.
+The API uses SQLite through Node 24's built-in `node:sqlite` module.
+
+- The mutable player database defaults to `apps/api/dev.db` and is ignored by Git.
+- The generated, read-only game reference database is `apps/api/data/game-data.db` and is built from
+  `docs/json` with `npm run game-data:build`.
+
+The databases are kept separate so deployments can replace game reference data without changing player
+accounts, characters, or inventories.
 
 Node currently marks `node:sqlite` as experimental, so local commands may print an `ExperimentalWarning`.
 
@@ -196,8 +204,18 @@ npm run format
 npm run build
 npm run db:migrate -w @flyff-idle/api
 npm run db:seed -w @flyff-idle/api
+npm run db:reset-test-accounts
 npm run dev
 ```
+
+`db:reset-test-accounts` transactionally restores only the four documented seeded accounts. Other player
+accounts are not changed.
+
+## Hosting
+
+The production configuration exports the frontend as static files and runs the API against a persistent SQLite
+file. See [the hosting guide](docs/hosting.md) for the supplied Ubuntu/Oracle Always Free installer, HTTPS setup,
+deploy command, backups, and production test-account reset command.
 
 ## Likely Next Feature
 

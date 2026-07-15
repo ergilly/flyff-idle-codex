@@ -176,7 +176,7 @@ function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly Seed
   }
 }
 
-export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
+function seedDemoDataRecords({ passwordHash }: { passwordHash: string }) {
   const now = new Date().toISOString();
   const demoUser = upsertSeedUser({
     email: "test@flyff-idle.local",
@@ -421,4 +421,17 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
   replaceSeedCharacters(emptyRosterUser, [], now);
 
   return demoUser;
+}
+
+export async function seedDemoData(input: { passwordHash: string }) {
+  db.exec("BEGIN IMMEDIATE");
+
+  try {
+    const demoUser = seedDemoDataRecords(input);
+    db.exec("COMMIT");
+    return demoUser;
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
 }

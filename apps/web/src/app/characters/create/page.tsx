@@ -1,13 +1,11 @@
+import { Suspense } from "react";
 import { CharacterCreationPage } from "@/components/pages/CharacterCreationPage";
+import { CreateCharacterRouteClient } from "./CreateCharacterRouteClient";
 
-type CreateCharacterRouteProps = {
-  searchParams: Promise<{
-    slot?: string;
-  }>;
-};
-
-export default async function CreateCharacterRoute({ searchParams }: CreateCharacterRouteProps) {
-  const { slot } = await searchParams;
-
-  return <CharacterCreationPage slot={slot} />;
+export default function CreateCharacterRoute() {
+  return (
+    <Suspense fallback={<CharacterCreationPage />}>
+      <CreateCharacterRouteClient />
+    </Suspense>
+  );
 }

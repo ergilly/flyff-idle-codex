@@ -10,6 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "db:migrate": "tsx src/data/migrate.ts",
     "db:seed": "tsx src/data/seed.ts",
+    "db:reset-test-accounts": "tsx src/data/resetTestAccounts.ts",
+    "game-data:build": "tsx src/data/buildGameDataDatabase.ts",
     "test": "npm run test:unit && npm run test:integration && npm run test:api",
     "test:unit": "jest --config jest.config.cjs --runInBand --testPathPattern=tests/unit",
     "test:integration": "jest --config jest.config.cjs --runInBand --testPathPattern=tests/integration",
