@@ -18,9 +18,10 @@ import { fetchUnlockedSkillTabs } from "@/lib/skillTrees";
 
 const push = jest.fn();
 const replace = jest.fn();
+const mockRouter = { push, replace };
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push, replace })
+  useRouter: () => mockRouter
 }));
 
 jest.mock("@/lib/api", () => ({
@@ -404,16 +405,42 @@ const baseCharacter: Character = {
   }
 };
 
+let resolveInitialCharacters: (() => void) | null = null;
+let resolveInitialItems: (() => void) | null = null;
+
 function getByTextContent(text: string) {
   return screen.getByText((_content, element) => element?.textContent === text);
+}
+
+async function waitForSelectedCharacter() {
+  await waitFor(() => expect(fetchCharacters).toHaveBeenCalled());
+  await act(async () => resolveInitialCharacters?.());
+  const characterName = await screen.findByText("Saint Morning");
+  await waitFor(() => expect(fetchItems).toHaveBeenCalled());
+  await act(async () => resolveInitialItems?.());
+  return characterName;
 }
 
 function arrangeSession(character: Character = baseCharacter) {
   localStorage.setItem("flyffIdleToken", "token");
   localStorage.setItem("flyffIdleSelectedCharacterId", character.id);
   localStorage.setItem("flyffIdleUser", JSON.stringify({ isAdmin: true }));
-  (fetchCharacters as jest.Mock).mockResolvedValue([character]);
-  (fetchItems as jest.Mock).mockResolvedValue([{ id: "40", name: "Dragon Cloak" }]);
+  (fetchCharacters as jest.Mock)
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveInitialCharacters = () => resolve([character]);
+        })
+    )
+    .mockResolvedValue([character]);
+  (fetchItems as jest.Mock)
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveInitialItems = () => resolve([{ id: "40", name: "Dragon Cloak" }]);
+        })
+    )
+    .mockResolvedValue([{ id: "40", name: "Dragon Cloak" }]);
   (fetchUnlockedSkillTabs as jest.Mock).mockResolvedValue([
     {
       tier: "vagrant",
@@ -440,9 +467,14 @@ describe("MainApplicationPage", () => {
     jest.useRealTimers();
     localStorage.clear();
     document.documentElement.removeAttribute("data-theme");
+    resolveInitialCharacters = null;
+    resolveInitialItems = null;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await act(async () => {
+      await Promise.resolve();
+    });
     jest.useRealTimers();
   });
 
@@ -463,7 +495,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    expect(await screen.findByText("Saint Morning")).toBeInTheDocument();
+    expect(await waitForSelectedCharacter()).toBeInTheDocument();
     expect(document.documentElement.dataset.theme).toBe("light");
 
     fireEvent.click(screen.getByRole("button", { name: "Toggle light" }));
@@ -490,14 +522,14 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
 
     fireEvent.click(screen.getByRole("button", { name: "Add STR" }));
     fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
 
     await waitFor(() =>
       expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
-        stats: { str: 10, sta: 10, dex: 10, int: 10 }
+        stats: { str: 11, sta: 10, dex: 10, int: 10 }
       })
     );
 
@@ -527,7 +559,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
     await screen.findByText((_content, element) => element?.textContent === "available stats 10");
 
     fireEvent.click(screen.getByRole("button", { name: "Max STR" }));
@@ -558,7 +590,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
     await screen.findByText((_content, element) => element?.textContent === "available stats 10");
 
     fireEvent.click(screen.getByRole("button", { name: "Set STR 7" }));
@@ -597,7 +629,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
     fireEvent.click(screen.getByRole("button", { name: "Inventory" }));
     fireEvent.click(screen.getByRole("button", { name: "Select Slot" }));
     expect(getByTextContent("selected slot 0")).toBeInTheDocument();
@@ -625,15 +657,24 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
 
     fireEvent.click(screen.getByRole("button", { name: "Combat" }));
     expect(screen.getByText("Battle target none")).toBeInTheDocument();
 
+    let resolveMonsterItems!: () => void;
+    (fetchItems as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveMonsterItems = () => resolve([{ id: "40", name: "Dragon Cloak" }]);
+        })
+    );
     fireEvent.click(screen.getByRole("button", { name: "Map" }));
     fireEvent.click(screen.getByRole("button", { name: "Fight Aibatt" }));
 
     expect(screen.getByText("Battle target Aibatt")).toBeInTheDocument();
+    await waitFor(() => expect(fetchItems).toHaveBeenCalledTimes(2));
+    await act(async () => resolveMonsterItems());
   });
 
   it("decrements equipped consumable stacks through the inventory API", async () => {
@@ -666,7 +707,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
 
     fireEvent.click(screen.getByRole("button", { name: "Combat" }));
 
@@ -677,7 +718,7 @@ describe("MainApplicationPage", () => {
 
     await waitFor(() => expect(consumeEquippedConsumableItem).toHaveBeenCalledWith("token", "char-1", "hp"));
     expect(screen.getByText("Combat inventory 0:3")).toBeInTheDocument();
-    expect(screen.getByText("Combat consumables 5325:2")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("Combat consumables 5325:2")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "Save Progression" }));
 
@@ -692,7 +733,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
 
     fireEvent.click(screen.getByRole("button", { name: "Combat" }));
     expect(screen.getByText("Combat resources none")).toBeInTheDocument();
@@ -711,7 +752,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
 
     fireEvent.click(screen.getByRole("button", { name: "Combat" }));
     expect(screen.getByText("Combat persistence none")).toBeInTheDocument();
@@ -730,7 +771,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
 
     fireEvent.click(screen.getByRole("button", { name: "Combat" }));
     fireEvent.click(screen.getByRole("button", { name: "Set Resources" }));
@@ -774,7 +815,7 @@ describe("MainApplicationPage", () => {
 
     render(<MainApplicationPage />);
 
-    await screen.findByText("Saint Morning");
+    await waitForSelectedCharacter();
     fireEvent.click(screen.getByRole("button", { name: "Inventory" }));
     fireEvent.click(screen.getByRole("button", { name: "Equip Slot" }));
     fireEvent.click(screen.getByRole("button", { name: "Move Slot" }));

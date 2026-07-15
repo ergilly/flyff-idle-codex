@@ -1,0 +1,404 @@
+import Image from "next/image";
+import type { ReactNode } from "react";
+import { Button } from "@/components/atoms/Button";
+import { ErrorMessage } from "@/components/atoms/ErrorMessage";
+import { MutedText } from "@/components/atoms/MutedText";
+import { StatLabel } from "@/components/atoms/StatRow";
+import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
+import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
+import { cx } from "@/lib/classNames";
+import { isItemRequirementUnmet } from "@/lib/itemEquipment";
+import { findItemSetByPartId, type ItemSetMetadata } from "@/lib/itemSets";
+import { getTestIdSegment } from "@/lib/testIds";
+
+type ItemDetailsPanelProps = {
+  actionDisabled?: boolean;
+  actionError?: string;
+  actionLabel?: string;
+  awakeningStats?: ItemMetadata["abilities"];
+  character?: Character;
+  children?: ReactNode;
+  className?: string;
+  emptyDescription?: string;
+  equippedItemIds?: string[];
+  item?: ItemMetadata | null;
+  onAction?: () => void;
+  slotLabel?: string | null;
+};
+
+const rarityClassByName: Record<string, string> = {
+  common: "text-[#5fb3ff]",
+  uncommon: "text-[#64d875]",
+  rare: "text-[#f5d451]",
+  veryrare: "text-[#ff6464]",
+  unique: "text-[#c27bff]"
+};
+
+const panelClassName =
+  "grid min-h-[260px] w-full max-w-[340px] content-start gap-3.5 justify-self-start rounded-card border-[3px] border-[rgba(226,179,63,0.58)] bg-[linear-gradient(180deg,rgba(31,29,22,0.92),rgba(5,6,5,0.98)),var(--panel)] p-4 shadow-[inset_0_0_0_2px_rgba(255,225,115,0.16),inset_0_16px_30px_rgba(255,255,255,0.04),0_18px_38px_rgba(0,0,0,0.34)]";
+
+const detailsListClassName =
+  "m-0 grid gap-2 [&_div:last-child]:border-b-0 [&_div:last-child]:pb-0 [&_div]:flex [&_div]:justify-between [&_div]:gap-3 [&_div]:border-b [&_div]:border-[rgba(187,161,89,0.18)] [&_div]:pb-[7px] [&_dd]:m-0 [&_dd]:text-right [&_dd]:font-extrabold [&_dd]:text-foreground [&_dt]:text-[0.78rem] [&_dt]:font-extrabold [&_dt]:uppercase [&_dt]:text-text-muted";
+
+const effectListClassName =
+  "grid gap-2 rounded-control border-2 border-[rgba(226,179,63,0.42)] bg-[linear-gradient(180deg,rgba(255,225,115,0.14),rgba(13,13,11,0.72))] px-2.5 py-2 shadow-[inset_0_0_12px_rgba(255,216,76,0.08)]";
+
+const effectRowClassName = "text-[0.9rem] font-extrabold leading-tight text-primary-strong";
+
+const abilityLabelByParameter: Record<string, string> = {
+  allstats: "All Stats",
+  attackspeed: "Attack Speed",
+  bowattack: "Bow Attack",
+  criticalchance: "Critical Chance",
+  criticaldamage: "Critical Damage",
+  decreasedfpconsumption: "Decreased FP Consumption",
+  decreasedmpconsumption: "Decreased MP Consumption",
+  def: "Defense",
+  hitrate: "Hit Rate",
+  maxfp: "Max FP",
+  maxhp: "Max HP",
+  maxmp: "Max MP",
+  yoyoattack: "Yo-Yo Attack"
+};
+
+function formatLabel(value: string) {
+  const normalizedValue = value.toLowerCase().replace(/[\s_]+/g, "");
+  const abilityLabel = abilityLabelByParameter[normalizedValue];
+
+  if (abilityLabel) {
+    return abilityLabel;
+  }
+
+  return value
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/veryfast/i, "very fast")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatAbility({ add, parameter, rate }: ItemMetadata["abilities"][number]) {
+  return `${formatLabel(parameter)} ${formatAbilityValue({ add, rate })}`.trim();
+}
+
+function formatAbilityValue({ add, rate }: Pick<ItemMetadata["abilities"][number], "add" | "rate">) {
+  const sign = add !== null && add > 0 ? "+" : "";
+  const suffix = rate ? "%" : "";
+
+  return add === null ? "" : `${sign}${add}${suffix}`;
+}
+
+function getRarityClass(rarity: string | null) {
+  return rarityClassByName[rarity?.toLowerCase() ?? "common"] ?? rarityClassByName.common;
+}
+
+function canItemTypeAwaken(item: ItemMetadata) {
+  if (item.category === "weapon" || item.category === "armor") {
+    return true;
+  }
+
+  return (
+    item.category === "fashion" &&
+    item.subcategory !== null &&
+    ["cloth", "glove", "hat", "mask", "shoes"].includes(item.subcategory)
+  );
+}
+
+function renderDescription(description: string, itemName: string): ReactNode {
+  if (!itemName || !description.includes(itemName)) {
+    return description;
+  }
+
+  const descriptionParts = description.split(itemName);
+
+  return descriptionParts.map((part, index) => (
+    <span key={`${part}-${index}`}>
+      {index > 0 ? <strong className="text-[#fff1ba] [font-weight:900]">{itemName}</strong> : null}
+      {part}
+    </span>
+  ));
+}
+
+export function ItemDetailsPanel({
+  actionDisabled = false,
+  actionError = "",
+  actionLabel,
+  awakeningStats = [],
+  character,
+  children,
+  className,
+  emptyDescription = "Select an equipped item to inspect its stats.",
+  equippedItemIds = [],
+  item,
+  onAction,
+  slotLabel
+}: ItemDetailsPanelProps) {
+  if (!item) {
+    return (
+      <aside
+        className={cx(panelClassName, className)}
+        aria-label="Item details"
+        data-testid="item_details_aside_empty"
+      >
+        <SectionHeading testId="item_details_heading_empty" title="No item selected" />
+        <MutedText data-testid="item_details_p_empty_description">{emptyDescription}</MutedText>
+      </aside>
+    );
+  }
+
+  const iconUrl = item.icon ? getItemIconUrl(item.icon) : null;
+  const attackRange =
+    item.minAttack !== null && item.maxAttack !== null ? `${item.minAttack} - ${item.maxAttack}` : null;
+  const defenseRange =
+    item.minDefense !== null && item.maxDefense !== null ? `${item.minDefense} - ${item.maxDefense}` : null;
+  const weaponHandedness =
+    item.category === "weapon" && item.twoHanded !== null
+      ? item.twoHanded
+        ? "Two-Handed Weapon"
+        : "One-Handed Weapon"
+      : null;
+  const metadataRows = [
+    weaponHandedness ? ["", weaponHandedness] : null,
+    item.sex ? ["Gender", formatLabel(item.sex)] : null,
+    attackRange ? ["Attack", attackRange] : null,
+    item.attackSpeed ? ["Attack Speed", formatLabel(item.attackSpeed)] : null,
+    defenseRange ? ["Defense", defenseRange] : null,
+    item.requiredJob ? ["Req Job", item.requiredJob] : null,
+    item.level !== null ? ["Level", item.level.toString()] : null
+  ]
+    .filter((row): row is [string, string] => Boolean(row))
+    .map(([label, value]) => ({
+      label,
+      unmet: isItemRequirementUnmet(label, item, character),
+      value
+    }));
+  const hasAwakeningStats = awakeningStats.length > 0;
+  const itemSet = findItemSetByPartId(item.id);
+  const equippedSetItemCount = itemSet
+    ? new Set(equippedItemIds.filter((itemId) => itemSet.parts.some((part) => part.id === Number(itemId))))
+        .size
+    : 0;
+
+  return (
+    <aside
+      className={cx(panelClassName, className)}
+      aria-label={`${item.name} details`}
+      data-slot={slotLabel ?? undefined}
+      data-testid="item_details_aside"
+    >
+      <div
+        className="grid grid-cols-[54px_minmax(0,1fr)] items-center gap-3"
+        data-testid="item_details_div_header"
+      >
+        <div
+          className="grid h-[54px] w-[54px] place-items-center rounded-control border-2 border-[rgba(187,161,89,0.58)] bg-[rgba(0,0,0,0.62)] shadow-[inset_0_0_14px_rgba(255,216,76,0.1)]"
+          data-testid="item_details_div_icon"
+        >
+          {iconUrl ? (
+            <Image
+              className="h-[88%] w-[88%] object-contain"
+              src={iconUrl}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              width={48}
+              height={48}
+              unoptimized
+            />
+          ) : null}
+        </div>
+        <div data-testid="item_details_div_title">
+          <h3
+            className={cx("m-0 text-[1.35rem] font-black leading-[1.2]", getRarityClass(item.rarity))}
+            data-testid="item_details_h3_name"
+          >
+            {item.name}
+          </h3>
+        </div>
+      </div>
+
+      {metadataRows.length > 0 ? (
+        <dl className={detailsListClassName} data-testid="item_details_dl_metadata">
+          {metadataRows.map(({ label, unmet, value }, index) => (
+            <div
+              className={cx(
+                !label && "justify-start [&_dd]:text-left [&_dd]:uppercase [&_dd]:text-text-muted",
+                unmet && "[&_dd]:!text-[#ff4d4d]"
+              )}
+              data-testid={`item_details_div_metadata_row_${index}`}
+              key={`${label}-${value}`}
+            >
+              {label ? <dt data-testid={`item_details_dt_metadata_label_${index}`}>{label}</dt> : null}
+              <dd data-testid={`item_details_dd_metadata_value_${index}`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
+      {item.description ? (
+        <p
+          className="m-0 text-[0.92rem] leading-normal text-[#d6cfb2]"
+          data-testid="item_details_p_description"
+        >
+          {renderDescription(item.description, item.name)}
+        </p>
+      ) : null}
+
+      {item.abilities.length > 0 ? <ItemEffectList label="Effects" abilities={item.abilities} /> : null}
+
+      {itemSet ? (
+        <SetEffectList
+          equippedCount={equippedSetItemCount}
+          equippedItemIds={equippedItemIds}
+          itemSet={itemSet}
+        />
+      ) : null}
+
+      {hasAwakeningStats ? <ItemEffectList label="Awakening" abilities={awakeningStats} /> : null}
+
+      {canItemTypeAwaken(item) && !hasAwakeningStats ? (
+        <div
+          className="mt-0.5 border-t border-[rgba(187,161,89,0.22)] pt-2.5"
+          data-testid="item_details_div_awakening_available"
+        >
+          <strong
+            className="block text-center text-[0.82rem] uppercase text-[rgba(3,54,223,0.72)]"
+            data-testid="item_details_strong_awakening_available"
+          >
+            Awakening Available
+          </strong>
+        </div>
+      ) : null}
+
+      {actionError ? <ErrorMessage message={actionError} testId="item_details_error_action" /> : null}
+
+      {actionLabel && onAction ? (
+        <Button
+          data-testid={`item_details_button_${getTestIdSegment(actionLabel)}`}
+          type="button"
+          onClick={onAction}
+          disabled={actionDisabled}
+        >
+          {actionLabel}
+        </Button>
+      ) : null}
+
+      {children}
+    </aside>
+  );
+}
+
+function ItemEffectList({ abilities, label }: { abilities: ItemMetadata["abilities"]; label: string }) {
+  const testIdSegment = getTestIdSegment(label);
+
+  return (
+    <div className={effectListClassName} data-testid={`item_details_div_${testIdSegment}`}>
+      <StatLabel data-testid={`item_details_span_${testIdSegment}_label`}>{label}</StatLabel>
+      {abilities.map((ability, index) => (
+        <strong
+          className={effectRowClassName}
+          data-testid={`item_details_strong_${testIdSegment}_${index}`}
+          key={`${ability.parameter}-${ability.add}-${ability.rate}`}
+        >
+          {formatAbility(ability)}
+        </strong>
+      ))}
+    </div>
+  );
+}
+
+function SetEffectList({
+  equippedCount,
+  equippedItemIds,
+  itemSet
+}: {
+  equippedCount: number;
+  equippedItemIds: string[];
+  itemSet: ItemSetMetadata;
+}) {
+  const equippedPartIds = new Set(equippedItemIds.map((itemId) => Number(itemId)));
+  const activeEffects = getActiveSetEffects(itemSet.bonus, equippedCount);
+
+  return (
+    <div
+      className={cx(effectListClassName, "border-[#c8751a] shadow-[inset_0_0_12px_rgba(255,145,45,0.1)]")}
+      data-testid="item_details_div_set_effects"
+    >
+      <StatLabel data-testid="item_details_span_set_effects_label">
+        {itemSet.name} {equippedCount}/{itemSet.parts.length}
+      </StatLabel>
+      <div className="ml-2 grid gap-1" data-testid="item_details_div_set_parts">
+        {itemSet.parts.map((part) => {
+          const isEquipped = equippedPartIds.has(part.id);
+
+          return (
+            <span
+              className={cx(
+                "text-[0.86rem] font-extrabold leading-tight",
+                isEquipped ? "text-[#64d875]" : "text-text-muted opacity-65"
+              )}
+              data-testid={`item_details_span_set_part_${part.id}`}
+              key={part.id}
+            >
+              {part.name}
+            </span>
+          );
+        })}
+      </div>
+      {activeEffects.length > 0 ? (
+        activeEffects.map((effect, index) => (
+          <strong
+            className="text-[0.9rem] font-extrabold leading-tight text-[#f59e0b]"
+            data-testid={`item_details_strong_set_effects_${index}`}
+            key={`${effect.parameter}-${effect.rate}`}
+          >
+            {formatLabel(effect.parameter)} {formatAbilityValue(effect)}
+          </strong>
+        ))
+      ) : (
+        <strong
+          className="text-[0.9rem] font-extrabold leading-tight text-text-muted opacity-65"
+          data-testid="item_details_strong_set_effects_empty"
+        >
+          No active set effects
+        </strong>
+      )}
+    </div>
+  );
+}
+
+function getActiveSetEffects(bonuses: ItemSetMetadata["bonus"], equippedCount: number) {
+  const activeBonuses = bonuses.filter((bonus) => equippedCount >= bonus.equipped);
+  const effectsByStat = new Map<
+    string,
+    {
+      parameter: string;
+      add: number | null;
+      rate: boolean;
+      firstEquipped: number;
+    }
+  >();
+
+  activeBonuses.forEach((bonus) => {
+    const effectKey = `${bonus.ability.parameter}:${bonus.ability.rate}`;
+    const existingEffect = effectsByStat.get(effectKey);
+    const add =
+      bonus.ability.add === null
+        ? (existingEffect?.add ?? null)
+        : (existingEffect?.add ?? 0) + bonus.ability.add;
+
+    effectsByStat.set(effectKey, {
+      parameter: bonus.ability.parameter,
+      add,
+      rate: bonus.ability.rate,
+      firstEquipped: Math.min(existingEffect?.firstEquipped ?? bonus.equipped, bonus.equipped)
+    });
+  });
+
+  return Array.from(effectsByStat.values()).sort(
+    (first, second) =>
+      first.firstEquipped - second.firstEquipped ||
+      formatLabel(first.parameter).localeCompare(formatLabel(second.parameter), undefined, {
+        sensitivity: "base"
+      })
+  );
+}
