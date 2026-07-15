@@ -1,3 +1,5 @@
+import { type MapMonsterFamily } from "@/lib/api";
+
 export type MapRegionId =
   | "bahara"
   | "darkon12"
@@ -121,6 +123,28 @@ export const mapLocationMarkers: Record<MapRegionId, MapMonsterMarker[]> = {
 
 export function getMonsterMarkerIconSrc(family: string) {
   return `/images/monster-icons/${slugifyMonsterFamily(family)}.png`;
+}
+
+export function createMapMonsterMarkers(monsterFamilies: MapMonsterFamily[]) {
+  return monsterFamilies.map((family) => ({
+    description: `Spawn marker for ${family.name}.`,
+    family: family.family,
+    iconSrc: getMonsterMarkerIconSrc(family.family),
+    id: getMapMonsterMarkerId(family),
+    label: family.name,
+    markerType: "monster" as const,
+    scale: 1,
+    x: family.location.x,
+    y: family.location.y
+  }));
+}
+
+export function getMonsterFamiliesByMarkerId(monsterFamilies: MapMonsterFamily[]) {
+  return Object.fromEntries(monsterFamilies.map((family) => [getMapMonsterMarkerId(family), family]));
+}
+
+function getMapMonsterMarkerId(family: MapMonsterFamily) {
+  return [family.location.region, family.family, family.location.x, family.location.y].join("-");
 }
 
 function createDungeonMarker(

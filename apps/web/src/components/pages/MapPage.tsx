@@ -1,179 +1,31 @@
 "use client";
 
 import Image from "next/image";
-import { type CSSProperties, type MouseEvent, type WheelEvent, useEffect, useRef, useState } from "react";
+import { type MouseEvent, type WheelEvent, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/atoms/Button";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
-import {
-  fetchMapMonsterFamiliesByRegion,
-  getItemIconUrl,
-  type MapMonsterFamily,
-  type MonsterFamily,
-  type MonsterFamilyVariant
-} from "@/lib/api";
+import { MapZoomControls } from "@/components/molecules/map/MapZoomControls";
+import { MonsterMarkerLayer } from "@/components/organisms/map/MonsterMarkerLayer";
+import { fetchMapMonsterFamiliesByRegion, type MapMonsterFamily } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import {
-  getMonsterMarkerIconSrc,
+  createMapMonsterMarkers,
+  getMonsterFamiliesByMarkerId,
   mapLocationMarkers,
   type MapRegionId,
   type MapMonsterMarker
 } from "@/lib/mapMonsterMarkers";
+import { mapRegions } from "@/lib/mapRegions";
 import { getTestIdSegment } from "@/lib/testIds";
 
 const minMapZoom = 1;
 const maxMapZoom = 2.5;
 const mapZoomStep = 0.25;
-const mapMarkerDesaturationPercent = 70;
-const mapMarkerSaturationPercent = 100 - mapMarkerDesaturationPercent;
 const zeroPan = { x: 0, y: 0 };
 const emptyMonsterMarkers: MapMonsterMarker[] = [];
 const emptyMonsterFamilies: MapMonsterFamily[] = [];
-
-type RegionDefinition = {
-  id: MapRegionId;
-  label: string;
-  description: string;
-  worldHighlightSrc: string;
-  regionMapSrc: string;
-  hitArea: {
-    clipPath: string;
-    height: string;
-    left: string;
-    top: string;
-    width: string;
-  };
-};
-
-const regions: RegionDefinition[] = [
-  {
-    id: "flaris",
-    label: "Flaris",
-    description: "A smaller island region southeast of the mainland.",
-    worldHighlightSrc: "/images/maps/World/Flaris.png",
-    regionMapSrc: "/images/maps/regions/WORLD_flaris.png",
-    hitArea: {
-      left: "50.8%",
-      top: "62.4%",
-      width: "17.8%",
-      height: "23.4%",
-      clipPath: "ellipse(42% 46% at 55% 50%)"
-    }
-  },
-  {
-    id: "saint",
-    label: "Saint Morning",
-    description: "A southern island region with rivers, fields, and city roads.",
-    worldHighlightSrc: "/images/maps/World/SaintMorning.png",
-    regionMapSrc: "/images/maps/regions/WORLD_saint.png",
-    hitArea: {
-      left: "62.5%",
-      top: "66.3%",
-      width: "17%",
-      height: "27.8%",
-      clipPath: "polygon(35% 3%, 56% 8%, 78% 28%, 88% 63%, 72% 94%, 38% 94%, 20% 73%, 15% 39%)"
-    }
-  },
-  {
-    id: "rhisis",
-    label: "Garden of Rhisis",
-    description: "An eastern island marked by narrow paths and old ruins.",
-    worldHighlightSrc: "/images/maps/World/Rhisis.png",
-    regionMapSrc: "/images/maps/regions/WORLD_rhisis.png",
-    hitArea: {
-      left: "68.3%",
-      top: "63.1%",
-      width: "17.5%",
-      height: "17.5%",
-      clipPath: "polygon(14% 37%, 41% 17%, 63% 20%, 89% 41%, 75% 76%, 49% 93%, 28% 74%)"
-    }
-  },
-  {
-    id: "darkon12",
-    label: "Darkon 1 and 2",
-    description: "The western Darkon landmass, rich with mines and old roads.",
-    worldHighlightSrc: "/images/maps/World/Darkon12.png",
-    regionMapSrc: "/images/maps/regions/WORLD_darkon12.png",
-    hitArea: {
-      left: "20.2%",
-      top: "57.5%",
-      width: "34%",
-      height: "25.5%",
-      clipPath: "polygon(5% 18%, 33% 8%, 58% 16%, 95% 35%, 91% 75%, 70% 96%, 40% 82%, 18% 58%)"
-    }
-  },
-  {
-    id: "darkon3",
-    label: "Darkon 3",
-    description: "A rugged southern zone shaped by cliffs, canyons, and heat.",
-    worldHighlightSrc: "/images/maps/World/Darkon3.png",
-    regionMapSrc: "/images/maps/regions/WORLD_darkon3.png",
-    hitArea: {
-      left: "11.5%",
-      top: "61.6%",
-      width: "25.5%",
-      height: "32%",
-      clipPath: "polygon(45% 0%, 68% 14%, 86% 47%, 75% 83%, 47% 98%, 12% 83%, 4% 53%, 18% 19%)"
-    }
-  },
-  {
-    id: "shaduwar",
-    label: "Shaduwar",
-    description: "A dark mountain region at the heart of the northern landmass.",
-    worldHighlightSrc: "/images/maps/World/Shaduwar.png",
-    regionMapSrc: "/images/maps/regions/WORLD_shaduwar.png",
-    hitArea: {
-      left: "42.7%",
-      top: "34.8%",
-      width: "24%",
-      height: "24.4%",
-      clipPath: "polygon(28% 10%, 55% 0%, 90% 17%, 93% 55%, 72% 90%, 32% 96%, 9% 68%, 8% 33%)"
-    }
-  },
-  {
-    id: "valley",
-    label: "Valley of the Risen",
-    description: "A central northern valley surrounded by mountain passes.",
-    worldHighlightSrc: "/images/maps/World/Valley.png",
-    regionMapSrc: "/images/maps/regions/WORLD_valley.png",
-    hitArea: {
-      left: "50.4%",
-      top: "16.7%",
-      width: "22.5%",
-      height: "26.7%",
-      clipPath: "polygon(13% 27%, 32% 7%, 78% 13%, 96% 42%, 82% 80%, 38% 92%, 13% 69%)"
-    }
-  },
-  {
-    id: "kaillun",
-    label: "Kaillun",
-    description: "A highland territory on the upper edge of Madrigal.",
-    worldHighlightSrc: "/images/maps/World/Kaillun.png",
-    regionMapSrc: "/images/maps/regions/WORLD_kaillun.png",
-    hitArea: {
-      left: "50.8%",
-      top: "4.9%",
-      width: "22.6%",
-      height: "17%",
-      clipPath: "polygon(18% 27%, 42% 8%, 84% 15%, 95% 47%, 75% 83%, 31% 89%, 8% 62%)"
-    }
-  },
-  {
-    id: "bahara",
-    label: "Bahara",
-    description: "A northern desert region beyond the mainland ridge.",
-    worldHighlightSrc: "/images/maps/World/Bahara.png",
-    regionMapSrc: "/images/maps/regions/WORLD_bahara.png",
-    hitArea: {
-      left: "34.4%",
-      top: "5.9%",
-      width: "20.4%",
-      height: "20.8%",
-      clipPath: "polygon(28% 12%, 77% 5%, 96% 46%, 82% 88%, 27% 92%, 4% 58%)"
-    }
-  }
-];
 
 type MapPageProps = {
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
@@ -189,9 +41,9 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   const [isMonsterFamilyLoading, setIsMonsterFamilyLoading] = useState(false);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const panStartRef = useRef({ panX: 0, panY: 0, x: 0, y: 0 });
-  const selectedRegion = regions.find((region) => region.id === selectedRegionId) ?? null;
+  const selectedRegion = mapRegions.find((region) => region.id === selectedRegionId) ?? null;
   const activeRegion =
-    regions.find((region) => region.id === (activeRegionId ?? selectedRegionId)) ?? selectedRegion;
+    mapRegions.find((region) => region.id === (activeRegionId ?? selectedRegionId)) ?? selectedRegion;
   const panelRegion = selectedRegion ?? activeRegion;
   const selectedRegionLocationMarkers = selectedRegion
     ? mapLocationMarkers[selectedRegion.id]
@@ -354,7 +206,9 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
         data-testid="map_panel_canvas"
         aria-label={selectedRegion ? `${selectedRegion.label} region map` : "World map"}
       >
-        <ZoomControls
+        <MapZoomControls
+          canZoomIn={mapZoom < maxMapZoom}
+          canZoomOut={mapZoom > minMapZoom}
           onReset={handleResetZoom}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
@@ -454,7 +308,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                   unoptimized
                 />
               ) : null}
-              {regions.map((region) => (
+              {mapRegions.map((region) => (
                 <button
                   key={region.id}
                   aria-label={`Select ${region.label}`}
@@ -497,7 +351,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
             : "Hover over a region to preview its highlighted world location, then select it to open the region map."}
         </MutedText>
         <div className="grid gap-2" data-testid="map_div_region_list">
-          {regions.map((region) => (
+          {mapRegions.map((region) => (
             <button
               key={region.id}
               data-testid={`map_button_region_list_${getTestIdSegment(region.id)}`}
@@ -519,358 +373,4 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
       </Panel>
     </section>
   );
-}
-
-function ZoomControls({
-  onReset,
-  onZoomIn,
-  onZoomOut,
-  zoom
-}: {
-  onReset: () => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  zoom: number;
-}) {
-  return (
-    <div
-      className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-control border border-border bg-black/72 p-1 shadow-menu backdrop-blur-sm"
-      data-testid="map_div_zoom_controls"
-    >
-      <button
-        type="button"
-        data-testid="map_button_zoom_out"
-        className="grid h-8 w-8 place-items-center rounded-control border border-border bg-panel-muted text-base font-black text-foreground transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={zoom <= minMapZoom}
-        onClick={onZoomOut}
-        aria-label="Zoom out"
-        title="Zoom out"
-      >
-        -
-      </button>
-      <button
-        type="button"
-        data-testid="map_button_zoom_reset"
-        className="min-w-14 rounded-control px-2 text-xs font-black text-[#fff1ba] transition-colors hover:bg-panel-muted"
-        onClick={onReset}
-        aria-label="Reset zoom"
-        title="Reset zoom"
-      >
-        {Math.round(zoom * 100)}%
-      </button>
-      <button
-        type="button"
-        data-testid="map_button_zoom_in"
-        className="grid h-8 w-8 place-items-center rounded-control border border-border bg-panel-muted text-base font-black text-foreground transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={zoom >= maxMapZoom}
-        onClick={onZoomIn}
-        aria-label="Zoom in"
-        title="Zoom in"
-      >
-        +
-      </button>
-    </div>
-  );
-}
-
-function MonsterMarkerLayer({
-  markers,
-  monsterFamiliesByMarkerId,
-  onSelectMonster
-}: {
-  markers: MapMonsterMarker[];
-  monsterFamiliesByMarkerId: Record<string, MapMonsterFamily>;
-  onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
-}) {
-  if (markers.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="absolute inset-0 z-10" data-testid="map_div_monster_marker_layer">
-      {markers.map((marker) => (
-        <MonsterMarker
-          key={marker.id}
-          marker={marker}
-          monsterFamily={monsterFamiliesByMarkerId[marker.id]}
-          onSelectMonster={onSelectMonster}
-        />
-      ))}
-    </div>
-  );
-}
-
-function MonsterMarker({
-  marker,
-  monsterFamily,
-  onSelectMonster
-}: {
-  marker: MapMonsterMarker;
-  monsterFamily?: MapMonsterFamily;
-  onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
-}) {
-  const markerLabel = monsterFamily?.name ?? marker.label;
-  const markerWidthPercent = marker.markerType === "monster" ? 4.35 : 6 * marker.scale;
-  const markerStyle: CSSProperties & Partial<Record<"--map-marker-saturation", string>> = {
-    left: `${marker.x}%`,
-    top: `${marker.y}%`,
-    width: `${markerWidthPercent}%`
-  };
-
-  if (marker.markerType !== "monster") {
-    markerStyle["--map-marker-saturation"] = `${mapMarkerSaturationPercent}%`;
-  }
-
-  return (
-    <button
-      aria-describedby={`${marker.id}-description`}
-      aria-label={markerLabel}
-      data-testid={`map_button_monster_marker_${getTestIdSegment(marker.id)}`}
-      className={cx(
-        "group absolute grid aspect-square -translate-x-1/2 -translate-y-1/2 place-items-center transition-[filter,transform] hover:z-40 hover:scale-110 focus-visible:z-40 focus-visible:scale-110 focus-visible:outline-none",
-        marker.markerType === "monster"
-          ? "z-10"
-          : "z-30 [filter:saturate(var(--map-marker-saturation))] hover:[filter:saturate(100%)] focus-visible:[filter:saturate(100%)]"
-      )}
-      onMouseDown={(event) => event.stopPropagation()}
-      onClick={() => {
-        if (monsterFamily) {
-          onSelectMonster?.(monsterFamily);
-        }
-      }}
-      style={markerStyle}
-      title={markerLabel}
-      type="button"
-    >
-      <span
-        className="pointer-events-none grid h-full w-full place-items-center overflow-hidden group-focus-visible:ring-2 group-focus-visible:ring-[#fff1ba]/70"
-        data-testid={`map_span_monster_marker_frame_${getTestIdSegment(marker.id)}`}
-      >
-        <span
-          className={cx(
-            "grid place-items-center",
-            marker.markerType === "monster" ? "h-[82%] w-[82%]" : "h-[88%] w-[88%]"
-          )}
-          data-testid={`map_span_monster_marker_icon_${getTestIdSegment(marker.id)}`}
-        >
-          <Image
-            className="pointer-events-none h-full w-full object-contain"
-            src={marker.iconSrc}
-            alt=""
-            aria-hidden="true"
-            width={64}
-            height={64}
-            unoptimized
-          />
-        </span>
-      </span>
-      <MonsterTooltip marker={marker} monsterFamily={monsterFamily} />
-    </button>
-  );
-}
-
-function MonsterTooltip({
-  marker,
-  monsterFamily
-}: {
-  marker: MapMonsterMarker;
-  monsterFamily?: MonsterFamily;
-}) {
-  return (
-    <span
-      id={`${marker.id}-description`}
-      role="tooltip"
-      data-testid={`map_span_monster_tooltip_${getTestIdSegment(marker.id)}`}
-      className={cx(
-        "pointer-events-none absolute z-30 grid w-max min-w-64 max-w-[min(32rem,calc(100vw-2rem))] gap-2 rounded-control border border-[#fff1ba]/70 bg-black/90 px-3 py-2 text-left opacity-0 shadow-menu transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100",
-        getMonsterTooltipPlacement(marker)
-      )}
-    >
-      <span
-        className="text-xs font-black uppercase tracking-wide text-[#fff1ba]"
-        data-testid={`map_span_monster_tooltip_name_${getTestIdSegment(marker.id)}`}
-      >
-        {monsterFamily?.name ?? marker.label}
-      </span>
-      {!monsterFamily ? (
-        <span className="text-[0.62rem] font-black uppercase tracking-wide text-text-muted">
-          {marker.markerType}
-        </span>
-      ) : null}
-      {monsterFamily ? (
-        <>
-          <span
-            className="grid gap-1"
-            data-testid={`map_span_monster_tooltip_variants_${getTestIdSegment(marker.id)}`}
-          >
-            {monsterFamily.variants.map((variant) => (
-              <MonsterVariantRow key={`${variant.variantRank}-${variant.id}`} variant={variant} />
-            ))}
-          </span>
-          <MonsterQuestDropBox monsterFamily={monsterFamily} />
-        </>
-      ) : (
-        <span
-          className="text-xs font-bold leading-snug text-foreground"
-          data-testid={`map_span_monster_tooltip_description_${getTestIdSegment(marker.id)}`}
-        >
-          {marker.description}
-        </span>
-      )}
-    </span>
-  );
-}
-
-function MonsterVariantRow({ variant }: { variant: MonsterFamilyVariant }) {
-  return (
-    <span
-      className="grid grid-cols-[54px_minmax(0,1fr)_18px] items-center gap-2 rounded-[4px] border border-[rgba(187,161,89,0.2)] bg-[rgba(255,255,255,0.04)] px-2 py-1"
-      data-testid={`map_span_monster_variant_${getTestIdSegment(String(variant.id))}`}
-    >
-      <span
-        className={cx(
-          "text-[0.68rem] font-black uppercase leading-none text-text-muted",
-          variant.variantRank === "giant" && "text-[#c27bff]"
-        )}
-      >
-        {variant.variantRank}
-      </span>
-      <span
-        className="min-w-0 whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground"
-        data-testid={`map_span_monster_variant_level_${getTestIdSegment(String(variant.id))}`}
-      >
-        Lv. {formatMonsterValue(variant.level)}{" "}
-        <span
-          className="text-text-muted"
-          data-testid={`map_span_monster_variant_name_${getTestIdSegment(String(variant.id))}`}
-        >
-          {variant.name}
-        </span>
-      </span>
-      <MonsterElementIcon element={variant.element} />
-    </span>
-  );
-}
-
-function MonsterElementIcon({ element }: { element: string | null }) {
-  const elementIconSrc = getElementIconSrc(element);
-
-  if (!elementIconSrc) {
-    return <span className="h-[18px] w-[18px]" aria-hidden="true" />;
-  }
-
-  return (
-    <Image
-      className="h-[18px] w-[18px] object-contain"
-      src={elementIconSrc}
-      alt={`${element} element`}
-      width={18}
-      height={18}
-      unoptimized
-    />
-  );
-}
-
-function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }) {
-  const monsterTestId = getTestIdSegment(monsterFamily.name);
-
-  if (monsterFamily.questDrops.length === 0) {
-    return (
-      <span
-        className="rounded-[4px] border border-[rgba(187,161,89,0.2)] bg-[rgba(0,0,0,0.35)] px-2 py-1.5 text-[0.7rem] font-bold text-text-muted"
-        data-testid={`map_span_monster_quest_drop_empty_${monsterTestId}`}
-      >
-        Quest drop: none found
-      </span>
-    );
-  }
-
-  return (
-    <span
-      className="grid gap-1 rounded-[4px] border border-[rgba(194,123,255,0.35)] bg-[rgba(20,9,31,0.72)] px-2 py-1.5"
-      data-testid={`map_span_monster_quest_drops_${monsterTestId}`}
-    >
-      <span
-        className="text-[0.62rem] font-black uppercase tracking-wide text-[#c27bff]"
-        data-testid={`map_span_monster_quest_drops_label_${monsterTestId}`}
-      >
-        Quest drop
-      </span>
-      {monsterFamily.questDrops.map((item) => (
-        <span
-          key={String(item.id)}
-          className="grid grid-cols-[22px_1fr] items-center gap-2"
-          data-testid={`map_span_monster_quest_drop_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
-        >
-          <span
-            className="grid h-[22px] w-[22px] place-items-center rounded-[3px] border border-[rgba(187,161,89,0.3)] bg-black/55"
-            data-testid={`map_span_monster_quest_drop_icon_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
-          >
-            {item.icon ? (
-              <Image
-                className="h-[18px] w-[18px] object-contain"
-                src={getItemIconUrl(item.icon)}
-                alt=""
-                aria-hidden="true"
-                width={18}
-                height={18}
-                unoptimized
-              />
-            ) : null}
-          </span>
-          <span
-            className="whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground"
-            data-testid={`map_span_monster_quest_drop_name_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
-          >
-            {item.name}
-          </span>
-        </span>
-      ))}
-    </span>
-  );
-}
-
-function formatMonsterValue(value: string | number | null) {
-  return value === null ? "Unknown" : String(value);
-}
-
-function getElementIconSrc(element: string | null) {
-  if (!element || element === "none") {
-    return null;
-  }
-
-  return `/images/elements/${element}.png`;
-}
-
-function getMonsterTooltipPlacement(marker: MapMonsterMarker) {
-  return cx(
-    marker.y >= 60 ? "bottom-[calc(100%+0.45rem)]" : "top-[calc(100%+0.45rem)]",
-    marker.x < 22 ? "left-0" : marker.x > 78 ? "right-0" : "left-1/2 -translate-x-1/2"
-  );
-}
-
-function createMapMonsterMarkers(monsterFamilies: MapMonsterFamily[]) {
-  return monsterFamilies.flatMap((family) => {
-    return [
-      {
-        description: `Spawn marker for ${family.name}.`,
-        family: family.family,
-        iconSrc: getMonsterMarkerIconSrc(family.family),
-        id: getMapMonsterMarkerId(family),
-        label: family.name,
-        markerType: "monster" as const,
-        scale: 1,
-        x: family.location.x,
-        y: family.location.y
-      }
-    ];
-  });
-}
-
-function getMonsterFamiliesByMarkerId(monsterFamilies: MapMonsterFamily[]) {
-  return Object.fromEntries(monsterFamilies.map((family) => [getMapMonsterMarkerId(family), family]));
-}
-
-function getMapMonsterMarkerId(family: MapMonsterFamily) {
-  return [family.location.region, family.family, family.location.x, family.location.y].join("-");
 }

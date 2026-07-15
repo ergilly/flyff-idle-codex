@@ -28,7 +28,8 @@ function getApiRoot() {
 export function resolveDatabasePath(databaseUrl?: string) {
   const effectiveDatabaseUrl =
     databaseUrl ??
-    (process.env.NODE_ENV === "test" ? "file:./test.db" : (process.env.DATABASE_URL ?? "file:./dev.db"));
+    process.env.DATABASE_URL ??
+    (process.env.NODE_ENV === "test" ? "file:./test.db" : "file:./dev.db");
 
   if (!effectiveDatabaseUrl.startsWith("file:")) {
     return effectiveDatabaseUrl;

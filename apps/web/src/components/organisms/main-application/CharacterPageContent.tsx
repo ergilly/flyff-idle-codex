@@ -2,8 +2,8 @@ import { Panel } from "@/components/atoms/Panel";
 import { StatRow } from "@/components/atoms/StatRow";
 import { CharacterInfoSection } from "@/components/molecules/main-application/CharacterInfoSection";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
-import { CharacterEquipmentPanel } from "@/components/molecules/main-application/CharacterEquipmentPanel";
-import { CharacterSkillsPanel } from "@/components/molecules/main-application/CharacterSkillsPanel";
+import { CharacterEquipmentPanel } from "@/components/organisms/main-application/CharacterEquipmentPanel";
+import { CharacterSkillsPanel } from "@/components/organisms/main-application/CharacterSkillsPanel";
 import {
   StatAllocationContent,
   type StatKey

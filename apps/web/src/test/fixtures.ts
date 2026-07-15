@@ -1,0 +1,103 @@
+import type {
+  Character,
+  CharacterEquipment,
+  ItemMetadata,
+  MapMonsterFamily,
+  MonsterFamilyVariant
+} from "@/lib/api";
+
+export const emptyEquipment: CharacterEquipment = {
+  ammo: null,
+  boots: null,
+  cloak: null,
+  csBoots: null,
+  csGloves: null,
+  csHelm: null,
+  csSuit: null,
+  earringL: null,
+  earringR: null,
+  flying: null,
+  gloves: null,
+  helmet: null,
+  mainhand: null,
+  mask: null,
+  necklace: null,
+  offhand: null,
+  ringL: null,
+  ringR: null,
+  suit: null
+};
+
+export function buildCharacter(overrides: Partial<Character> = {}): Character {
+  return {
+    id: "character-1",
+    slotIndex: 0,
+    name: "Test Hero",
+    gender: "male",
+    job: "Vagrant",
+    progressionRank: "normal",
+    level: 20,
+    exp: 0,
+    penya: 0,
+    stats: { str: 15, sta: 15, dex: 15, int: 15 },
+    skillLevels: {},
+    equipment: { ...emptyEquipment },
+    inventory: { size: 50, items: [] },
+    ...overrides
+  };
+}
+
+export function buildItem(overrides: Partial<ItemMetadata> = {}): ItemMetadata {
+  return {
+    id: "item-1",
+    name: "Test Item",
+    description: null,
+    icon: null,
+    category: "weapon",
+    subcategory: "sword",
+    rarity: "common",
+    level: 1,
+    sex: null,
+    requiredJob: null,
+    minAttack: 1,
+    maxAttack: 2,
+    attackSpeed: "normal",
+    twoHanded: false,
+    minDefense: null,
+    maxDefense: null,
+    abilities: [],
+    ...overrides
+  };
+}
+
+export function buildMonster(overrides: Partial<MonsterFamilyVariant> = {}): MonsterFamilyVariant {
+  return {
+    id: 1,
+    name: "Aibatt",
+    level: 20,
+    rank: "normal",
+    element: "wind",
+    icon: null,
+    hp: 1_000,
+    minAttack: 50,
+    maxAttack: 60,
+    defense: 20,
+    magicDefense: 10,
+    minDropGold: 0,
+    maxDropGold: 0,
+    drops: [],
+    variantRank: "normal",
+    ...overrides
+  };
+}
+
+export function buildMonsterFamily(overrides: Partial<MapMonsterFamily> = {}): MapMonsterFamily {
+  return {
+    family: "aibatt",
+    location: { region: "flaris", x: 10, y: 20 },
+    name: "Aibatt",
+    questDrops: [],
+    variants: [buildMonster()],
+    ...overrides
+  };
+}

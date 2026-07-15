@@ -819,6 +819,73 @@ describe("app routes", () => {
     });
   });
 
+  it("equips, consumes, and clears recovery items through the character API", async () => {
+    const playerResponse = await registerFreshPlayer("Consumables");
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", `Bearer ${playerResponse.body.token}`)
+      .send({ slotIndex: 0, name: "FoodHero", gender: "female" });
+    const characterId = createResponse.body.character.id;
+    const authorization = `Bearer ${playerResponse.body.token}`;
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/consumables/hp`)
+        .set("Authorization", authorization)
+        .send({ slotIndex: 0 })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          consumableLoadout: expect.objectContaining({ hp: { itemId: "5325", quantity: 3 } })
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/consumables/hp/consume`)
+        .set("Authorization", authorization)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          consumableLoadout: expect.objectContaining({ hp: { itemId: "5325", quantity: 2 } })
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/consumables/hp`)
+        .set("Authorization", authorization)
+        .send({ slotIndex: null })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          consumableLoadout: expect.objectContaining({ hp: null }),
+          inventory: expect.objectContaining({
+            items: expect.arrayContaining([expect.objectContaining({ itemId: "5325", quantity: 2 })])
+          })
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/consumables/invalid`)
+        .set("Authorization", authorization)
+        .send({ slotIndex: 0 })
+    ).resolves.toMatchObject({ status: 400, body: { error: "Consumable item is required" } });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/consumables/mp/consume`)
+        .set("Authorization", authorization)
+    ).resolves.toMatchObject({ status: 404, body: { error: "Consumable slot is empty" } });
+  });
+
   it("deletes characters only after matching name confirmation", async () => {
     const registerResponse = await registerFreshPlayer("Delete");
     const createResponse = await request(app)

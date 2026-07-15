@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { ButtonHTMLAttributes, DragEvent, ReactNode } from "react";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
-import { ItemDetailsPanel } from "@/components/molecules/main-application/ItemDetailsPanel";
+import { ItemDetailsPanel } from "@/components/organisms/main-application/ItemDetailsPanel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { getItemIconUrl, type Character, type InventorySortOption, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";

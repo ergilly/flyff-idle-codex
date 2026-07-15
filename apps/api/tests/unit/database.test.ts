@@ -10,8 +10,8 @@ describe("database path resolution", () => {
     expect(resolveDatabasePath("file:./dev.db")).toBe(path.resolve(expectedApiRoot, "dev.db"));
   });
 
-  it("uses an isolated database by default while tests are running", () => {
-    expect(resolveDatabasePath()).toBe(path.resolve(expectedApiRoot, "test.db"));
+  it("honors the in-memory database configured by the test environment", () => {
+    expect(resolveDatabasePath()).toBe(":memory:");
   });
 
   it("keeps absolute file URLs and non-file database URLs unchanged", () => {

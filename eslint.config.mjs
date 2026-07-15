@@ -39,6 +39,20 @@ export default tseslint.config(
     }
   },
   {
+    files: ["apps/*/src/**/*.{ts,tsx}", "calc/**/*.{js,ts}"],
+    ignores: ["**/*.test.*", "**/generated/**"],
+    rules: {
+      "max-lines": [
+        "error",
+        {
+          max: 500,
+          skipBlankLines: true,
+          skipComments: true
+        }
+      ]
+    }
+  },
+  {
     files: ["apps/web/**/*.{ts,tsx}"],
     plugins: {
       "@next/next": nextPlugin
