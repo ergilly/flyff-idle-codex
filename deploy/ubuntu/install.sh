@@ -26,18 +26,32 @@ if [[ "$(realpath "${SCRIPT_DIR}/../..")" != "$(realpath "${APP_DIR}")" ]]; then
   exit 1
 fi
 
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl debian-archive-keyring debian-keyring git gnupg openssl ufw
+if command -v apt-get >/dev/null 2>&1; then
+  apt-get update
+  apt-get install -y apt-transport-https ca-certificates curl debian-archive-keyring debian-keyring git gnupg openssl ufw
 
-curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
-apt-get install -y nodejs
+  curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+  apt-get install -y nodejs
 
-curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
-  | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt \
-  > /etc/apt/sources.list.d/caddy-stable.list
-apt-get update
-apt-get install -y caddy
+  curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key \
+    | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt \
+    > /etc/apt/sources.list.d/caddy-stable.list
+  chmod o+r /usr/share/keyrings/caddy-stable-archive-keyring.gpg /etc/apt/sources.list.d/caddy-stable.list
+  apt-get update
+  apt-get install -y caddy
+elif command -v dnf >/dev/null 2>&1; then
+  dnf install -y ca-certificates curl dnf-plugins-core firewalld git openssl policycoreutils-python-utils
+
+  curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
+  dnf install -y nodejs
+
+  dnf copr enable -y @caddy/caddy
+  dnf install -y caddy
+else
+  echo "Unsupported Linux distribution: apt-get or dnf is required." >&2
+  exit 1
+fi
 
 if ! id flyff-idle >/dev/null 2>&1; then
   useradd --system --create-home --home-dir /home/flyff-idle --shell /usr/sbin/nologin flyff-idle
@@ -93,10 +107,29 @@ systemctl daemon-reload
 systemctl enable --now flyff-idle-api caddy
 systemctl restart flyff-idle-api caddy
 
-ufw allow OpenSSH
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw --force enable
+if command -v ufw >/dev/null 2>&1; then
+  ufw allow OpenSSH
+  ufw allow 80/tcp
+  ufw allow 443/tcp
+  ufw --force enable
+elif command -v firewall-cmd >/dev/null 2>&1; then
+  if systemctl is-active --quiet firewalld; then
+    firewall-cmd --add-service=http
+    firewall-cmd --add-service=https
+    firewall-cmd --permanent --add-service=http
+    firewall-cmd --permanent --add-service=https
+  else
+    echo "firewalld is inactive; leaving the existing firewall state unchanged."
+  fi
+fi
+
+if command -v semanage >/dev/null 2>&1; then
+  semanage fcontext -a -t httpd_sys_content_t "${APP_DIR}/apps/web/out(/.*)?" 2>/dev/null \
+    || semanage fcontext -m -t httpd_sys_content_t "${APP_DIR}/apps/web/out(/.*)?"
+  restorecon -R "${APP_DIR}/apps/web/out"
+  setsebool -P httpd_can_network_connect 1
+  systemctl restart caddy
+fi
 
 echo "Flyff Idle is installed at https://${SITE_ADDRESS}"
 echo "Seeded test account password: ${TEST_ACCOUNT_PASSWORD}"

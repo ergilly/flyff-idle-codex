@@ -18,6 +18,10 @@ runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" pull --ff
 runuser -u flyff-idle -- env HUSKY=0 HOME=/home/flyff-idle npm --prefix "${APP_DIR}" ci
 runuser -u flyff-idle -- env NEXT_PUBLIC_API_URL= npm --prefix "${APP_DIR}" run build
 
+if command -v restorecon >/dev/null 2>&1; then
+  restorecon -R "${APP_DIR}/apps/web/out"
+fi
+
 set -a
 source "${ENV_FILE}"
 set +a

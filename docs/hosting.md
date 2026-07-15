@@ -1,8 +1,8 @@
 # Hosting Flyff Idle
 
 The supplied deployment runs the static Next.js export, Express API, immutable game-data database, and
-persistent player database on one Ubuntu VM. Caddy serves the frontend and provisions HTTPS, while systemd
-keeps the API running.
+persistent player database on one Ubuntu or Oracle Linux VM. Caddy serves the frontend and provisions HTTPS,
+while systemd keeps the API running.
 
 ## Storage layout
 
@@ -20,7 +20,8 @@ this application. Availability can be limited in some regions, and Oracle can re
 instance, so keep an occasional database backup outside the VM.
 
 1. Commit and push the application, including `apps/api/data/game-data.db`.
-2. Create an Ubuntu 24.04 Always Free VM. An Ampere A1 shape with 1 OCPU and 6 GB RAM is sufficient.
+2. Create an Ubuntu 24.04 or Oracle Linux 8 Always Free VM. An Ampere A1 shape with 1 OCPU and 6 GB RAM is
+   sufficient.
 3. Add your SSH public key during VM creation.
 4. In the VM subnet security list, allow inbound TCP 80 and 443 from `0.0.0.0/0`. Restrict TCP 22 to your own
    IP address if possible.
@@ -110,6 +111,6 @@ consistently.
 
 ## Other Ubuntu hosts
 
-The scripts are not Oracle-specific. They work on a fresh Ubuntu VM with a public IP, persistent filesystem,
-and inbound ports 22, 80, and 443. Some nominally free VM providers charge separately for public IPv4 or erase
-local disks, so verify those details before choosing one.
+The scripts work on fresh Ubuntu (`apt`/`ufw`) and Oracle Linux or RHEL-family (`dnf`/`firewalld`/SELinux) VMs
+with a public IP, persistent filesystem, and inbound ports 22, 80, and 443. Some nominally free VM providers
+charge separately for public IPv4 or erase local disks, so verify those details before choosing one.
