@@ -30,3 +30,18 @@ runuser -u flyff-idle -- env HOME=/home/flyff-idle npm --prefix "${APP_DIR}" run
 systemctl restart flyff-idle-api
 systemctl reload caddy
 systemctl --no-pager --full status flyff-idle-api
+
+for attempt in $(seq 1 10); do
+  if curl --fail --silent --show-error http://127.0.0.1:4000/health >/dev/null; then
+    echo "Deployment health check passed."
+    exit 0
+  fi
+
+  if [[ "${attempt}" -eq 10 ]]; then
+    echo "Deployment health check failed after 10 attempts." >&2
+    journalctl --no-pager --unit flyff-idle-api --lines 50
+    exit 1
+  fi
+
+  sleep 2
+done

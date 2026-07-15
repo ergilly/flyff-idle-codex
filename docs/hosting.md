@@ -66,6 +66,43 @@ This performs a fast-forward Git pull, installs locked dependencies, rebuilds th
 non-destructive player database migrations, and restarts the API. It deliberately does not seed the player
 database.
 
+## Automatic deployment from GitHub
+
+`.github/workflows/deploy-production.yml` verifies and deploys every push to `main`, including merged pull
+requests. It can also be started manually from the Actions tab. The deploy job runs only after typechecking,
+linting, unit tests, and a production build pass.
+
+Create a dedicated SSH key for GitHub Actions. Add its public key to the VM user's
+`~/.ssh/authorized_keys`, then create a GitHub environment named `production` under **Repository settings →
+Environments**. Add these environment secrets:
+
+- `PRODUCTION_HOST`: the VM's public IP, such as `132.226.209.192`.
+- `PRODUCTION_USER`: the SSH login user, normally `opc` on Oracle Linux or `ubuntu` on Ubuntu.
+- `PRODUCTION_SSH_PRIVATE_KEY`: the complete private key, including its BEGIN and END lines.
+- `PRODUCTION_SSH_KNOWN_HOSTS`: the VM's trusted SSH host-key line.
+
+Obtain the host-key material directly from the already authenticated VM instead of accepting an unverified
+`ssh-keyscan` result:
+
+```bash
+sudo cat /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+If that outputs `ssh-ed25519 AAAA...`, set `PRODUCTION_SSH_KNOWN_HOSTS` to:
+
+```text
+132.226.209.192 ssh-ed25519 AAAA...
+```
+
+The SSH user must be able to run `sudo` non-interactively. Verify this on the VM with `sudo -n true`. The
+`flyff-idle` service user also needs its read-only GitHub deploy key because `flyff-idle-deploy` performs the
+Git pull under that account.
+
+The Oracle VCN security list or network security group must permit the GitHub-hosted runner to reach TCP 22.
+GitHub runner addresses change over time; allowing SSH from the internet with key-only authentication is the
+simplest configuration. A self-hosted runner or private overlay network is preferable if SSH must remain
+restricted to fixed source addresses.
+
 ## Resetting test accounts in production
 
 Run this over SSH:
