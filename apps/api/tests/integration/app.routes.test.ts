@@ -3,7 +3,7 @@ import { createApp } from "../../src/app.js";
 import { db } from "../../src/data/database.js";
 import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
-describe("app routes", () => {
+describe("app route integration", () => {
   const app = createApp();
 
   beforeEach(async () => {

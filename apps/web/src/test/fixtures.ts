@@ -5,6 +5,7 @@ import type {
   MapMonsterFamily,
   MonsterFamilyVariant
 } from "@/lib/api";
+import type { SkillDefinition, SkillTreeTab } from "@/lib/skillTrees";
 
 export const emptyEquipment: CharacterEquipment = {
   ammo: null,
@@ -98,6 +99,37 @@ export function buildMonsterFamily(overrides: Partial<MapMonsterFamily> = {}): M
     name: "Aibatt",
     questDrops: [],
     variants: [buildMonster()],
+    ...overrides
+  };
+}
+
+export function buildSkill(overrides: Partial<SkillDefinition> = {}): SkillDefinition {
+  return {
+    classId: 1,
+    className: "Vagrant",
+    costPerLevel: 1,
+    description: "Hit cleanly.",
+    icon: "clean.png",
+    id: "clean",
+    maxLevel: 3,
+    name: "Clean Hit",
+    requiredLevel: 1,
+    requirements: [],
+    tier: "vagrant",
+    x: 30,
+    y: 35,
+    ...overrides
+  };
+}
+
+export function buildSkillTab(overrides: Partial<SkillTreeTab> = {}): SkillTreeTab {
+  return {
+    tier: "vagrant",
+    label: "Vagrant",
+    imageSrc: "/images/skills/Vagrant.png",
+    imageWidth: 225,
+    imageHeight: 135,
+    skills: [buildSkill()],
     ...overrides
   };
 }

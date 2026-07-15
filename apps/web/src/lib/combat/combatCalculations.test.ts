@@ -1,11 +1,11 @@
 import {
   getAutoAttackDamage,
   getAutoAttackTiming,
-  getCombatStats,
   getEffectiveHitRate,
   rollMonsterAutoAttack,
   rollPlayerAutoAttack
-} from "./combatStats";
+} from "./attacks";
+import { getCombatStats } from "./stats";
 import type { Character, ItemMetadata, MonsterFamilyVariant } from "@/lib/api";
 
 const emptyEquipment: Character["equipment"] = {
@@ -108,7 +108,7 @@ function weapon(id: string, minAttack: number, maxAttack: number): ItemMetadata 
   };
 }
 
-describe("getCombatStats", () => {
+describe("combat calculations", () => {
   it("returns visible stats in a grouped display order", () => {
     expect(getCombatStats(character, {}).map((stat) => stat.label)).toEqual([
       "STR",

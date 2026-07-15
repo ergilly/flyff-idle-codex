@@ -15,7 +15,7 @@ function respond(response: Partial<Response>) {
   }) as jest.Mock;
 }
 
-describe("character action API contracts", () => {
+describe("character API action contracts", () => {
   beforeEach(() => jest.resetAllMocks());
 
   it("serializes consumable assignment and clearing", async () => {

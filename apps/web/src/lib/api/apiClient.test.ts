@@ -20,7 +20,7 @@ import {
   sortInventory,
   unequipItem,
   updateCharacterProgression
-} from "./api";
+} from "../api";
 
 function mockFetch(response: Partial<Response>) {
   global.fetch = jest.fn().mockResolvedValue({

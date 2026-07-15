@@ -1,9 +1,5 @@
-import {
-  getAutoAttackDamage,
-  getCombatStats,
-  rollMonsterAutoAttack,
-  rollPlayerAutoAttack
-} from "@/lib/combatStats";
+import { getAutoAttackDamage, rollMonsterAutoAttack, rollPlayerAutoAttack } from "@/lib/combat/attacks";
+import { getCombatStats } from "@/lib/combat/stats";
 import { buildCharacter, buildItem, buildMonster } from "@/test/fixtures";
 
 function sequence(values: number[]) {
