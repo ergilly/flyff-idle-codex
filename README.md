@@ -53,6 +53,7 @@ The seed creates this admin player with a full eight-slot roster, including:
 Additional seeded accounts use the same password:
 
 - `thirdjobs@flyff-idle.local`: admin player with third-job characters.
+- `secondjobs@flyff-idle.local`: admin player with level 120 second-job characters, Legendary Golden weapons, and matching level 105 armor sets.
 - `empty@flyff-idle.local`: non-admin player with no characters.
 
 ## Frontend

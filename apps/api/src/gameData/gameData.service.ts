@@ -25,11 +25,21 @@ const dataCache = new Map<DataSetName, CachedDataSet>();
 
 const reservedQueryParams = new Set(["fields", "ids", "limit", "maxLevel", "minLevel", "offset", "q"]);
 
+function getJsonDataDir() {
+  if (process.env.JSON_DATA_DIR) {
+    return process.env.JSON_DATA_DIR;
+  }
+
+  const candidates = [
+    path.resolve(process.cwd(), "docs/json"),
+    path.resolve(process.cwd(), "../../docs/json")
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? candidates[1];
+}
+
 function getJsonDataPath(dataSetName: DataSetName) {
-  return path.resolve(
-    process.env.JSON_DATA_DIR ?? path.resolve(process.cwd(), "../../docs/json"),
-    `${dataSetName}.json`
-  );
+  return path.resolve(getJsonDataDir(), `${dataSetName}.json`);
 }
 
 function isJsonDataRecord(value: unknown): value is JsonDataRecord {
@@ -149,6 +159,14 @@ function getClassIdForName(className: string) {
   return Object.values(loadDataSet("jobs")).find((job) => normalize(job.name) === normalize(className))?.id;
 }
 
+function matchesId(item: JsonDataRecord, id: string) {
+  return matchesScalarFilter(item.id, id);
+}
+
+function findDataRecordById(dataSet: DataSet, id: string) {
+  return Object.values(dataSet).find((item) => matchesId(item, id));
+}
+
 export function isDataSetName(value: string): value is DataSetName {
   return dataSetNameSet.has(value);
 }
@@ -161,7 +179,7 @@ export function listDataSets() {
 }
 
 export function findDataRecord(dataSetName: DataSetName, id: string) {
-  return loadDataSet(dataSetName)[id];
+  return findDataRecordById(loadDataSet(dataSetName), id);
 }
 
 export function queryDataSet(dataSetName: DataSetName, query: Record<string, unknown>) {
@@ -189,7 +207,7 @@ export function queryDataSet(dataSetName: DataSetName, query: Record<string, unk
     });
 
   const dataSetItems = ids
-    ? ids.map((id) => dataSet[id]).filter((item): item is JsonDataRecord => Boolean(item))
+    ? ids.map((id) => findDataRecordById(dataSet, id)).filter((item): item is JsonDataRecord => Boolean(item))
     : Object.values(dataSet);
 
   const filteredItems = dataSetItems

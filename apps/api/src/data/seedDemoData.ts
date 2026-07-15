@@ -1,15 +1,23 @@
 import { randomUUID } from "node:crypto";
 import { db } from "./database.js";
 import { startingEquipmentByGender, startingMainhand } from "./starterLoadout.js";
-import type { CharacterGender, CharacterProgressionRank, User } from "../types.js";
+import type {
+  CharacterEquipment,
+  CharacterGender,
+  CharacterProgressionRank,
+  CharacterStats,
+  User
+} from "../types.js";
 
 type SeedCharacter = {
   gender: CharacterGender;
   job: string;
   level: number;
+  equipment?: CharacterEquipment;
   name: string;
   progressionRank: CharacterProgressionRank;
   slotIndex: number;
+  stats?: CharacterStats;
 };
 
 function upsertSeedUser({
@@ -63,12 +71,60 @@ function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly Seed
   db.prepare("DELETE FROM characters WHERE player_id = ?").run(user.id);
 
   const insertCharacter = db.prepare(
-    "INSERT INTO characters (id, player_id, slot_index, name, gender, job, progression_rank, level, exp, penya, inventory_size, str, sta, dex, int, suit, gloves, boots, mainhand, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    `INSERT INTO characters (
+      id,
+      player_id,
+      slot_index,
+      name,
+      gender,
+      job,
+      progression_rank,
+      level,
+      exp,
+      penya,
+      inventory_size,
+      str,
+      sta,
+      dex,
+      int,
+      consumable_loadout,
+      equipment_sets,
+      helmet,
+      suit,
+      gloves,
+      boots,
+      flying,
+      cs_boots,
+      cs_gloves,
+      cs_suit,
+      cs_helm,
+      mask,
+      cloak,
+      ammo,
+      offhand,
+      mainhand,
+      ring_r,
+      earring_r,
+      necklace,
+      earring_l,
+      ring_l,
+      created_at,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   const femaleEquipment = startingEquipmentByGender.female;
   const maleEquipment = startingEquipmentByGender.male;
   for (const character of characters) {
-    const equipment = character.gender === "female" ? femaleEquipment : maleEquipment;
+    const startingEquipment = character.gender === "female" ? femaleEquipment : maleEquipment;
+    const equipment =
+      character.equipment ??
+      createSeedEquipment({
+        suit: startingEquipment.suit,
+        gloves: startingEquipment.gloves,
+        boots: startingEquipment.boots,
+        mainhand: startingMainhand
+      });
+    const stats = character.stats ?? createSeedStats();
 
     insertCharacter.run(
       randomUUID(),
@@ -82,19 +138,149 @@ function replaceSeedCharacters(user: Pick<User, "id">, characters: readonly Seed
       0,
       0,
       50,
-      15,
-      15,
-      15,
-      15,
+      stats.str,
+      stats.sta,
+      stats.dex,
+      stats.int,
+      "{}",
+      JSON.stringify(createSeedEquipmentSets(equipment)),
+      equipment.helmet,
       equipment.suit,
       equipment.gloves,
       equipment.boots,
-      startingMainhand,
+      equipment.flying,
+      equipment.csBoots,
+      equipment.csGloves,
+      equipment.csSuit,
+      equipment.csHelm,
+      equipment.mask,
+      equipment.cloak,
+      equipment.ammo,
+      equipment.offhand,
+      equipment.mainhand,
+      equipment.ringR,
+      equipment.earringR,
+      equipment.necklace,
+      equipment.earringL,
+      equipment.ringL,
       now,
       now
     );
   }
 }
+
+function createSeedEquipment(equipment: Partial<CharacterEquipment> = {}): CharacterEquipment {
+  return {
+    ammo: null,
+    boots: null,
+    cloak: null,
+    csBoots: null,
+    csGloves: null,
+    csHelm: null,
+    csSuit: null,
+    earringL: null,
+    earringR: null,
+    flying: null,
+    gloves: null,
+    helmet: null,
+    mainhand: null,
+    mask: null,
+    necklace: null,
+    offhand: null,
+    ringL: null,
+    ringR: null,
+    suit: null,
+    ...equipment
+  };
+}
+
+function createSeedStats(stats: Partial<CharacterStats> = {}): CharacterStats {
+  return {
+    str: 15,
+    sta: 15,
+    dex: 15,
+    int: 15,
+    ...stats
+  };
+}
+
+function createSeedEquipmentSets(equipment: CharacterEquipment) {
+  return [equipment, createSeedEquipment(), createSeedEquipment()];
+}
+
+const level120NormalStatPoints = 2 * (120 - 1);
+const maxedLevel120Stat = 15 + level120NormalStatPoints;
+
+const secondJobLoadouts = {
+  Blade: createSeedEquipment({
+    helmet: "7039",
+    suit: "8994",
+    gloves: "6355",
+    boots: "456",
+    mainhand: "8767",
+    offhand: "8767"
+  }),
+  Knight: createSeedEquipment({
+    helmet: "1632",
+    suit: "6944",
+    gloves: "2944",
+    boots: "5909",
+    mainhand: "3674"
+  }),
+  Elementor: createSeedEquipment({
+    helmet: "2067",
+    suit: "9666",
+    gloves: "279",
+    boots: "2342",
+    mainhand: "153"
+  }),
+  Psykeeper: createSeedEquipment({
+    helmet: "8428",
+    suit: "5264",
+    gloves: "3966",
+    boots: "9626",
+    mainhand: "5980"
+  }),
+  Billposter: createSeedEquipment({
+    helmet: "7937",
+    suit: "831",
+    gloves: "8800",
+    boots: "4340",
+    mainhand: "1626"
+  }),
+  Ringmaster: createSeedEquipment({
+    helmet: "118",
+    suit: "3032",
+    gloves: "5727",
+    boots: "1850",
+    mainhand: "6315"
+  }),
+  Jester: createSeedEquipment({
+    helmet: "8640",
+    suit: "7022",
+    gloves: "6786",
+    boots: "7633",
+    mainhand: "8901"
+  }),
+  Ranger: createSeedEquipment({
+    helmet: "8430",
+    suit: "7181",
+    gloves: "4421",
+    boots: "3514",
+    mainhand: "3824"
+  })
+} satisfies Record<string, CharacterEquipment>;
+
+const secondJobStats = {
+  Blade: createSeedStats({ str: maxedLevel120Stat }),
+  Knight: createSeedStats({ sta: maxedLevel120Stat }),
+  Elementor: createSeedStats({ int: maxedLevel120Stat }),
+  Psykeeper: createSeedStats({ int: maxedLevel120Stat }),
+  Billposter: createSeedStats({ str: maxedLevel120Stat }),
+  Ringmaster: createSeedStats({ sta: maxedLevel120Stat }),
+  Jester: createSeedStats({ str: maxedLevel120Stat }),
+  Ranger: createSeedStats({ dex: maxedLevel120Stat })
+} satisfies Record<string, CharacterStats>;
 
 export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
   const now = new Date().toISOString();
@@ -230,6 +416,101 @@ export async function seedDemoData({ passwordHash }: { passwordHash: string }) {
         job: "Crackshooter",
         progressionRank: "hero",
         level: 130
+      }
+    ],
+    now
+  );
+
+  const secondJobUser = upsertSeedUser({
+    email: "secondjobs@flyff-idle.local",
+    displayName: "Second Job Tester",
+    isAdmin: true,
+    passwordHash,
+    now
+  });
+
+  replaceSeedCharacters(
+    secondJobUser,
+    [
+      {
+        slotIndex: 0,
+        name: "Blade",
+        gender: "male",
+        job: "Blade",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Blade,
+        stats: secondJobStats.Blade
+      },
+      {
+        slotIndex: 1,
+        name: "Knight",
+        gender: "male",
+        job: "Knight",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Knight,
+        stats: secondJobStats.Knight
+      },
+      {
+        slotIndex: 2,
+        name: "Elementor",
+        gender: "male",
+        job: "Elementor",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Elementor,
+        stats: secondJobStats.Elementor
+      },
+      {
+        slotIndex: 3,
+        name: "Psykeeper",
+        gender: "male",
+        job: "Psykeeper",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Psykeeper,
+        stats: secondJobStats.Psykeeper
+      },
+      {
+        slotIndex: 4,
+        name: "Billposter",
+        gender: "male",
+        job: "Billposter",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Billposter,
+        stats: secondJobStats.Billposter
+      },
+      {
+        slotIndex: 5,
+        name: "Ringmaster",
+        gender: "male",
+        job: "Ringmaster",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Ringmaster,
+        stats: secondJobStats.Ringmaster
+      },
+      {
+        slotIndex: 6,
+        name: "Jester",
+        gender: "male",
+        job: "Jester",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Jester,
+        stats: secondJobStats.Jester
+      },
+      {
+        slotIndex: 7,
+        name: "Ranger",
+        gender: "male",
+        job: "Ranger",
+        progressionRank: "normal",
+        level: 120,
+        equipment: secondJobLoadouts.Ranger,
+        stats: secondJobStats.Ranger
       }
     ],
     now

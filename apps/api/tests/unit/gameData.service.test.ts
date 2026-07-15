@@ -34,6 +34,21 @@ describe("game data service", () => {
     });
   });
 
+  it("finds map monsters by their inner id instead of the JSON key", () => {
+    expect(findDataRecord("mapMonsters", "3801")).toEqual(
+      expect.objectContaining({
+        id: 3801,
+        name: "Bang"
+      })
+    );
+    expect(findDataRecord("mapMonsters", "3")).toBeUndefined();
+    expect(queryDataSet("mapMonsters", { ids: "3801,3,missing", fields: "id,name" })).toMatchObject({
+      dataSet: "mapMonsters",
+      total: 1,
+      results: [{ id: 3801, name: "Bang" }]
+    });
+  });
+
   it("applies text, scalar, boolean, range, class, pagination, and field filters", () => {
     const namedItems = queryDataSet("items", {
       q: "wooden",

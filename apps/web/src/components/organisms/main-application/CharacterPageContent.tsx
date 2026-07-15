@@ -9,7 +9,7 @@ import {
   type StatKey
 } from "@/components/molecules/main-application/StatAllocationPanel";
 import type { ReactNode } from "react";
-import type { Character, ItemMetadata } from "@/lib/api";
+import type { Character, CharacterEquipmentSlot, ItemMetadata } from "@/lib/api";
 import type { SkillDefinition, SkillTreeTab } from "@/lib/skillTrees";
 import { getTestIdSegment } from "@/lib/testIds";
 
@@ -31,18 +31,21 @@ type CharacterPageContentProps = {
   onApplySkills: () => void;
   onCanRemoveSkillLevel: (skill: SkillDefinition) => boolean;
   onApplyStats: () => void;
+  onClearStat: (stat: StatKey) => void;
   onEquipmentSetChange: (equipmentSet: number) => void;
+  onMaxStat: (stat: StatKey) => void;
   onUnequipEquipmentSlot?: (equipmentSlot: keyof Character["equipment"], equipmentSet: number) => void;
   onRemoveSkillLevel: (skill: SkillDefinition) => void;
   onRemoveStat: (stat: StatKey) => void;
   onResetSkills: () => void;
   onResetStats: () => void;
-  onSelectEquipmentItem: (itemId: string) => void;
+  onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
+  onSetStat: (stat: StatKey, value: number) => void;
   equipmentActionError?: string;
   isEquipmentActionPending?: boolean;
   pendingSkillLevels: Character["skillLevels"];
   pendingStats: Record<StatKey, number>;
-  selectedEquipmentItemId: string | null;
+  selectedEquipmentSlot: CharacterEquipmentSlot | null;
   skillTabs: SkillTreeTab[];
   statKeys: StatKey[];
 };
@@ -60,18 +63,21 @@ export function CharacterPageContent({
   onApplySkills,
   onCanRemoveSkillLevel,
   onApplyStats,
+  onClearStat,
   onEquipmentSetChange,
+  onMaxStat,
   onUnequipEquipmentSlot,
   onRemoveSkillLevel,
   onRemoveStat,
   onResetSkills,
   onResetStats,
-  onSelectEquipmentItem,
+  onSelectEquipmentSlot,
+  onSetStat,
   equipmentActionError = "",
   isEquipmentActionPending = false,
   pendingSkillLevels,
   pendingStats,
-  selectedEquipmentItemId,
+  selectedEquipmentSlot,
   skillTabs,
   statKeys
 }: CharacterPageContentProps) {
@@ -102,8 +108,11 @@ export function CharacterPageContent({
               character={character}
               onAddStat={onAddStat}
               onApplyStats={onApplyStats}
+              onClearStat={onClearStat}
+              onMaxStat={onMaxStat}
               onRemoveStat={onRemoveStat}
               onResetStats={onResetStats}
+              onSetStat={onSetStat}
               pendingStats={pendingStats}
               statKeys={statKeys}
             />
@@ -118,8 +127,8 @@ export function CharacterPageContent({
           itemsById={itemsById}
           onEquipmentSetChange={onEquipmentSetChange}
           onUnequipEquipmentSlot={onUnequipEquipmentSlot}
-          onSelectEquipmentItem={onSelectEquipmentItem}
-          selectedEquipmentItemId={selectedEquipmentItemId}
+          onSelectEquipmentSlot={onSelectEquipmentSlot}
+          selectedEquipmentSlot={selectedEquipmentSlot}
         />
 
         <CharacterSkillsPanel

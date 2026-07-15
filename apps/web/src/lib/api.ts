@@ -20,6 +20,7 @@ export type Character = {
   penya: number;
   stats: CharacterStats;
   skillLevels: CharacterSkillLevels;
+  consumableLoadout?: CharacterConsumableLoadout;
   equipment: CharacterEquipment;
   equipmentSets?: CharacterEquipment[];
   inventory: CharacterInventory;
@@ -36,6 +37,15 @@ export type CharacterStats = {
 };
 
 export type CharacterSkillLevels = Record<string, number>;
+
+export type CharacterConsumableResource = "hp" | "mp" | "fp";
+
+export type CharacterConsumableSlot = {
+  itemId: string;
+  quantity: number;
+} | null;
+
+export type CharacterConsumableLoadout = Record<CharacterConsumableResource, CharacterConsumableSlot>;
 
 export type CharacterEquipment = {
   helmet: string | null;
@@ -92,6 +102,8 @@ export type ItemMetadata = {
   minDefense: number | null;
   maxDefense: number | null;
   stack?: number | null;
+  consumable?: boolean | null;
+  cooldown?: number | null;
   abilities: Array<{
     parameter: string;
     add: number | null;
@@ -104,6 +116,7 @@ export type MonsterMetadata = {
   name: string;
   drops?: MonsterDrop[];
   event?: boolean;
+  experience?: number | null;
   icon?: string | null;
   level: number | null;
   rank: string | null;
@@ -114,6 +127,13 @@ export type MonsterMetadata = {
   maxAttack: number | null;
   defense: number | null;
   magicDefense: number | null;
+  sta?: number | null;
+  str?: number | null;
+  dex?: number | null;
+  int?: number | null;
+  hitRate?: number | null;
+  parry?: number | null;
+  noLevelReduction?: boolean | null;
   minDropGold: number | null;
   maxDropGold: number | null;
 };
@@ -141,12 +161,20 @@ export type MonsterFamilyVariant = Pick<
   | "level"
   | "rank"
   | "element"
+  | "experience"
   | "icon"
   | "hp"
   | "minAttack"
   | "maxAttack"
   | "defense"
   | "magicDefense"
+  | "sta"
+  | "str"
+  | "dex"
+  | "int"
+  | "hitRate"
+  | "parry"
+  | "noLevelReduction"
   | "minDropGold"
   | "maxDropGold"
 > & {
@@ -202,7 +230,9 @@ export function getMonsterIconUrl(icon: string) {
 }
 
 export async function fetchItems(token: string, itemIds: string[]): Promise<ItemMetadata[]> {
-  const uniqueItemIds = Array.from(new Set(itemIds.filter(Boolean)));
+  const uniqueItemIds = Array.from(
+    new Set(itemIds.map((itemId) => String(itemId).trim()).filter((itemId) => /^\d+$/.test(itemId)))
+  );
 
   if (uniqueItemIds.length === 0) {
     return [];
@@ -267,7 +297,7 @@ export async function fetchMonstersByNames(monsterNames: string[]): Promise<Reco
       const monsters = await fetchDataSet<MonsterMetadata>("monsters", {
         name,
         fields:
-          "id,name,level,rank,area,element,hp,minAttack,maxAttack,defense,magicDefense,minDropGold,maxDropGold",
+          "id,name,experience,level,rank,area,element,hp,minAttack,maxAttack,defense,magicDefense,sta,str,dex,int,hitRate,parry,noLevelReduction,minDropGold,maxDropGold",
         limit: 1
       });
 
@@ -350,7 +380,7 @@ export async function fetchMapMonsterFamiliesByRegion(region: string): Promise<M
 }
 
 const monsterFamilyFields =
-  "id,name,event,icon,level,rank,area,element,drops,hp,minAttack,maxAttack,defense,magicDefense,minDropGold,maxDropGold";
+  "id,name,event,experience,icon,level,rank,area,element,drops,hp,minAttack,maxAttack,defense,magicDefense,sta,str,dex,int,hitRate,parry,noLevelReduction,minDropGold,maxDropGold";
 
 const monsterVariantOrder: MonsterVariantRank[] = ["small", "normal", "captain", "giant"];
 const monsterVariantRankSet = new Set<string>(monsterVariantOrder);
@@ -477,6 +507,7 @@ function toMonsterFamilyVariant(
     defense: monster.defense,
     drops: monster.drops,
     element: monster.element,
+    experience: monster.experience,
     hp: monster.hp,
     id: monster.id,
     icon: monster.icon,
@@ -487,7 +518,14 @@ function toMonsterFamilyVariant(
     minAttack: monster.minAttack,
     minDropGold: monster.minDropGold,
     name: monster.name,
+    noLevelReduction: monster.noLevelReduction,
+    parry: monster.parry,
     rank: monster.rank,
+    sta: monster.sta,
+    str: monster.str,
+    dex: monster.dex,
+    int: monster.int,
+    hitRate: monster.hitRate,
     variantRank
   };
 }
@@ -627,7 +665,13 @@ export async function deleteCharacter(token: string, characterId: string, name: 
 export async function updateCharacterProgression(
   token: string,
   characterId: string,
-  progression: { skillLevels?: CharacterSkillLevels; stats?: CharacterStats }
+  progression: {
+    exp?: number;
+    level?: number;
+    penya?: number;
+    skillLevels?: CharacterSkillLevels;
+    stats?: CharacterStats;
+  }
 ): Promise<Character> {
   const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/progression`, {
     method: "PATCH",
@@ -689,12 +733,13 @@ export async function addCharacterInventoryItem(
   });
 
   if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(
       response.status === 403
         ? "Admin access is required"
         : response.status === 404
           ? "Item or character not found"
-          : "Unable to add item"
+          : (data?.error ?? "Unable to add item")
     );
   }
 
@@ -726,6 +771,30 @@ export async function equipInventoryItem(
   return data.character;
 }
 
+export async function equipConsumableItem(
+  token: string,
+  characterId: string,
+  resource: CharacterConsumableResource,
+  slotIndex: number | null
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/consumables/${resource}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ slotIndex })
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to equip consumable");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
 export async function moveInventoryItem(
   token: string,
   characterId: string,
@@ -744,6 +813,74 @@ export async function moveInventoryItem(
   if (!response.ok) {
     const data = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(data?.error ?? "Unable to move item");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
+export async function consumeInventoryItem(
+  token: string,
+  characterId: string,
+  slotIndex: number
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/inventory/${slotIndex}/consume`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to consume item");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
+export async function consumeEquippedConsumableItem(
+  token: string,
+  characterId: string,
+  resource: CharacterConsumableResource
+): Promise<Character> {
+  const response = await fetch(
+    `${apiBaseUrl}/api/characters/${characterId}/consumables/${resource}/consume`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to consume item");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
+export async function lootInventoryItems(
+  token: string,
+  characterId: string,
+  items: Array<{ itemId: string; quantity: number }>
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/inventory/loot`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ items })
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to loot items");
   }
 
   const data = (await response.json()) as { character: Character };

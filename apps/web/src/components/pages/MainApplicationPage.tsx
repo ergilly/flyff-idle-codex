@@ -30,9 +30,11 @@ import {
 import { getAvailableStatPoints, getTotalSkillPoints } from "@/lib/characterProgression";
 import {
   addCharacterInventoryItem,
+  consumeEquippedConsumableItem,
   equipInventoryItem,
   fetchCharacters,
   fetchItems,
+  lootInventoryItems,
   moveInventoryItem,
   refundCharacterSkills,
   refundCharacterStats,
@@ -43,6 +45,7 @@ import {
   type CharacterSkillLevels,
   type ItemMetadata,
   type MapMonsterFamily,
+  equipConsumableItem,
   unequipItem,
   updateCharacterProgression
 } from "@/lib/api";
@@ -55,24 +58,79 @@ import {
   type SkillDefinition,
   type SkillTreeTab
 } from "@/lib/skillTrees";
+import { getCombatStats } from "@/lib/combatStats";
 
 const storageKey = "flyffIdleTheme";
 const statKeys: StatKey[] = ["str", "sta", "dex", "int"];
+const passiveHpRegenIntervalMs = 5000;
+const passiveHpRegenRate = 0.05;
+
+type CharacterResourceState = {
+  fp: number;
+  hp: number;
+  mp: number;
+};
+type PersistedBattleLogEntry = {
+  id: number;
+  message: string;
+  tone: "danger" | "muted" | "success";
+};
+type PersistedBattleState = {
+  droppedItems: Array<{ itemId: string; quantity: number }>;
+  log: PersistedBattleLogEntry[];
+};
 
 function applyTheme(theme: MainApplicationTheme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem(storageKey, theme);
 }
 
-function getDetailStats(character: Character) {
-  const { dex, sta, str } = character.stats;
+function getDetailStats(
+  character: Character,
+  itemsById: Record<string, ItemMetadata>,
+  activeEquipmentSet: number
+) {
+  const combatStats = getCombatStats(character, itemsById, activeEquipmentSet);
+  const statsByLabel = new Map(combatStats.map((stat) => [stat.label, stat.value]));
 
   return [
-    { label: "ATK", value: Math.round(str * 4 + dex * 1.5 + character.level * 2) },
-    { label: "DEF", value: Math.round(sta * 3 + character.level * 1.8) },
-    { label: "Crit%", value: `${Math.min(100, Math.round(dex / 2))}%` },
-    { label: "Attk Speed", value: `${Math.min(100, Math.round(70 + dex / 3))}%` }
+    { label: "ATK", value: statsByLabel.get("Attack") ?? 0 },
+    { label: "DEF", value: statsByLabel.get("Defense") ?? 0 },
+    { label: "Crit%", value: statsByLabel.get("Critical Chance") ?? "0%" },
+    { label: "Attk Speed", value: statsByLabel.get("Attack Speed") ?? "0%" }
   ];
+}
+
+function getCombatStatNumber(
+  character: Character,
+  itemsById: Record<string, ItemMetadata>,
+  activeEquipmentSet: number,
+  label: string
+) {
+  const combatStats = getCombatStats(character, itemsById, activeEquipmentSet);
+  const value = combatStats.find((stat) => stat.label === label)?.value;
+  const numberValue =
+    typeof value === "number" ? value : Number.parseFloat(String(value ?? "0").replace(/[^\d.-]/g, ""));
+
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function getCharacterEquipmentSet(character: Character, equipmentSet: number) {
+  return character.equipmentSets?.[equipmentSet] ?? character.equipment;
+}
+
+function getChangedEquipmentSlot(
+  previousCharacter: Character,
+  nextCharacter: Character,
+  equipmentSet: number
+) {
+  const previousEquipment = getCharacterEquipmentSet(previousCharacter, equipmentSet);
+  const nextEquipment = getCharacterEquipmentSet(nextCharacter, equipmentSet);
+  const changedSlot = (Object.keys(nextEquipment) as CharacterEquipmentSlot[]).find(
+    (slot) => previousEquipment[slot] !== nextEquipment[slot]
+  );
+
+  return changedSlot ?? null;
 }
 
 export function MainApplicationPage() {
@@ -101,8 +159,14 @@ export function MainApplicationPage() {
   const [skillTabs, setSkillTabs] = useState<SkillTreeTab[]>([]);
   const [itemsById, setItemsById] = useState<Record<string, ItemMetadata>>({});
   const [selectedMonsterFamily, setSelectedMonsterFamily] = useState<MapMonsterFamily | null>(null);
+  const [characterResourcesById, setCharacterResourcesById] = useState<
+    Record<string, CharacterResourceState>
+  >({});
+  const [battleStateByCharacterId, setBattleStateByCharacterId] = useState<
+    Record<string, PersistedBattleState>
+  >({});
   const [activeEquipmentSet, setActiveEquipmentSet] = useState(0);
-  const [selectedEquipmentItemId, setSelectedEquipmentItemId] = useState<string | null>(null);
+  const [selectedEquipmentSlot, setSelectedEquipmentSlot] = useState<CharacterEquipmentSlot | null>(null);
   const [selectedInventorySlotIndex, setSelectedInventorySlotIndex] = useState<number | null>(null);
   const [itemActionError, setItemActionError] = useState("");
   const [isItemActionPending, setIsItemActionPending] = useState(false);
@@ -150,9 +214,48 @@ export function MainApplicationPage() {
   );
 
   const detailStats = useMemo(
-    () => (selectedCharacter ? getDetailStats(selectedCharacter) : []),
-    [selectedCharacter]
+    () => (selectedCharacter ? getDetailStats(selectedCharacter, itemsById, activeEquipmentSet) : []),
+    [activeEquipmentSet, itemsById, selectedCharacter]
   );
+
+  useEffect(() => {
+    if (!selectedCharacter || activeNavItem === "Combat") {
+      return undefined;
+    }
+
+    const currentResources = characterResourcesById[selectedCharacter.id];
+
+    if (!currentResources) {
+      return undefined;
+    }
+
+    const maxHp = getCombatStatNumber(selectedCharacter, itemsById, activeEquipmentSet, "Max HP");
+
+    if (maxHp <= 0 || currentResources.hp >= maxHp) {
+      return undefined;
+    }
+
+    const regenAmount = Math.max(1, Math.floor(maxHp * passiveHpRegenRate));
+    const regenInterval = window.setInterval(() => {
+      setCharacterResourcesById((currentResourcesById) => {
+        const resources = currentResourcesById[selectedCharacter.id];
+
+        if (!resources || resources.hp >= maxHp) {
+          return currentResourcesById;
+        }
+
+        return {
+          ...currentResourcesById,
+          [selectedCharacter.id]: {
+            ...resources,
+            hp: Math.min(maxHp, resources.hp + regenAmount)
+          }
+        };
+      });
+    }, passiveHpRegenIntervalMs);
+
+    return () => window.clearInterval(regenInterval);
+  }, [activeEquipmentSet, activeNavItem, characterResourcesById, itemsById, selectedCharacter]);
 
   useEffect(() => {
     if (!selectedCharacter) {
@@ -216,7 +319,7 @@ export function MainApplicationPage() {
   useEffect(() => {
     if (!selectedCharacter) {
       setItemsById({});
-      setSelectedEquipmentItemId(null);
+      setSelectedEquipmentSlot(null);
       setSelectedInventorySlotIndex(null);
       return;
     }
@@ -224,13 +327,16 @@ export function MainApplicationPage() {
     const token = localStorage.getItem("flyffIdleToken");
     const itemIds = [
       ...getEquippedItemIds(selectedCharacter),
-      ...selectedCharacter.inventory.items.map((item) => item.itemId)
+      ...selectedCharacter.inventory.items.map((item) => item.itemId),
+      ...(selectedMonsterFamily?.variants?.flatMap(
+        (variant) => variant.drops?.map((drop) => String(drop.item)) ?? []
+      ) ?? [])
     ];
     let ignoreResult = false;
 
     if (!token || itemIds.length === 0) {
       setItemsById({});
-      setSelectedEquipmentItemId(null);
+      setSelectedEquipmentSlot(null);
       setSelectedInventorySlotIndex(null);
       return;
     }
@@ -250,21 +356,24 @@ export function MainApplicationPage() {
     return () => {
       ignoreResult = true;
     };
-  }, [selectedCharacter]);
+  }, [selectedCharacter, selectedMonsterFamily]);
 
   useEffect(() => {
-    if (!selectedCharacter || !selectedEquipmentItemId) {
+    if (!selectedCharacter || !selectedEquipmentSlot) {
       return;
     }
 
-    if (!getEquippedItemIds(selectedCharacter).includes(selectedEquipmentItemId)) {
-      setSelectedEquipmentItemId(null);
+    const selectedEquipment =
+      selectedCharacter.equipmentSets?.[activeEquipmentSet] ?? selectedCharacter.equipment;
+
+    if (!selectedEquipment[selectedEquipmentSlot]) {
+      setSelectedEquipmentSlot(null);
     }
-  }, [selectedCharacter, selectedEquipmentItemId]);
+  }, [activeEquipmentSet, selectedCharacter, selectedEquipmentSlot]);
 
   function handleEquipmentSetChange(equipmentSet: number) {
     setActiveEquipmentSet(equipmentSet);
-    setSelectedEquipmentItemId(null);
+    setSelectedEquipmentSlot(null);
   }
 
   useEffect(() => {
@@ -293,6 +402,35 @@ export function MainApplicationPage() {
 
     setPendingStats((currentStats) => ({ ...currentStats, [stat]: currentStats[stat] - 1 }));
     setAvailableStatPoints((currentPoints) => currentPoints + 1);
+  }
+
+  function handleClearStat(stat: StatKey) {
+    if (pendingStats[stat] <= 0) {
+      return;
+    }
+
+    setPendingStats((currentStats) => ({ ...currentStats, [stat]: 0 }));
+    setAvailableStatPoints((currentPoints) => currentPoints + pendingStats[stat]);
+  }
+
+  function handleMaxStat(stat: StatKey) {
+    if (availableStatPoints <= 0) {
+      return;
+    }
+
+    setPendingStats((currentStats) => ({
+      ...currentStats,
+      [stat]: currentStats[stat] + availableStatPoints
+    }));
+    setAvailableStatPoints(0);
+  }
+
+  function handleSetStat(stat: StatKey, value: number) {
+    const nextValue = Number.isFinite(value) ? Math.floor(value) : 0;
+    const boundedValue = Math.max(0, Math.min(nextValue, pendingStats[stat] + availableStatPoints));
+
+    setPendingStats((currentStats) => ({ ...currentStats, [stat]: boundedValue }));
+    setAvailableStatPoints((currentPoints) => currentPoints + pendingStats[stat] - boundedValue);
   }
 
   async function handleApplyStats() {
@@ -414,6 +552,115 @@ export function MainApplicationPage() {
     }
   }
 
+  async function handleUpdateCharacterProgression(progression: {
+    exp?: number;
+    level?: number;
+    penya?: number;
+  }) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    try {
+      const updatedCharacter = await updateCharacterProgression(token, selectedCharacter.id, progression);
+      updateCharacter(updatedCharacter);
+    } catch {
+      setError("Unable to save character progression.");
+    }
+  }
+
+  async function handleLootInventoryItems(items: Array<{ itemId: string; quantity: number }>) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    const updatedCharacter = await lootInventoryItems(token, selectedCharacter.id, items);
+
+    updateCharacter(updatedCharacter);
+  }
+
+  async function handleConsumeInventoryItem(resource: "hp" | "mp" | "fp") {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    try {
+      const updatedCharacter = await consumeEquippedConsumableItem(token, selectedCharacter.id, resource);
+      updateCharacter(updatedCharacter);
+    } catch (consumeError) {
+      setItemActionError(
+        consumeError instanceof Error ? consumeError.message : "Unable to consume equipped item"
+      );
+    }
+  }
+
+  function handleCharacterResourcesChange(resources: CharacterResourceState) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    setCharacterResourcesById((currentResourcesById) => {
+      const currentResources = currentResourcesById[selectedCharacter.id];
+
+      if (
+        currentResources?.fp === resources.fp &&
+        currentResources.hp === resources.hp &&
+        currentResources.mp === resources.mp
+      ) {
+        return currentResourcesById;
+      }
+
+      return {
+        ...currentResourcesById,
+        [selectedCharacter.id]: resources
+      };
+    });
+  }
+
+  function handleBattleStateChange(battleState: PersistedBattleState) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    setBattleStateByCharacterId((currentBattleStateByCharacterId) => {
+      const currentBattleState = currentBattleStateByCharacterId[selectedCharacter.id];
+
+      if (
+        currentBattleState &&
+        JSON.stringify(currentBattleState.droppedItems) === JSON.stringify(battleState.droppedItems) &&
+        JSON.stringify(currentBattleState.log) === JSON.stringify(battleState.log)
+      ) {
+        return currentBattleStateByCharacterId;
+      }
+
+      return {
+        ...currentBattleStateByCharacterId,
+        [selectedCharacter.id]: battleState
+      };
+    });
+  }
+
   function handleResetSkills() {
     setPendingSkillLevels({});
   }
@@ -429,9 +676,9 @@ export function MainApplicationPage() {
     setIsMobileNavOpen(false);
   }
 
-  function handleSelectEquipmentItem(itemId: string) {
+  function handleSelectEquipmentSlot(slot: CharacterEquipmentSlot) {
     setItemActionError("");
-    setSelectedEquipmentItemId(itemId);
+    setSelectedEquipmentSlot(slot);
   }
 
   function handleSelectInventorySlot(slotIndex: number | null) {
@@ -547,7 +794,6 @@ export function MainApplicationPage() {
     }
 
     const token = localStorage.getItem("flyffIdleToken");
-    const inventoryItem = selectedCharacter.inventory.items.find((item) => item.slotIndex === slotIndex);
 
     if (!token) {
       router.replace("/");
@@ -562,11 +808,31 @@ export function MainApplicationPage() {
       updateCharacter(updatedCharacter);
       setSelectedInventorySlotIndex(null);
       setActiveEquipmentSet(equipmentSet);
-      setSelectedEquipmentItemId(inventoryItem?.itemId ?? null);
+      setSelectedEquipmentSlot(getChangedEquipmentSlot(selectedCharacter, updatedCharacter, equipmentSet));
     } catch (equipError) {
       setItemActionError(equipError instanceof Error ? equipError.message : "Unable to equip item");
     } finally {
       setIsItemActionPending(false);
+    }
+  }
+
+  async function handleEquipConsumableItem(resource: "hp" | "mp" | "fp", slotIndex: number | null) {
+    if (!selectedCharacter) {
+      return;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+
+    try {
+      const updatedCharacter = await equipConsumableItem(token, selectedCharacter.id, resource, slotIndex);
+      updateCharacter(updatedCharacter);
+    } catch (equipError) {
+      setItemActionError(equipError instanceof Error ? equipError.message : "Unable to equip consumable");
     }
   }
 
@@ -645,7 +911,7 @@ export function MainApplicationPage() {
     try {
       const updatedCharacter = await unequipItem(token, selectedCharacter.id, equipmentSlot, equipmentSet);
       updateCharacter(updatedCharacter);
-      setSelectedEquipmentItemId(null);
+      setSelectedEquipmentSlot(null);
     } catch (unequipError) {
       setItemActionError(unequipError instanceof Error ? unequipError.message : "Unable to unequip item");
     } finally {
@@ -745,17 +1011,20 @@ export function MainApplicationPage() {
             onAddStat={handleAddStat}
             onApplySkills={handleApplySkills}
             onCanRemoveSkillLevel={handleCanRemoveSkillLevel}
+            onClearStat={handleClearStat}
             onEquipmentSetChange={handleEquipmentSetChange}
+            onMaxStat={handleMaxStat}
             onApplyStats={handleApplyStats}
             onRemoveSkillLevel={handleRemoveSkillLevel}
             onRemoveStat={handleRemoveStat}
             onResetSkills={handleResetSkills}
             onResetStats={handleResetStats}
-            onSelectEquipmentItem={handleSelectEquipmentItem}
+            onSelectEquipmentSlot={handleSelectEquipmentSlot}
+            onSetStat={handleSetStat}
             onUnequipEquipmentSlot={handleUnequipEquipmentSlot}
             pendingSkillLevels={pendingSkillLevels}
             pendingStats={pendingStats}
-            selectedEquipmentItemId={selectedEquipmentItemId}
+            selectedEquipmentSlot={selectedEquipmentSlot}
             skillTabs={skillTabs}
             statKeys={statKeys}
           />
@@ -777,7 +1046,16 @@ export function MainApplicationPage() {
         ) : activeNavItem === "Combat" ? (
           <BattlePage
             character={selectedCharacter}
+            initialBattleState={battleStateByCharacterId[selectedCharacter.id]}
+            initialCharacterResources={characterResourcesById[selectedCharacter.id]}
             itemsById={itemsById}
+            onBattleStateChange={handleBattleStateChange}
+            onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
+            onCharacterResourcesChange={handleCharacterResourcesChange}
+            onConsumeInventoryItem={handleConsumeInventoryItem}
+            onEquipConsumableItem={handleEquipConsumableItem}
+            onLootInventoryItems={handleLootInventoryItems}
+            onUpdateCharacterProgression={handleUpdateCharacterProgression}
             selectedMonsterFamily={selectedMonsterFamily}
             skillTabs={skillTabs}
           />

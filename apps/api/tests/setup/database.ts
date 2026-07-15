@@ -31,6 +31,7 @@ function ensureDatabaseSchema() {
       dex INTEGER NOT NULL DEFAULT 15,
       int INTEGER NOT NULL DEFAULT 15,
       skill_levels TEXT NOT NULL DEFAULT '{}',
+      consumable_loadout TEXT NOT NULL DEFAULT '{}',
       equipment_sets TEXT NOT NULL DEFAULT '[]',
       helmet TEXT,
       suit TEXT,
@@ -105,6 +106,10 @@ function ensureCharacterProgressionColumns() {
 
   if (!characterColumns.has("equipment_sets")) {
     db.exec("ALTER TABLE characters ADD COLUMN equipment_sets TEXT NOT NULL DEFAULT '[]'");
+  }
+
+  if (!characterColumns.has("consumable_loadout")) {
+    db.exec("ALTER TABLE characters ADD COLUMN consumable_loadout TEXT NOT NULL DEFAULT '{}'");
   }
 }
 

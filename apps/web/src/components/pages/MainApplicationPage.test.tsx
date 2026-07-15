@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MainApplicationPage } from "./MainApplicationPage";
 import {
   addCharacterInventoryItem,
+  consumeEquippedConsumableItem,
   equipInventoryItem,
   fetchCharacters,
   fetchItems,
@@ -24,9 +25,11 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/lib/api", () => ({
   addCharacterInventoryItem: jest.fn(),
+  consumeEquippedConsumableItem: jest.fn(),
   equipInventoryItem: jest.fn(),
   fetchCharacters: jest.fn(),
   fetchItems: jest.fn(),
+  lootInventoryItems: jest.fn(),
   moveInventoryItem: jest.fn(),
   refundCharacterSkills: jest.fn(),
   refundCharacterStats: jest.fn(),
@@ -114,11 +117,14 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
     onAddStat,
     onApplySkills,
     onApplyStats,
+    onClearStat,
+    onMaxStat,
     onRemoveSkillLevel,
     onRemoveStat,
     onResetSkills,
     onResetStats,
-    onSelectEquipmentItem,
+    onSetStat,
+    onSelectEquipmentSlot,
     onUnequipEquipmentSlot,
     availableStatPoints,
     pendingSkillLevels,
@@ -135,6 +141,8 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
     onAddStat: (stat: "str") => void;
     onApplySkills: () => void;
     onApplyStats: () => void;
+    onClearStat: (stat: "str") => void;
+    onMaxStat: (stat: "str") => void;
     onRemoveSkillLevel: (skill: {
       id: string;
       costPerLevel: number;
@@ -145,7 +153,8 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
     onRemoveStat: (stat: "str") => void;
     onResetSkills: () => void;
     onResetStats: () => void;
-    onSelectEquipmentItem: (itemId: string) => void;
+    onSetStat: (stat: "str", value: number) => void;
+    onSelectEquipmentSlot: (slot: "cloak") => void;
     onUnequipEquipmentSlot: (slot: "cloak", equipmentSet: number) => void;
     pendingSkillLevels: Record<string, number>;
     pendingStats: Record<string, number>;
@@ -168,6 +177,15 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
         <button type="button" onClick={() => onAddStat("str")}>
           Add STR
         </button>
+        <button type="button" onClick={() => onMaxStat("str")}>
+          Max STR
+        </button>
+        <button type="button" onClick={() => onClearStat("str")}>
+          Clear STR
+        </button>
+        <button type="button" onClick={() => onSetStat("str", 7)}>
+          Set STR 7
+        </button>
         <button type="button" onClick={() => onRemoveStat("str")}>
           Remove STR
         </button>
@@ -189,7 +207,7 @@ jest.mock("@/components/organisms/main-application/CharacterPageContent", () => 
         <button type="button" onClick={onResetSkills}>
           Reset Skills
         </button>
-        <button type="button" onClick={() => onSelectEquipmentItem("40")}>
+        <button type="button" onClick={() => onSelectEquipmentSlot("cloak")}>
           Select Equipment
         </button>
         <button type="button" onClick={() => onUnequipEquipmentSlot("cloak", 0)}>
@@ -233,8 +251,76 @@ jest.mock("./InventoryPage", () => ({
 }));
 
 jest.mock("./BattlePage", () => ({
-  BattlePage: ({ selectedMonsterFamily }: { selectedMonsterFamily: { name: string } | null }) => (
-    <section aria-label="mock battle">Battle target {selectedMonsterFamily?.name ?? "none"}</section>
+  BattlePage: ({
+    character,
+    initialBattleState,
+    initialCharacterResources,
+    onBattleStateChange,
+    onCharacterResourcesChange,
+    onConsumeInventoryItem,
+    onUpdateCharacterProgression,
+    selectedMonsterFamily
+  }: {
+    character: Character;
+    initialBattleState?: {
+      droppedItems: Array<{ itemId: string; quantity: number }>;
+      log: Array<{ id: number; message: string; tone: "danger" | "muted" | "success" }>;
+    };
+    initialCharacterResources?: { fp: number; hp: number; mp: number };
+    onBattleStateChange: (state: {
+      droppedItems: Array<{ itemId: string; quantity: number }>;
+      log: Array<{ id: number; message: string; tone: "danger" | "muted" | "success" }>;
+    }) => void;
+    onCharacterResourcesChange: (resources: { fp: number; hp: number; mp: number }) => void;
+    onConsumeInventoryItem: (resource: "hp") => void;
+    onUpdateCharacterProgression: (progression: { exp?: number; level?: number; penya?: number }) => void;
+    selectedMonsterFamily: { name: string } | null;
+  }) => (
+    <section aria-label="mock battle">
+      Battle target {selectedMonsterFamily?.name ?? "none"}
+      <p>
+        Combat inventory{" "}
+        {character.inventory.items.map((item) => `${item.slotIndex}:${item.quantity}`).join(",")}
+      </p>
+      <p>
+        Combat consumables{" "}
+        {character.consumableLoadout?.hp
+          ? `${character.consumableLoadout.hp.itemId}:${character.consumableLoadout.hp.quantity}`
+          : "none"}
+      </p>
+      <p>
+        Combat resources{" "}
+        {initialCharacterResources
+          ? `${initialCharacterResources.hp}:${initialCharacterResources.mp}:${initialCharacterResources.fp}`
+          : "none"}
+      </p>
+      <p>
+        Combat persistence{" "}
+        {initialBattleState
+          ? `${initialBattleState.droppedItems.map((item) => `${item.itemId}:${item.quantity}`).join(",")}|${initialBattleState.log.map((entry) => entry.message).join(",")}`
+          : "none"}
+      </p>
+      <button type="button" onClick={() => onCharacterResourcesChange({ hp: 11, mp: 22, fp: 33 })}>
+        Set Resources
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onBattleStateChange({
+            droppedItems: [{ itemId: "9001", quantity: 2 }],
+            log: [{ id: 1, message: "Aibatt dropped Rare Gem.", tone: "success" }]
+          })
+        }
+      >
+        Set Battle Persistence
+      </button>
+      <button type="button" onClick={() => onConsumeInventoryItem("hp")}>
+        Consume Slot
+      </button>
+      <button type="button" onClick={() => onUpdateCharacterProgression({ penya: 999 })}>
+        Save Progression
+      </button>
+    </section>
   )
 }));
 
@@ -351,8 +437,13 @@ function arrangeSession(character: Character = baseCharacter) {
 describe("MainApplicationPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
     localStorage.clear();
     document.documentElement.removeAttribute("data-theme");
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it("redirects when required session state is missing", () => {
@@ -423,6 +514,73 @@ describe("MainApplicationPage", () => {
     await waitFor(() => expect(unequipItem).toHaveBeenCalledWith("token", "char-1", "cloak", 0));
   });
 
+  it("stages all available stat points with max and still requires apply", async () => {
+    const underSpentCharacter = {
+      ...baseCharacter,
+      stats: { str: 10, sta: 10, dex: 10, int: 10 }
+    };
+    arrangeSession(underSpentCharacter);
+    (updateCharacterProgression as jest.Mock).mockResolvedValue({
+      ...underSpentCharacter,
+      stats: { ...underSpentCharacter.stats, str: 20 }
+    });
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+    await screen.findByText((_content, element) => element?.textContent === "available stats 10");
+
+    fireEvent.click(screen.getByRole("button", { name: "Max STR" }));
+
+    expect(updateCharacterProgression).not.toHaveBeenCalled();
+    expect(getByTextContent("available stats 0")).toBeInTheDocument();
+    expect(getByTextContent("pending str 10")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
+
+    await waitFor(() =>
+      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
+        stats: { str: 20, sta: 10, dex: 10, int: 10 }
+      })
+    );
+  });
+
+  it("stages editable stat values and clears pending stat points", async () => {
+    const underSpentCharacter = {
+      ...baseCharacter,
+      stats: { str: 10, sta: 10, dex: 10, int: 10 }
+    };
+    arrangeSession(underSpentCharacter);
+    (updateCharacterProgression as jest.Mock).mockResolvedValue({
+      ...underSpentCharacter,
+      stats: { ...underSpentCharacter.stats, str: 17 }
+    });
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+    await screen.findByText((_content, element) => element?.textContent === "available stats 10");
+
+    fireEvent.click(screen.getByRole("button", { name: "Set STR 7" }));
+
+    expect(getByTextContent("available stats 3")).toBeInTheDocument();
+    expect(getByTextContent("pending str 7")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear STR" }));
+
+    expect(getByTextContent("available stats 10")).toBeInTheDocument();
+    expect(getByTextContent("pending str 0")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Set STR 7" }));
+    fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
+
+    await waitFor(() =>
+      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
+        stats: { str: 17, sta: 10, dex: 10, int: 10 }
+      })
+    );
+  });
+
   it("runs inventory and admin actions from their navigation tabs", async () => {
     arrangeSession();
     const inventoryUpdated = {
@@ -476,6 +634,131 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Fight Aibatt" }));
 
     expect(screen.getByText("Battle target Aibatt")).toBeInTheDocument();
+  });
+
+  it("decrements equipped consumable stacks through the inventory API", async () => {
+    const characterWithConsumable = {
+      ...baseCharacter,
+      consumableLoadout: {
+        fp: null,
+        hp: { itemId: "5325", quantity: 3 },
+        mp: null
+      }
+    };
+    arrangeSession(characterWithConsumable);
+    (consumeEquippedConsumableItem as jest.Mock).mockResolvedValue({
+      ...characterWithConsumable,
+      consumableLoadout: {
+        fp: null,
+        hp: { itemId: "5325", quantity: 2 },
+        mp: null
+      }
+    });
+    (updateCharacterProgression as jest.Mock).mockResolvedValue({
+      ...characterWithConsumable,
+      penya: 999,
+      consumableLoadout: {
+        fp: null,
+        hp: { itemId: "5325", quantity: 2 },
+        mp: null
+      }
+    });
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+
+    expect(screen.getByText("Combat inventory 0:3")).toBeInTheDocument();
+    expect(screen.getByText("Combat consumables 5325:3")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Consume Slot" }));
+
+    await waitFor(() => expect(consumeEquippedConsumableItem).toHaveBeenCalledWith("token", "char-1", "hp"));
+    expect(screen.getByText("Combat inventory 0:3")).toBeInTheDocument();
+    expect(screen.getByText("Combat consumables 5325:2")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Save Progression" }));
+
+    await waitFor(() =>
+      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", { penya: 999 })
+    );
+    expect(screen.getByText("Combat consumables 5325:2")).toBeInTheDocument();
+  });
+
+  it("preserves combat HP, MP, and FP when switching screens", async () => {
+    arrangeSession();
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+    expect(screen.getByText("Combat resources none")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Set Resources" }));
+    expect(screen.getByText("Combat resources 11:22:33")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Inventory" }));
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+
+    expect(screen.getByText("Combat resources 11:22:33")).toBeInTheDocument();
+  });
+
+  it("preserves combat drops and log when switching screens", async () => {
+    arrangeSession();
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+    expect(screen.getByText("Combat persistence none")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Set Battle Persistence" }));
+    expect(screen.getByText("Combat persistence 9001:2|Aibatt dropped Rare Gem.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Inventory" }));
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+
+    expect(screen.getByText("Combat persistence 9001:2|Aibatt dropped Rare Gem.")).toBeInTheDocument();
+  });
+
+  it("continues passive HP regen while away from combat", async () => {
+    arrangeSession();
+
+    render(<MainApplicationPage />);
+
+    await screen.findByText("Saint Morning");
+
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+    fireEvent.click(screen.getByRole("button", { name: "Set Resources" }));
+    expect(screen.getByText("Combat resources 11:22:33")).toBeInTheDocument();
+
+    jest.useFakeTimers();
+    fireEvent.click(screen.getByRole("button", { name: "Inventory" }));
+
+    act(() => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+
+    expect(screen.queryByText("Combat resources 11:22:33")).not.toBeInTheDocument();
+    expect(
+      screen.getByText((_content, element) => {
+        const text = element?.textContent ?? "";
+
+        if (!text.startsWith("Combat resources ")) {
+          return false;
+        }
+
+        const [hp, mp, fp] = text.replace("Combat resources ", "").split(":").map(Number);
+
+        return hp > 11 && mp === 22 && fp === 33;
+      })
+    ).toBeInTheDocument();
   });
 
   it("handles failed character, inventory, and admin actions", async () => {

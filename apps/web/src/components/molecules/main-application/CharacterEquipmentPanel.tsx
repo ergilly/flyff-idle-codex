@@ -47,8 +47,8 @@ type CharacterEquipmentPanelProps = {
   itemsById: Record<string, ItemMetadata>;
   onEquipmentSetChange?: (equipmentSet: number) => void;
   onUnequipEquipmentSlot?: (equipmentSlot: CharacterEquipmentSlot, equipmentSet: number) => void;
-  onSelectEquipmentItem: (itemId: string) => void;
-  selectedEquipmentItemId: string | null;
+  onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
+  selectedEquipmentSlot: CharacterEquipmentSlot | null;
   showItemDetails?: boolean;
   showSetSelector?: boolean;
   variant?: "framed" | "embedded";
@@ -150,16 +150,18 @@ export function CharacterEquipmentPanel({
   itemsById,
   onEquipmentSetChange,
   onUnequipEquipmentSlot,
-  onSelectEquipmentItem,
-  selectedEquipmentItemId,
+  onSelectEquipmentSlot,
+  selectedEquipmentSlot,
   showItemDetails = true,
   showSetSelector = true,
   variant = "framed"
 }: CharacterEquipmentPanelProps) {
   const equipment = getCharacterEquipmentSet(character, activeEquipmentSet);
-  const selectedEquipmentSlot = equipmentSlots.find(
-    ({ slot }) => equipment[slot] === selectedEquipmentItemId
+  const activeEquipmentItemIds = Object.values(equipment).filter((itemId): itemId is string =>
+    Boolean(itemId)
   );
+  const selectedEquipmentSlotDefinition = equipmentSlots.find(({ slot }) => slot === selectedEquipmentSlot);
+  const selectedEquipmentItemId = selectedEquipmentSlot ? equipment[selectedEquipmentSlot] : null;
   const selectedItem = selectedEquipmentItemId ? itemsById[selectedEquipmentItemId] : null;
   const mainhandItemId = equipment.mainhand;
   const mainhandItem = mainhandItemId ? itemsById[mainhandItemId] : null;
@@ -181,10 +183,11 @@ export function CharacterEquipmentPanel({
           {equipmentSlots.map(({ frame, label, slot }) => {
             const isOffhandBlockedByTwoHander = slot === "offhand" && hasTwoHandedMainhand;
             const itemId = isOffhandBlockedByTwoHander ? mainhandItemId : equipment[slot];
+            const selectableSlot = isOffhandBlockedByTwoHander ? "mainhand" : slot;
             const item = itemId ? itemsById[itemId] : null;
             const value = item?.name ?? getEquipmentValue(equipment, slot);
             const iconUrl = item?.icon ? getItemIconUrl(item.icon) : null;
-            const isSelected = itemId !== null && itemId === selectedEquipmentItemId;
+            const isSelected = itemId !== null && selectableSlot === selectedEquipmentSlot;
             const slotLabel = isOffhandBlockedByTwoHander
               ? `${label}: ${value} occupies this slot`
               : `${label}: ${value}`;
@@ -201,7 +204,7 @@ export function CharacterEquipmentPanel({
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
                 title={slotLabel}
-                onClick={() => (itemId ? onSelectEquipmentItem(itemId) : undefined)}
+                onClick={() => (itemId ? onSelectEquipmentSlot(selectableSlot) : undefined)}
                 disabled={!itemId}
               >
                 <EquipmentSlotLabel testId={`equipment_span_slot_label_${getTestIdSegment(slot)}`}>
@@ -226,15 +229,16 @@ export function CharacterEquipmentPanel({
           <ItemDetailsPanel
             actionDisabled={isActionPending}
             actionError={actionError}
-            actionLabel={selectedEquipmentSlot ? "Unequip" : undefined}
+            actionLabel={selectedEquipmentSlotDefinition ? "Unequip" : undefined}
             character={character}
+            equippedItemIds={activeEquipmentItemIds}
             item={selectedItem}
             onAction={
-              selectedEquipmentSlot && onUnequipEquipmentSlot
-                ? () => onUnequipEquipmentSlot(selectedEquipmentSlot.slot, activeEquipmentSet)
+              selectedEquipmentSlotDefinition && onUnequipEquipmentSlot
+                ? () => onUnequipEquipmentSlot(selectedEquipmentSlotDefinition.slot, activeEquipmentSet)
                 : undefined
             }
-            slotLabel={selectedEquipmentSlot?.label ?? null}
+            slotLabel={selectedEquipmentSlotDefinition?.label ?? null}
           />
         ) : null}
       </EquipmentPanelContent>

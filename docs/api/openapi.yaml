@@ -1028,6 +1028,15 @@ components:
         maxDefense:
           type: number
           nullable: true
+        cooldown:
+          type: number
+          nullable: true
+        stack:
+          type: integer
+          nullable: true
+        consumable:
+          type: boolean
+          nullable: true
         abilities:
           type: array
           items:

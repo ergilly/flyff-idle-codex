@@ -6,6 +6,7 @@ import { ItemDetailsPanel } from "@/components/molecules/main-application/ItemDe
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { getItemIconUrl, type Character, type InventorySortOption, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
+import { canEquipItem } from "@/lib/itemEquipment";
 
 type InventoryPageProps = {
   actionError?: string;
@@ -44,6 +45,13 @@ export function InventoryPage({
   const selectedInventoryItem =
     selectedSlotIndex !== null ? inventoryItemsBySlot.get(selectedSlotIndex) : undefined;
   const selectedItem = selectedInventoryItem ? itemsById[selectedInventoryItem.itemId] : null;
+  const activeEquipment = character.equipmentSets?.[activeEquipmentSet] ?? character.equipment;
+  const activeEquipmentItemIds = Object.values(activeEquipment).filter((itemId): itemId is string =>
+    Boolean(itemId)
+  );
+  const canEquipSelectedItem = selectedItem
+    ? canEquipItem(character, selectedItem, activeEquipment, itemsById)
+    : false;
 
   return (
     <section
@@ -158,10 +166,11 @@ export function InventoryPage({
         className="themed-scrollbar h-full max-h-full max-w-none overflow-y-auto border-border"
         character={character}
         emptyDescription="Select an inventory item to inspect its stats."
+        equippedItemIds={activeEquipmentItemIds}
         item={selectedItem}
         slotLabel={selectedSlotIndex !== null ? `Inventory ${selectedSlotIndex + 1}` : null}
       >
-        {selectedInventoryItem && onEquipSlot ? (
+        {selectedInventoryItem && onEquipSlot && canEquipSelectedItem ? (
           <div className="grid gap-2">
             <span
               className="text-[0.78rem] font-extrabold uppercase text-text-muted"

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { characterRepository } from "../data/characterRepository.js";
+import { findItemsByIds } from "../items/itemIconRepository.js";
 import type { AuthTokenPayload, Character } from "../types.js";
 
 export const characterRouter = Router();
@@ -42,9 +43,13 @@ const equipmentSlotSchema = z.enum([
   "earringL",
   "ringL"
 ]);
+const consumableResourceSchema = z.enum(["hp", "mp", "fp"]);
 
 const updateCharacterProgressionSchema = z
   .object({
+    exp: z.number().int().min(0).optional(),
+    level: z.number().int().min(1).max(170).optional(),
+    penya: z.number().int().min(0).optional(),
     stats: z
       .object({
         str: z.number().int().min(15).max(999),
@@ -55,13 +60,36 @@ const updateCharacterProgressionSchema = z
       .optional(),
     skillLevels: z.record(z.string().min(1).max(80), z.number().int().min(0).max(20)).optional()
   })
-  .refine((progression) => progression.stats || progression.skillLevels, {
-    message: "Stats or skill levels are required"
+  .refine(
+    (progression) =>
+      progression.stats ||
+      progression.skillLevels ||
+      progression.penya !== undefined ||
+      progression.level !== undefined ||
+      progression.exp !== undefined,
+    {
+      message: "Progression update is required"
+    }
+  )
+  .refine((progression) => (progression.level === undefined) === (progression.exp === undefined), {
+    message: "Level and exp must be updated together"
   });
 
 const moveInventoryItemSchema = z.object({
   fromSlotIndex: z.number().int().min(0).max(99),
   toSlotIndex: z.number().int().min(0).max(99)
+});
+
+const lootInventoryItemsSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().regex(/^\d+$/),
+        quantity: z.number().int().min(1).max(9999)
+      })
+    )
+    .min(1)
+    .max(50)
 });
 
 const sortInventorySchema = z.object({
@@ -73,6 +101,9 @@ const equipmentSetRequestSchema = z
     equipmentSet: z.number().int().min(0).max(2).optional()
   })
   .optional();
+const consumableEquipRequestSchema = z.object({
+  slotIndex: z.number().int().min(0).max(99).nullable()
+});
 
 function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
   return character;
@@ -130,7 +161,7 @@ characterRouter.patch("/:characterId/progression", requireAuth, async (request, 
   const result = updateCharacterProgressionSchema.safeParse(request.body);
 
   if (!result.success) {
-    response.status(400).json({ error: "Stats or skill levels are required" });
+    response.status(400).json({ error: "Progression update is required" });
     return;
   }
 
@@ -138,6 +169,9 @@ characterRouter.patch("/:characterId/progression", requireAuth, async (request, 
     characterIdResult.data,
     (response.locals.auth as AuthTokenPayload).sub,
     {
+      exp: result.data.exp,
+      level: result.data.level,
+      penya: result.data.penya,
       stats: result.data.stats,
       skillLevels: result.data.skillLevels
         ? Object.fromEntries(Object.entries(result.data.skillLevels).filter(([, level]) => level > 0))
@@ -183,6 +217,71 @@ characterRouter.post("/:characterId/inventory/:slotIndex/equip", requireAuth, as
   response.json({ character: toPublicCharacter(result.character) });
 });
 
+characterRouter.post("/:characterId/consumables/:resource", requireAuth, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+  const resourceResult = consumableResourceSchema.safeParse(request.params.resource);
+  const requestResult = consumableEquipRequestSchema.safeParse(request.body);
+
+  if (!characterIdResult.success || !resourceResult.success || !requestResult.success) {
+    response.status(400).json({ error: "Consumable item is required" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const result = await characterRepository.equipConsumableItemForPlayer(
+    characterIdResult.data,
+    auth.sub,
+    resourceResult.data,
+    requestResult.data.slotIndex
+  );
+
+  if (!result.character) {
+    const statusCode =
+      result.error === "Character not found" ||
+      result.error === "Inventory item not found" ||
+      result.error === "Item not found"
+        ? 404
+        : 400;
+
+    response.status(statusCode).json({ error: result.error ?? "Unable to equip consumable" });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(result.character) });
+});
+
+characterRouter.post(
+  "/:characterId/consumables/:resource/consume",
+  requireAuth,
+  async (request, response) => {
+    const characterIdResult = z.string().safeParse(request.params.characterId);
+    const resourceResult = consumableResourceSchema.safeParse(request.params.resource);
+
+    if (!characterIdResult.success || !resourceResult.success) {
+      response.status(404).json({ error: "Consumable slot not found" });
+      return;
+    }
+
+    const auth = response.locals.auth as AuthTokenPayload;
+    const result = await characterRepository.consumeEquippedConsumableForPlayer(
+      characterIdResult.data,
+      auth.sub,
+      resourceResult.data
+    );
+
+    if (!result.character) {
+      response
+        .status(
+          result.error === "Character not found" || result.error === "Consumable slot is empty" ? 404 : 400
+        )
+        .json({ error: result.error ?? "Unable to consume item" });
+      return;
+    }
+
+    response.json({ character: toPublicCharacter(result.character) });
+  }
+);
+
 characterRouter.post("/:characterId/inventory/move", requireAuth, async (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);
   const result = moveInventoryItemSchema.safeParse(request.body);
@@ -212,6 +311,73 @@ characterRouter.post("/:characterId/inventory/move", requireAuth, async (request
   }
 
   response.json({ character: toPublicCharacter(moveResult.character) });
+});
+
+characterRouter.post("/:characterId/inventory/:slotIndex/consume", requireAuth, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+  const slotIndexResult = z.coerce.number().int().min(0).max(99).safeParse(request.params.slotIndex);
+
+  if (!characterIdResult.success || !slotIndexResult.success) {
+    response.status(404).json({ error: "Inventory item not found" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const consumeResult = await characterRepository.consumeInventoryItemForPlayer(
+    characterIdResult.data,
+    auth.sub,
+    slotIndexResult.data
+  );
+
+  if (!consumeResult.character) {
+    response
+      .status(
+        consumeResult.error === "Character not found" || consumeResult.error === "Inventory item not found"
+          ? 404
+          : 400
+      )
+      .json({ error: consumeResult.error ?? "Unable to consume item" });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(consumeResult.character) });
+});
+
+characterRouter.post("/:characterId/inventory/loot", requireAuth, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+  const result = lootInventoryItemsSchema.safeParse(request.body);
+
+  if (!characterIdResult.success || !result.success) {
+    response.status(400).json({ error: "Loot items are required" });
+    return;
+  }
+
+  const itemIds = Array.from(new Set(result.data.items.map((item) => item.itemId)));
+  const foundItemIds = new Set(findItemsByIds(itemIds).map((item) => item.id));
+
+  if (itemIds.some((itemId) => !foundItemIds.has(itemId))) {
+    response.status(404).json({ error: "Item not found" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const lootResult = await characterRepository.addInventoryItemsForPlayer(
+    characterIdResult.data,
+    auth.sub,
+    result.data.items
+  );
+
+  if (!lootResult.character) {
+    const existingCharacter = characterRepository.findById(characterIdResult.data);
+    const isOwnedCharacter = existingCharacter?.playerId === auth.sub;
+
+    response.status(isOwnedCharacter ? 400 : 404).json({
+      error: isOwnedCharacter ? (lootResult.error ?? "Not enough inventory space") : "Character not found"
+    });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(lootResult.character) });
 });
 
 characterRouter.post("/:characterId/inventory/sort", requireAuth, async (request, response) => {

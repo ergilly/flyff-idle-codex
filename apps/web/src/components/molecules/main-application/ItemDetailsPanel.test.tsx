@@ -90,7 +90,7 @@ describe("ItemDetailsPanel", () => {
     expect(screen.getByText("Two-Handed Weapon")).toBeInTheDocument();
     expect(screen.getByText("Very Fast")).toBeInTheDocument();
     expect(screen.getByText("Psykeeper")).toBeInTheDocument();
-    expect(screen.getByText("Max Hp +5%")).toBeInTheDocument();
+    expect(screen.getByText("Max HP +5%")).toBeInTheDocument();
     expect(screen.getByText("Awakening Available")).toBeInTheDocument();
     expect(screen.getByText("Missing requirements")).toBeInTheDocument();
 
@@ -142,5 +142,46 @@ describe("ItemDetailsPanel", () => {
 
     expect(screen.getByText("No highlighted name here.")).toBeInTheDocument();
     expect(screen.queryByText("Awakening Available")).not.toBeInTheDocument();
+  });
+
+  it("renders set effects with active and inactive bonus states", () => {
+    render(
+      <ItemDetailsPanel
+        character={character}
+        equippedItemIds={["3272", "4351", "822"]}
+        item={item({
+          id: "3272",
+          name: "Ales Helmet",
+          category: "armor",
+          subcategory: "helmet",
+          abilities: []
+        })}
+      />
+    );
+
+    expect(screen.getByText("Ales Set 3/4")).toBeInTheDocument();
+    expect(screen.getByText("Ales Set 3/4").getAttribute("class")).toContain("text-text-muted");
+    expect(screen.getByTestId("item_details_span_set_part_3272")).toHaveTextContent("Ales Helmet");
+    expect(screen.getByTestId("item_details_span_set_part_3272").getAttribute("class")).toContain(
+      "text-[#64d875]"
+    );
+    expect(screen.getByTestId("item_details_span_set_part_4351")).toHaveTextContent("Ales Suit");
+    expect(screen.getByTestId("item_details_span_set_part_4351").getAttribute("class")).toContain(
+      "text-[#64d875]"
+    );
+    expect(screen.getByTestId("item_details_span_set_part_822")).toHaveTextContent("Ales Gauntlets");
+    expect(screen.getByTestId("item_details_span_set_part_822").getAttribute("class")).toContain(
+      "text-[#64d875]"
+    );
+    expect(screen.getByTestId("item_details_span_set_part_5969")).toHaveTextContent("Ales Boots");
+    expect(screen.getByTestId("item_details_span_set_part_5969").getAttribute("class")).toContain(
+      "text-text-muted"
+    );
+
+    expect(screen.getByText("Defense +43")).toBeInTheDocument();
+    expect(screen.getByText("Defense +43").getAttribute("class")).toContain("text-[#f59e0b]");
+    expect(screen.getByText("Hit Rate +15%")).toBeInTheDocument();
+    expect(screen.getByText("Attack Speed +15%")).toBeInTheDocument();
+    expect(screen.queryByText("Critical Chance +15%")).not.toBeInTheDocument();
   });
 });

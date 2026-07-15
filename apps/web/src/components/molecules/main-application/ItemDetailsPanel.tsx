@@ -7,6 +7,8 @@ import { StatLabel } from "@/components/atoms/StatRow";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
+import { isItemRequirementUnmet } from "@/lib/itemEquipment";
+import { findItemSetByPartId, type ItemSetMetadata } from "@/lib/itemSets";
 import { getTestIdSegment } from "@/lib/testIds";
 
 type ItemDetailsPanelProps = {
@@ -18,6 +20,7 @@ type ItemDetailsPanelProps = {
   children?: ReactNode;
   className?: string;
   emptyDescription?: string;
+  equippedItemIds?: string[];
   item?: ItemMetadata | null;
   onAction?: () => void;
   slotLabel?: string | null;
@@ -38,31 +41,34 @@ const detailsListClassName =
   "m-0 grid gap-2 [&_div:last-child]:border-b-0 [&_div:last-child]:pb-0 [&_div]:flex [&_div]:justify-between [&_div]:gap-3 [&_div]:border-b [&_div]:border-[rgba(187,161,89,0.18)] [&_div]:pb-[7px] [&_dd]:m-0 [&_dd]:text-right [&_dd]:font-extrabold [&_dd]:text-foreground [&_dt]:text-[0.78rem] [&_dt]:font-extrabold [&_dt]:uppercase [&_dt]:text-text-muted";
 
 const effectListClassName =
-  "grid gap-2 [&_strong]:rounded-control [&_strong]:border-2 [&_strong]:border-[rgba(226,179,63,0.42)] [&_strong]:bg-[linear-gradient(180deg,rgba(255,225,115,0.14),rgba(13,13,11,0.72))] [&_strong]:px-2.5 [&_strong]:py-2 [&_strong]:text-[0.9rem] [&_strong]:text-primary-strong [&_strong]:shadow-[inset_0_0_12px_rgba(255,216,76,0.08)]";
+  "grid gap-2 rounded-control border-2 border-[rgba(226,179,63,0.42)] bg-[linear-gradient(180deg,rgba(255,225,115,0.14),rgba(13,13,11,0.72))] px-2.5 py-2 shadow-[inset_0_0_12px_rgba(255,216,76,0.08)]";
 
-const secondJobToFirstJob: Record<string, string> = {
-  Blade: "Mercenary",
-  Knight: "Mercenary",
-  Elementor: "Magician",
-  Psykeeper: "Magician",
-  Billposter: "Assist",
-  Ringmaster: "Assist",
-  Jester: "Acrobat",
-  Ranger: "Acrobat"
-};
+const effectRowClassName = "text-[0.9rem] font-extrabold leading-tight text-primary-strong";
 
-const thirdJobToSecondJob: Record<string, string> = {
-  Slayer: "Blade",
-  Templar: "Knight",
-  Arcanist: "Elementor",
-  Mentalist: "Psykeeper",
-  Forcemaster: "Billposter",
-  Seraph: "Ringmaster",
-  Harlequin: "Jester",
-  Crackshooter: "Ranger"
+const abilityLabelByParameter: Record<string, string> = {
+  allstats: "All Stats",
+  attackspeed: "Attack Speed",
+  bowattack: "Bow Attack",
+  criticalchance: "Critical Chance",
+  criticaldamage: "Critical Damage",
+  decreasedfpconsumption: "Decreased FP Consumption",
+  decreasedmpconsumption: "Decreased MP Consumption",
+  def: "Defense",
+  hitrate: "Hit Rate",
+  maxfp: "Max FP",
+  maxhp: "Max HP",
+  maxmp: "Max MP",
+  yoyoattack: "Yo-Yo Attack"
 };
 
 function formatLabel(value: string) {
+  const normalizedValue = value.toLowerCase().replace(/[\s_]+/g, "");
+  const abilityLabel = abilityLabelByParameter[normalizedValue];
+
+  if (abilityLabel) {
+    return abilityLabel;
+  }
+
   return value
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/veryfast/i, "very fast")
@@ -71,10 +77,14 @@ function formatLabel(value: string) {
 }
 
 function formatAbility({ add, parameter, rate }: ItemMetadata["abilities"][number]) {
+  return `${formatLabel(parameter)} ${formatAbilityValue({ add, rate })}`.trim();
+}
+
+function formatAbilityValue({ add, rate }: Pick<ItemMetadata["abilities"][number], "add" | "rate">) {
   const sign = add !== null && add > 0 ? "+" : "";
   const suffix = rate ? "%" : "";
 
-  return `${formatLabel(parameter)} ${add === null ? "" : `${sign}${add}${suffix}`}`.trim();
+  return add === null ? "" : `${sign}${add}${suffix}`;
 }
 
 function getRarityClass(rarity: string | null) {
@@ -91,43 +101,6 @@ function canItemTypeAwaken(item: ItemMetadata) {
     item.subcategory !== null &&
     ["cloth", "glove", "hat", "mask", "shoes"].includes(item.subcategory)
   );
-}
-
-function normalizeRequirement(value: string) {
-  return value.toLowerCase().replace(/\s+/g, "");
-}
-
-function getJobLineage(job: string) {
-  const secondJob = thirdJobToSecondJob[job];
-  const firstJob = secondJob ? secondJobToFirstJob[secondJob] : secondJobToFirstJob[job];
-
-  return [job, secondJob, firstJob, "Vagrant"].filter((value): value is string => Boolean(value));
-}
-
-function meetsRequiredJob(character: Character, requiredJob: string) {
-  const normalizedRequirement = normalizeRequirement(requiredJob);
-
-  return getJobLineage(character.job).some((job) => normalizeRequirement(job) === normalizedRequirement);
-}
-
-function isRequirementUnmet(label: string, item: ItemMetadata, character?: Character) {
-  if (!character) {
-    return false;
-  }
-
-  if (label === "Gender" && item.sex) {
-    return item.sex !== character.gender;
-  }
-
-  if (label === "Req Job" && item.requiredJob) {
-    return !meetsRequiredJob(character, item.requiredJob);
-  }
-
-  if (label === "Level" && item.level !== null) {
-    return character.level < item.level;
-  }
-
-  return false;
 }
 
 function renderDescription(description: string, itemName: string): ReactNode {
@@ -154,6 +127,7 @@ export function ItemDetailsPanel({
   children,
   className,
   emptyDescription = "Select an equipped item to inspect its stats.",
+  equippedItemIds = [],
   item,
   onAction,
   slotLabel
@@ -194,10 +168,15 @@ export function ItemDetailsPanel({
     .filter((row): row is [string, string] => Boolean(row))
     .map(([label, value]) => ({
       label,
-      unmet: isRequirementUnmet(label, item, character),
+      unmet: isItemRequirementUnmet(label, item, character),
       value
     }));
   const hasAwakeningStats = awakeningStats.length > 0;
+  const itemSet = findItemSetByPartId(item.id);
+  const equippedSetItemCount = itemSet
+    ? new Set(equippedItemIds.filter((itemId) => itemSet.parts.some((part) => part.id === Number(itemId))))
+        .size
+    : 0;
 
   return (
     <aside
@@ -266,6 +245,14 @@ export function ItemDetailsPanel({
 
       {item.abilities.length > 0 ? <ItemEffectList label="Effects" abilities={item.abilities} /> : null}
 
+      {itemSet ? (
+        <SetEffectList
+          equippedCount={equippedSetItemCount}
+          equippedItemIds={equippedItemIds}
+          itemSet={itemSet}
+        />
+      ) : null}
+
       {hasAwakeningStats ? <ItemEffectList label="Awakening" abilities={awakeningStats} /> : null}
 
       {canItemTypeAwaken(item) && !hasAwakeningStats ? (
@@ -308,6 +295,7 @@ function ItemEffectList({ abilities, label }: { abilities: ItemMetadata["abiliti
       <StatLabel data-testid={`item_details_span_${testIdSegment}_label`}>{label}</StatLabel>
       {abilities.map((ability, index) => (
         <strong
+          className={effectRowClassName}
           data-testid={`item_details_strong_${testIdSegment}_${index}`}
           key={`${ability.parameter}-${ability.add}-${ability.rate}`}
         >
@@ -315,5 +303,102 @@ function ItemEffectList({ abilities, label }: { abilities: ItemMetadata["abiliti
         </strong>
       ))}
     </div>
+  );
+}
+
+function SetEffectList({
+  equippedCount,
+  equippedItemIds,
+  itemSet
+}: {
+  equippedCount: number;
+  equippedItemIds: string[];
+  itemSet: ItemSetMetadata;
+}) {
+  const equippedPartIds = new Set(equippedItemIds.map((itemId) => Number(itemId)));
+  const activeEffects = getActiveSetEffects(itemSet.bonus, equippedCount);
+
+  return (
+    <div
+      className={cx(effectListClassName, "border-[#c8751a] shadow-[inset_0_0_12px_rgba(255,145,45,0.1)]")}
+      data-testid="item_details_div_set_effects"
+    >
+      <StatLabel data-testid="item_details_span_set_effects_label">
+        {itemSet.name} {equippedCount}/{itemSet.parts.length}
+      </StatLabel>
+      <div className="ml-2 grid gap-1" data-testid="item_details_div_set_parts">
+        {itemSet.parts.map((part) => {
+          const isEquipped = equippedPartIds.has(part.id);
+
+          return (
+            <span
+              className={cx(
+                "text-[0.86rem] font-extrabold leading-tight",
+                isEquipped ? "text-[#64d875]" : "text-text-muted opacity-65"
+              )}
+              data-testid={`item_details_span_set_part_${part.id}`}
+              key={part.id}
+            >
+              {part.name}
+            </span>
+          );
+        })}
+      </div>
+      {activeEffects.length > 0 ? (
+        activeEffects.map((effect, index) => (
+          <strong
+            className="text-[0.9rem] font-extrabold leading-tight text-[#f59e0b]"
+            data-testid={`item_details_strong_set_effects_${index}`}
+            key={`${effect.parameter}-${effect.rate}`}
+          >
+            {formatLabel(effect.parameter)} {formatAbilityValue(effect)}
+          </strong>
+        ))
+      ) : (
+        <strong
+          className="text-[0.9rem] font-extrabold leading-tight text-text-muted opacity-65"
+          data-testid="item_details_strong_set_effects_empty"
+        >
+          No active set effects
+        </strong>
+      )}
+    </div>
+  );
+}
+
+function getActiveSetEffects(bonuses: ItemSetMetadata["bonus"], equippedCount: number) {
+  const activeBonuses = bonuses.filter((bonus) => equippedCount >= bonus.equipped);
+  const effectsByStat = new Map<
+    string,
+    {
+      parameter: string;
+      add: number | null;
+      rate: boolean;
+      firstEquipped: number;
+    }
+  >();
+
+  activeBonuses.forEach((bonus) => {
+    const effectKey = `${bonus.ability.parameter}:${bonus.ability.rate}`;
+    const existingEffect = effectsByStat.get(effectKey);
+    const add =
+      bonus.ability.add === null
+        ? (existingEffect?.add ?? null)
+        : (existingEffect?.add ?? 0) + bonus.ability.add;
+
+    effectsByStat.set(effectKey, {
+      parameter: bonus.ability.parameter,
+      add,
+      rate: bonus.ability.rate,
+      firstEquipped: Math.min(existingEffect?.firstEquipped ?? bonus.equipped, bonus.equipped)
+    });
+  });
+
+  return Array.from(effectsByStat.values()).sort(
+    (first, second) =>
+      first.firstEquipped - second.firstEquipped ||
+      formatLabel(first.parameter).localeCompare(formatLabel(second.parameter), undefined, {
+        sensitivity: "base"
+      })
   );
 }

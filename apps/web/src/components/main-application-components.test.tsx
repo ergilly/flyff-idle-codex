@@ -207,6 +207,8 @@ describe("main application components", () => {
     expect(onChangeCharacter).toHaveBeenCalled();
     expect(onLogout).toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Saint Morning" })).toBeInTheDocument();
+    expect(screen.getByTestId("game_header_strong_stat_sex_value")).toHaveTextContent("Female");
+    expect(screen.getByTestId("game_header_div_exp_bar")).toHaveAttribute("title", "0 / 22,280,630");
     expect(screen.getByText("123,456")).toBeInTheDocument();
   });
 
@@ -236,7 +238,10 @@ describe("main application components", () => {
     const onAddStat = jest.fn();
     const onRemoveStat = jest.fn();
     const onApplyStats = jest.fn();
+    const onClearStat = jest.fn();
+    const onMaxStat = jest.fn();
     const onResetStats = jest.fn();
+    const onSetStat = jest.fn();
 
     render(
       <>
@@ -246,8 +251,11 @@ describe("main application components", () => {
           character={character}
           onAddStat={onAddStat}
           onApplyStats={onApplyStats}
+          onClearStat={onClearStat}
+          onMaxStat={onMaxStat}
           onRemoveStat={onRemoveStat}
           onResetStats={onResetStats}
+          onSetStat={onSetStat}
           pendingStats={{ str: 1, sta: 0, dex: 0, int: 0 }}
           statKeys={["str", "sta", "dex", "int"]}
         />
@@ -259,12 +267,20 @@ describe("main application components", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Add STR point" }));
+    fireEvent.click(screen.getByRole("button", { name: "Assign all available points to STR" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove all pending STR points" }));
     fireEvent.click(screen.getByRole("button", { name: "Remove pending STR point" }));
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Pending STR points" }), {
+      target: { value: "2" }
+    });
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
 
     expect(onAddStat).toHaveBeenCalledWith("str");
+    expect(onMaxStat).toHaveBeenCalledWith("str");
+    expect(onClearStat).toHaveBeenCalledWith("str");
     expect(onRemoveStat).toHaveBeenCalledWith("str");
+    expect(onSetStat).toHaveBeenCalledWith("str", 2);
     expect(onApplyStats).toHaveBeenCalled();
     expect(onResetStats).toHaveBeenCalled();
     expect(screen.getAllByRole("alert")[0]).toHaveTextContent("Missing requirements");
@@ -273,7 +289,7 @@ describe("main application components", () => {
   });
 
   it("renders equipment and skill panels with selectable actions", () => {
-    const onSelectEquipmentItem = jest.fn();
+    const onSelectEquipmentSlot = jest.fn();
     const onUnequipEquipmentSlot = jest.fn();
     const onAddSkillLevel = jest.fn();
     const onRemoveSkillLevel = jest.fn();
@@ -286,9 +302,9 @@ describe("main application components", () => {
           actionError="Unable to unequip item"
           character={character}
           itemsById={{ "3497": woodenSword, "40": cloak }}
-          onSelectEquipmentItem={onSelectEquipmentItem}
+          onSelectEquipmentSlot={onSelectEquipmentSlot}
           onUnequipEquipmentSlot={onUnequipEquipmentSlot}
-          selectedEquipmentItemId="40"
+          selectedEquipmentSlot="cloak"
         />
         <CharacterSkillsPanel
           availableSkillPoints={3}
@@ -314,12 +330,50 @@ describe("main application components", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
 
-    expect(onSelectEquipmentItem).toHaveBeenCalledWith("40");
+    expect(onSelectEquipmentSlot).toHaveBeenCalledWith("cloak");
     expect(onUnequipEquipmentSlot).toHaveBeenCalledWith("cloak", 0);
     expect(onAddSkillLevel).toHaveBeenCalledWith(expect.objectContaining({ id: "clean" }));
     expect(onRemoveSkillLevel).toHaveBeenCalledWith(expect.objectContaining({ id: "clean" }));
     expect(onApplySkills).toHaveBeenCalled();
     expect(onResetSkills).toHaveBeenCalled();
+  });
+
+  it("selects duplicate equipped items by slot instead of item id", () => {
+    const onSelectEquipmentSlot = jest.fn();
+    const onUnequipEquipmentSlot = jest.fn();
+    const dualWieldCharacter = {
+      ...character,
+      equipment: {
+        ...character.equipment,
+        mainhand: "3497",
+        offhand: "3497"
+      }
+    };
+
+    render(
+      <CharacterEquipmentPanel
+        character={dualWieldCharacter}
+        itemsById={{ "3497": woodenSword }}
+        onSelectEquipmentSlot={onSelectEquipmentSlot}
+        onUnequipEquipmentSlot={onUnequipEquipmentSlot}
+        selectedEquipmentSlot="offhand"
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Main Hand: Wooden Sword" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    expect(screen.getByRole("button", { name: "Off Hand: Wooden Sword" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Off Hand: Wooden Sword" }));
+    fireEvent.click(screen.getByRole("button", { name: "Unequip" }));
+
+    expect(onSelectEquipmentSlot).toHaveBeenCalledWith("offhand");
+    expect(onUnequipEquipmentSlot).toHaveBeenCalledWith("offhand", 0);
   });
 
   it("composes the full character page content", () => {
@@ -337,16 +391,19 @@ describe("main application components", () => {
         onApplySkills={jest.fn()}
         onApplyStats={jest.fn()}
         onCanRemoveSkillLevel={() => true}
+        onClearStat={jest.fn()}
         onEquipmentSetChange={jest.fn()}
+        onMaxStat={jest.fn()}
         onRemoveSkillLevel={jest.fn()}
         onRemoveStat={jest.fn()}
         onResetSkills={jest.fn()}
         onResetStats={jest.fn()}
-        onSelectEquipmentItem={jest.fn()}
+        onSelectEquipmentSlot={jest.fn()}
+        onSetStat={jest.fn()}
         onUnequipEquipmentSlot={jest.fn()}
         pendingSkillLevels={{}}
         pendingStats={{ str: 0, sta: 0, dex: 0, int: 0 }}
-        selectedEquipmentItemId={null}
+        selectedEquipmentSlot={null}
         skillTabs={skillTabs}
         statKeys={["str", "sta", "dex", "int"]}
       />

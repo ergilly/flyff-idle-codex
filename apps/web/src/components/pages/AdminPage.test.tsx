@@ -133,10 +133,12 @@ describe("AdminPage", () => {
     expect(screen.getByText("#40 - fashion - Lv. 1")).toBeInTheDocument();
     expect(screen.getByText("Next open slot")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "7" } });
+    expect(screen.getByLabelText("Quantity")).toHaveAttribute("max", "2");
+
+    fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: "2" } });
     fireEvent.click(screen.getByRole("button", { name: "Add to inventory" }));
 
-    expect(onAddInventoryItem).toHaveBeenCalledWith("40", 7);
+    expect(onAddInventoryItem).toHaveBeenCalledWith("40", 2);
   });
 
   it("validates search input and handles empty results", async () => {
