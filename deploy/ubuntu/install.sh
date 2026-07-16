@@ -26,6 +26,11 @@ if [[ "$(realpath "${SCRIPT_DIR}/../..")" != "$(realpath "${APP_DIR}")" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${APP_DIR}/apps/api/data/game-data.db" ]]; then
+  echo "${APP_DIR}/apps/api/data/game-data.db is missing. Build and commit it before installing." >&2
+  exit 1
+fi
+
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update
   apt-get install -y apt-transport-https ca-certificates curl debian-archive-keyring debian-keyring git gnupg openssl ufw

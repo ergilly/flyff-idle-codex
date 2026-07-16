@@ -9,12 +9,13 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
+runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" pull --ff-only
+
 if [[ ! -f "${APP_DIR}/apps/api/data/game-data.db" ]]; then
-  echo "${APP_DIR}/apps/api/data/game-data.db is missing. Build and commit it before deploying." >&2
+  echo "${APP_DIR}/apps/api/data/game-data.db is missing after updating. Build and commit it before deploying." >&2
   exit 1
 fi
 
-runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" pull --ff-only
 runuser -u flyff-idle -- env HUSKY=0 HOME=/home/flyff-idle npm --prefix "${APP_DIR}" ci
 runuser -u flyff-idle -- env NEXT_PUBLIC_API_URL= npm --prefix "${APP_DIR}" run build
 
