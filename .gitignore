@@ -1,6 +1,7 @@
 node_modules
 .ms-playwright/
 .next
+out
 dist
 coverage
 playwright-report
@@ -11,6 +12,9 @@ test/reports
 *.tsbuildinfo
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
+!apps/api/data/game-data.db
 .env
 .env.local
 npm-debug.log*

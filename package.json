@@ -10,6 +10,8 @@
     "prepare": "husky",
     "dev": "concurrently \"npm run dev -w @flyff-idle/api\" \"npm run dev -w @flyff-idle/web\"",
     "build": "npm run build -w @flyff-idle/api && npm run build -w @flyff-idle/web",
+    "game-data:build": "npm run game-data:build -w @flyff-idle/api",
+    "db:reset-test-accounts": "npm run db:reset-test-accounts -w @flyff-idle/api",
     "typecheck": "npm run typecheck:calc && npm run typecheck -w @flyff-idle/api && npm run typecheck -w @flyff-idle/web",
     "typecheck:calc": "tsc -p calc/tsconfig.json --noEmit",
     "test": "npm run test -w @flyff-idle/api && npm run test -w @flyff-idle/web",

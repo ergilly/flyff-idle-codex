@@ -1,0 +1,22 @@
+[Unit]
+Description=Flyff Idle API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=flyff-idle
+Group=flyff-idle
+WorkingDirectory=__APP_DIR__/apps/api
+EnvironmentFile=/etc/flyff-idle/api.env
+ExecStart=/usr/bin/node dist/server.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/flyff-idle
+
+[Install]
+WantedBy=multi-user.target

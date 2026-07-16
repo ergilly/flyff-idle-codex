@@ -34,8 +34,15 @@ describe("user repository", () => {
 
   it("updates existing seeded users instead of duplicating them", async () => {
     const passwordHash = await bcrypt.hash("new-password", 10);
+    const regularPlayer = userRepository.create({
+      email: "regular-player@example.com",
+      displayName: "Regular Player",
+      passwordHash: "regular-player-hash"
+    });
 
     await seedDemoData({ passwordHash });
+
+    expect(userRepository.findById(regularPlayer.id)).toEqual(regularPlayer);
 
     expect(userRepository.findByEmail("test@flyff-idle.local")).toEqual(
       expect.objectContaining({

@@ -1,0 +1,21 @@
+__SITE_ADDRESS__ {
+  encode zstd gzip
+
+  handle /api/* {
+    reverse_proxy 127.0.0.1:4000
+  }
+
+  handle /health {
+    reverse_proxy 127.0.0.1:4000
+  }
+
+  handle /swagger* {
+    reverse_proxy 127.0.0.1:4000
+  }
+
+  handle {
+    root * __APP_DIR__/apps/web/out
+    try_files {path} {path}.html {path}/ /index.html
+    file_server
+  }
+}
