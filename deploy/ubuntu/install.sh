@@ -65,6 +65,8 @@ fi
 mkdir -p /etc/flyff-idle /var/lib/flyff-idle
 chown -R flyff-idle:flyff-idle "${APP_DIR}" /var/lib/flyff-idle
 chmod 750 /var/lib/flyff-idle
+printf '%s\n' "${SITE_ADDRESS}" > /etc/flyff-idle/site-address
+chmod 600 /etc/flyff-idle/site-address
 
 if [[ ! -f /etc/flyff-idle/api.env ]]; then
   cat > /etc/flyff-idle/api.env <<EOF
