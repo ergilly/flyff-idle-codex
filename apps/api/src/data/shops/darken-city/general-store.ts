@@ -14,12 +14,12 @@ export const DarkenCityGeneralStoreShop = {
           label: "Poster",
           items: [
             {
-              id: "3907",
-              name: "Bless Poster"
-            },
-            {
               id: "5869",
               name: "Skill Poster"
+            },
+            {
+              id: "3907",
+              name: "Bless Poster"
             }
           ]
         },
@@ -32,57 +32,73 @@ export const DarkenCityGeneralStoreShop = {
               name: "First Refresher"
             },
             {
-              id: "8840",
-              name: "Second Refresher"
-            },
-            {
-              id: "3868",
-              name: "Third Refresher"
-            },
-            {
-              id: "5933",
-              name: "Fourth Refresher"
-            },
-            {
-              id: "4758",
-              name: "Fifth Refresher"
-            },
-            {
-              id: "4700",
-              name: "Sixth Refresher"
-            },
-            {
-              id: "3872",
-              name: "Seventh Refresher"
-            },
-            {
               id: "2476",
               name: "VitalDrink 100"
+            },
+            {
+              id: "8840",
+              name: "Second Refresher"
             },
             {
               id: "6443",
               name: "VitalDrink 200"
             },
             {
+              id: "3868",
+              name: "Third Refresher"
+            },
+            {
               id: "8367",
               name: "VitalDrink 300"
+            },
+            {
+              id: "5933",
+              name: "Fourth Refresher"
             },
             {
               id: "7153",
               name: "VitalDrink 400"
             },
             {
+              id: "4758",
+              name: "Fifth Refresher"
+            },
+            {
               id: "942",
               name: "VitalDrink 500"
+            },
+            {
+              id: "4700",
+              name: "Sixth Refresher"
             },
             {
               id: "4069",
               name: "VitalDrink 600"
             },
             {
+              id: "3872",
+              name: "Seventh Refresher"
+            },
+            {
               id: "4370",
               name: "VitalDrink 700"
-            },
+            }
+          ]
+        },
+        {
+          id: "265-arrow-3",
+          label: "Arrow",
+          items: [
+            {
+              id: "4586",
+              name: "Arrows"
+            }
+          ]
+        },
+        {
+          id: "265-collector-3",
+          label: "Collector",
+          items: [
             {
               id: "3343",
               name: "Gray Pill"
@@ -94,16 +110,6 @@ export const DarkenCityGeneralStoreShop = {
             {
               id: "3574",
               name: "Blue Pill"
-            }
-          ]
-        },
-        {
-          id: "265-arrow-3",
-          label: "Arrow",
-          items: [
-            {
-              id: "4586",
-              name: "Arrows"
             }
           ]
         }

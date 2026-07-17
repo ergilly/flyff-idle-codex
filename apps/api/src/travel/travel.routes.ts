@@ -2,7 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { characterRepository } from "../data/characterRepository.js";
-import type { AuthTokenPayload, Character } from "../types.js";
+import type { AuthTokenPayload } from "../types.js";
+import { toPublicCharacter } from "../characters/characterRoute.shared.js";
 import { travelDestinationIds } from "./travelRules.js";
 
 export const travelRouter = Router();
@@ -12,10 +13,6 @@ const travelRequestSchema = z.object({
   method: z.enum(["flying", "blinkwing"]),
   equipmentSet: z.number().int().min(0).max(2).default(0)
 });
-
-function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
-  return character;
-}
 
 travelRouter.post("/:characterId/travel", requireAuth, (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);

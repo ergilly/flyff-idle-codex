@@ -389,6 +389,7 @@ export function MainApplicationPage() {
         ) : activeNavItem === "Map" ? (
           <MapPage
             characterLocation={selectedCharacter.location}
+            characterJob={selectedCharacter.job}
             characterLevel={selectedCharacter.level}
             characterInventory={selectedCharacter.inventory}
             characterPenya={selectedCharacter.penya}

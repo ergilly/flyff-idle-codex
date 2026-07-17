@@ -1,9 +1,4 @@
-import {
-  findDataRecord,
-  isDataSetName,
-  listDataSets,
-  queryDataSet
-} from "../../src/gameData/gameData.service.js";
+import { findDataRecord, isDataSetName, listDataSets, queryDataSet } from "./gameData.service.js";
 
 describe("game data service", () => {
   it("lists and validates known data sets", () => {

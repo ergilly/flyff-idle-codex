@@ -1,5 +1,5 @@
-import { login, register, verifyToken } from "../../src/auth/auth.service.js";
-import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
+import { login, register, verifyToken } from "./auth.service.js";
+import { disconnectTestDatabase, resetTestDatabase } from "../../tests/setup/database.js";
 
 describe("auth service", () => {
   beforeEach(async () => {

@@ -1,44 +1,10 @@
 import type { Character, CharacterEquipment, CharacterEquipmentSlot, ItemMetadata } from "@/lib/api";
-
-const secondJobToFirstJob: Record<string, string> = {
-  Blade: "Mercenary",
-  Knight: "Mercenary",
-  Elementor: "Magician",
-  Psykeeper: "Magician",
-  Billposter: "Assist",
-  Ringmaster: "Assist",
-  Jester: "Acrobat",
-  Ranger: "Acrobat"
-};
-
-const thirdJobToSecondJob: Record<string, string> = {
-  Slayer: "Blade",
-  Templar: "Knight",
-  Arcanist: "Elementor",
-  Mentalist: "Psykeeper",
-  Forcemaster: "Billposter",
-  Seraph: "Ringmaster",
-  Harlequin: "Jester",
-  Crackshooter: "Ranger"
-};
+import { meetsRequiredJobForJob } from "@/lib/jobProgression";
 
 const dualWieldJobs = new Set(["Blade", "Slayer"]);
 
-function normalizeRequirement(value: string) {
-  return value.toLowerCase().replace(/\s+/g, "");
-}
-
-function getJobLineage(job: string) {
-  const secondJob = thirdJobToSecondJob[job];
-  const firstJob = secondJob ? secondJobToFirstJob[secondJob] : secondJobToFirstJob[job];
-
-  return [job, secondJob, firstJob, "Vagrant"].filter((value): value is string => Boolean(value));
-}
-
 export function meetsRequiredJob(character: Character, requiredJob: string) {
-  const normalizedRequirement = normalizeRequirement(requiredJob);
-
-  return getJobLineage(character.job).some((job) => normalizeRequirement(job) === normalizedRequirement);
+  return meetsRequiredJobForJob(character.job, requiredJob);
 }
 
 export function isItemRequirementUnmet(label: string, item: ItemMetadata, character?: Character) {

@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import { characterRepository } from "../../src/data/characterRepository.js";
 import { seedDemoData } from "../../src/data/seedDemoData.js";
-import { userRepository } from "../../src/data/userRepository.js";
-import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
+import { userRepository } from "./userRepository.js";
+import { disconnectTestDatabase, resetTestDatabase } from "../../tests/setup/database.js";
 
 describe("user repository", () => {
   beforeEach(async () => {

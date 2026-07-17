@@ -1,5 +1,5 @@
 import path from "node:path";
-import { resolveDatabasePath } from "../../src/data/database.js";
+import { resolveDatabasePath } from "./database.js";
 
 describe("database path resolution", () => {
   const expectedApiRoot = process.cwd().endsWith(path.join("apps", "api"))
