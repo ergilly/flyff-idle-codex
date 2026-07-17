@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { GeneralStorePanel } from "./GeneralStorePanel";
 import { type ShopInventoryItem } from "@/lib/townShops";
 
@@ -102,6 +102,31 @@ describe("GeneralStorePanel", () => {
     expect(screen.queryByRole("button", { name: "High Level Suit, 100 Penya" })).not.toBeInTheDocument();
   });
 
+  it("filters equipment by the character's class lineage", () => {
+    render(
+      <GeneralStorePanel
+        characterJob="Blade"
+        shopTabs={[
+          {
+            id: "weapons",
+            label: "Weapons",
+            items: [
+              item("1", "Mercenary Sword", { requiredJob: "Mercenary" }),
+              item("2", "Assist Knuckle", { requiredJob: "Assist" }),
+              item("3", "Training Sword", { requiredJob: null })
+            ]
+          }
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "By class" }));
+
+    expect(screen.getByRole("button", { name: "Mercenary Sword, 100 Penya" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Assist Knuckle, 100 Penya" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Training Sword, 100 Penya" })).toBeInTheDocument();
+  });
+
   it("uses the shared transaction panel to sell inventory stacks", async () => {
     const onSellItem = jest.fn().mockResolvedValue(undefined);
     const sword = item("1", "Sword", { sellPrice: 25, stack: 9999 });
@@ -123,7 +148,7 @@ describe("GeneralStorePanel", () => {
     fireEvent.change(quantity, { target: { value: "2" } });
     fireEvent.click(screen.getByRole("button", { name: "Sell 2 Sword" }));
 
-    expect(onSellItem).toHaveBeenCalledWith(0, 2);
+    await waitFor(() => expect(onSellItem).toHaveBeenCalledWith(0, 2));
   });
 
   it("hides inventory quantities for items that cannot stack", () => {

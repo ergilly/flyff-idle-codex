@@ -1,4 +1,5 @@
 import type { Character } from "@/lib/api";
+import { getFirstJob, getSecondJob } from "@/lib/jobProgression";
 
 export type CharacterProgressionRank = "normal" | "master" | "hero";
 
@@ -48,28 +49,6 @@ const thirdJobSkillPointBonus: Record<string, number> = {
   Mentalist: 210,
   Slayer: 150,
   Templar: 50
-};
-
-const secondJobToFirstJob: Record<string, string> = {
-  Blade: "Mercenary",
-  Knight: "Mercenary",
-  Elementor: "Magician",
-  Psykeeper: "Magician",
-  Billposter: "Assist",
-  Ringmaster: "Assist",
-  Jester: "Acrobat",
-  Ranger: "Acrobat"
-};
-
-const thirdJobToSecondJob: Record<string, string> = {
-  Slayer: "Blade",
-  Templar: "Knight",
-  Arcanist: "Elementor",
-  Mentalist: "Psykeeper",
-  Forcemaster: "Billposter",
-  Seraph: "Ringmaster",
-  Harlequin: "Jester",
-  Crackshooter: "Ranger"
 };
 
 const baseStatTotal = 60;
@@ -250,20 +229,6 @@ const expTableByLevel = new Map<number, number>([
 
 function clampLevel(level: number, min: number, max: number) {
   return Math.min(max, Math.max(min, level));
-}
-
-function getFirstJob(job: string) {
-  const secondJob = thirdJobToSecondJob[job];
-
-  if (firstJobSkillPointBonus[job]) {
-    return job;
-  }
-
-  return secondJobToFirstJob[job] ?? (secondJob ? secondJobToFirstJob[secondJob] : undefined);
-}
-
-function getSecondJob(job: string) {
-  return thirdJobToSecondJob[job] ?? (secondJobSkillPointBonus[job] ? job : undefined);
 }
 
 function getThirdJob(job: string) {

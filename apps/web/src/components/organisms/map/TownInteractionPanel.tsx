@@ -9,6 +9,7 @@ import { type TownMapId, type TownMapLocation } from "@/lib/townMapLocations";
 
 type TownInteractionPanelProps = {
   characterLevel?: number;
+  characterJob?: string;
   characterInventory?: CharacterInventory;
   characterPenya?: number;
   characterSex?: "female" | "male";
@@ -21,6 +22,7 @@ type TownInteractionPanelProps = {
 
 export function TownInteractionPanel({
   characterLevel,
+  characterJob,
   characterInventory,
   characterPenya,
   characterSex,
@@ -77,6 +79,7 @@ export function TownInteractionPanel({
     return (
       <GeneralStorePanel
         characterLevel={characterLevel}
+        characterJob={characterJob}
         characterInventory={characterInventory}
         characterPenya={characterPenya}
         characterSex={characterSex}

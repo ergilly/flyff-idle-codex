@@ -90,7 +90,23 @@ export const EillunGeneralStoreShop = {
             {
               id: "4923",
               name: "VitalDrink 800"
-            },
+            }
+          ]
+        },
+        {
+          id: "27064-arrows-2",
+          label: "Arrows",
+          items: [
+            {
+              id: "4586",
+              name: "Arrows"
+            }
+          ]
+        },
+        {
+          id: "27064-collector-2",
+          label: "Collector",
+          items: [
             {
               id: "3343",
               name: "Gray Pill"
@@ -106,16 +122,6 @@ export const EillunGeneralStoreShop = {
             {
               id: "7347",
               name: "Red Pill"
-            }
-          ]
-        },
-        {
-          id: "27064-class-goods-2",
-          label: "Class Goods",
-          items: [
-            {
-              id: "4586",
-              name: "Arrows"
             }
           ]
         }
