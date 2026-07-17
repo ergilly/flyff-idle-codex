@@ -1,5 +1,5 @@
 import { Panel } from "@/components/atoms/Panel";
-import { BattleEquipmentPanel } from "@/components/molecules/battle/BattleEquipmentPanel";
+import { BattleEquipmentPanel } from "@/components/organisms/battle/BattleEquipmentPanel";
 import { CharacterBattleTabs } from "@/components/molecules/battle/CharacterBattleTabs";
 import { CharacterCombatHeader } from "@/components/molecules/battle/CharacterCombatHeader";
 import { ActionWheel } from "@/components/organisms/battle/ActionWheel";

@@ -1,6 +1,15 @@
 import { CharacterEquipmentPanel } from "@/components/organisms/main-application/CharacterEquipmentPanel";
 import { type Character, type CharacterEquipmentSlot, type ItemMetadata } from "@/lib/api";
 
+type BattleEquipmentPanelProps = {
+  activeEquipmentSet: number;
+  character: Character;
+  itemsById: Record<string, ItemMetadata>;
+  onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
+  onSelectEquipmentSet: (setIndex: number) => void;
+  selectedEquipmentSlot: CharacterEquipmentSlot | null;
+};
+
 export function BattleEquipmentPanel({
   activeEquipmentSet,
   character,
@@ -8,14 +17,7 @@ export function BattleEquipmentPanel({
   onSelectEquipmentSlot,
   onSelectEquipmentSet,
   selectedEquipmentSlot
-}: {
-  activeEquipmentSet: number;
-  character: Character;
-  itemsById: Record<string, ItemMetadata>;
-  onSelectEquipmentSlot: (slot: CharacterEquipmentSlot) => void;
-  onSelectEquipmentSet: (setIndex: number) => void;
-  selectedEquipmentSlot: CharacterEquipmentSlot | null;
-}) {
+}: BattleEquipmentPanelProps) {
   return (
     <CharacterEquipmentPanel
       activeEquipmentSet={activeEquipmentSet}
