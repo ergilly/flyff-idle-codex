@@ -1,4 +1,5 @@
 import { type DragEvent } from "react";
+import { getSkillIconUrl } from "@/lib/api";
 import { type ActionSlot } from "@/lib/battle/types";
 import { type SkillCombo, type SkillDefinition } from "@/lib/skillTrees";
 
@@ -16,7 +17,7 @@ export const skillDragDataType = "application/x-flyff-skill-id";
 export const actionSlotDragDataType = "application/x-flyff-action-slot-index";
 
 export function getSkillIconSrc(skill: SkillDefinition) {
-  return `https://api.flyff.com/image/skill/colored/${skill.icon}`;
+  return getSkillIconUrl(skill.icon);
 }
 
 function getSkillCombo(skill: SkillDefinition): SkillCombo {

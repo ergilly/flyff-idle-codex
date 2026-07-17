@@ -1,5 +1,9 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import request from "supertest";
 import { createApp } from "../../src/app.js";
+import { config } from "../../src/config.js";
 import { db } from "../../src/data/database.js";
 import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
@@ -27,6 +31,51 @@ describe("app route integration", () => {
 
     await expect(request(app).get("/docs/openapi.yaml")).resolves.toMatchObject({ status: 404 });
     await expect(request(app).get("/docs/openapi.json")).resolves.toMatchObject({ status: 404 });
+  });
+
+  it("rejects invalid cached image paths before contacting the upstream", async () => {
+    const fetchMock = jest.spyOn(global, "fetch");
+
+    await expect(request(app).get("/api/images/unknown/icon.png")).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Invalid image path" }
+    });
+    await expect(request(app).get("/api/images/item/not%20safe.png")).resolves.toMatchObject({
+      status: 400,
+      body: { error: "Invalid image path" }
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fetchMock.mockRestore();
+  });
+
+  it("caches upstream images on disk and in the browser", async () => {
+    const originalCacheDirectory = config.imageCacheDir;
+    const cacheDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "flyff-idle-image-cache-"));
+    const image = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
+      arrayBuffer: async () => Uint8Array.from(image).buffer,
+      headers: { get: () => "image/png" },
+      ok: true,
+      status: 200
+    } as Response);
+
+    config.imageCacheDir = cacheDirectory;
+
+    try {
+      const firstResponse = await request(app).get("/api/images/item/test-icon.png");
+      const secondResponse = await request(app).get("/api/images/item/test-icon.png");
+
+      expect(firstResponse.status).toBe(200);
+      expect(firstResponse.headers["cache-control"]).toContain("max-age=2592000");
+      expect(secondResponse.status).toBe(200);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      await expect(fs.readFile(path.join(cacheDirectory, "item", "test-icon.png"))).resolves.toEqual(image);
+    } finally {
+      config.imageCacheDir = originalCacheDirectory;
+      fetchMock.mockRestore();
+      await fs.rm(cacheDirectory, { force: true, recursive: true });
+    }
   });
 
   it("validates auth route input and duplicate registrations", async () => {

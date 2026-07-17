@@ -591,8 +591,8 @@ describe("api client", () => {
   it("skips empty item icon requests and builds Flyff icon URLs", async () => {
     await expect(fetchItems("token", [])).resolves.toEqual([]);
     expect(global.fetch).not.toHaveBeenCalled();
-    expect(getItemIconUrl("mkin04foot.png")).toBe("https://api.flyff.com/image/item/mkin04foot.png");
-    expect(getMonsterIconUrl("aibatt.png")).toBe("https://api.flyff.com/image/monster/aibatt.png");
+    expect(getItemIconUrl("mkin04foot.png")).toBe("http://localhost:4000/api/images/item/mkin04foot.png");
+    expect(getMonsterIconUrl("aibatt.png")).toBe("http://localhost:4000/api/images/monster/aibatt.png");
   });
 
   it("handles item and data loading failures", async () => {

@@ -7,7 +7,7 @@ import { AllocationButton } from "@/components/atoms/main-application/Allocation
 import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { PointsSummary } from "@/components/molecules/main-application/ContentHeading";
-import type { Character, CharacterSkillLevels } from "@/lib/api";
+import { getSkillIconUrl, type Character, type CharacterSkillLevels } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import {
   areSkillRequirementsMet,
@@ -39,7 +39,7 @@ function getDisplayedSkillLevel(
 }
 
 function getSkillIconSrc(skill: SkillDefinition) {
-  return `https://api.flyff.com/image/skill/colored/${skill.icon}`;
+  return getSkillIconUrl(skill.icon);
 }
 
 function isSkillRequirementMet(skillLevels: CharacterSkillLevels, requirement: SkillRequirement) {
