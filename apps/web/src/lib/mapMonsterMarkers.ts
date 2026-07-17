@@ -1,4 +1,5 @@
 import { type MapMonsterFamily } from "@/lib/api";
+import { type TownMapId } from "@/lib/townMapLocations";
 
 export type MapRegionId =
   | "bahara"
@@ -19,22 +20,54 @@ export type MapMonsterMarker = {
   label: string;
   markerType: "dungeon" | "monster" | "town";
   scale: number;
+  townMapId?: TownMapId;
+  townMapSrc?: string;
   x: number;
   y: number;
 };
 
 export const mapLocationMarkers: Record<MapRegionId, MapMonsterMarker[]> = {
   flaris: [
-    createTownMarker("flaris", "flarine-town", "Flarine Town", "town-flarine", 39.5, 70.5, 1.5),
+    createTownMarker(
+      "flaris",
+      "flarine-town",
+      "Flarine Town",
+      "town-flarine",
+      "flarine-town",
+      "/images/maps/towns/Town_Flarine_Clean.png",
+      39.5,
+      70.5,
+      1.5
+    ),
     createDungeonMarker("flaris", "mars-mine", "Mars Mine", "dungeon-mars-mine", 57, 31, 0.8)
   ],
   saint: [
-    createTownMarker("saint", "sain-city", "Sain City", "town-sain-city", 43, 26, 1.8),
+    createTownMarker(
+      "saint",
+      "sain-city",
+      "Sain City",
+      "town-sain-city",
+      "sain-city",
+      "/images/maps/towns/Town_Saincity_Clean.png",
+      43,
+      26,
+      1.8
+    ),
     createDungeonMarker("saint", "ivillis", "Ivillis", "dungeon-ivillis", 48, 81, 0.8)
   ],
   rhisis: [],
   darkon12: [
-    createTownMarker("darkon12", "darken-city", "Darken City", "town-darken", 31.5, 36, 1.5),
+    createTownMarker(
+      "darkon12",
+      "darken-city",
+      "Darken City",
+      "town-darken",
+      "darken-city",
+      "/images/maps/towns/Town_Darken_Clean.png",
+      31.5,
+      36,
+      1.5
+    ),
     createMapIconMarker(
       "darkon12",
       "floating-castle",
@@ -93,6 +126,8 @@ export const mapLocationMarkers: Record<MapRegionId, MapMonsterMarker[]> = {
       "fallen-leaf-camp",
       "Fallen Leaf Camp",
       "town-fallen-leaf-camp",
+      undefined,
+      undefined,
       33,
       69,
       1.2
@@ -112,11 +147,31 @@ export const mapLocationMarkers: Record<MapRegionId, MapMonsterMarker[]> = {
     )
   ],
   kaillun: [
-    createTownMarker("kaillun", "eillun", "Eillun", "town-eillun", 43, 48.5, 1.5),
+    createTownMarker(
+      "kaillun",
+      "eillun",
+      "Eillun",
+      "town-eillun",
+      "eillun",
+      "/images/maps/towns/Town_Elliun_Clean.png",
+      43,
+      48.5,
+      1.5
+    ),
     createDungeonMarker("kaillun", "ankous-asylum", "Ankou's Asylum", "dungeon-ankous-asylum", 79, 37, 0.8)
   ],
   bahara: [
-    createTownMarker("bahara", "randera-camp", "Randera Camp", "town-randera-camp", 68, 26, 1.2),
+    createTownMarker(
+      "bahara",
+      "randera-camp",
+      "Randera Camp",
+      "town-randera-camp",
+      undefined,
+      undefined,
+      68,
+      26,
+      1.2
+    ),
     createDungeonMarker("bahara", "kalgas-cave", "Kalgas Cave", "dungeon-kalgas-cave", 53, 87, 0.8)
   ]
 };
@@ -174,6 +229,8 @@ function createTownMarker(
   id: string,
   label: string,
   iconSlug: string,
+  townMapId: TownMapId | undefined,
+  townMapSrc: string | undefined,
   x: number,
   y: number,
   scale: number
@@ -186,6 +243,8 @@ function createTownMarker(
     label,
     markerType: "town",
     scale,
+    townMapId,
+    townMapSrc,
     x,
     y
   };

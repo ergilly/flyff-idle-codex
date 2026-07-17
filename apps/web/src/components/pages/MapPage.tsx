@@ -8,6 +8,7 @@ import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { MapZoomControls } from "@/components/molecules/map/MapZoomControls";
 import { MonsterMarkerLayer } from "@/components/organisms/map/MonsterMarkerLayer";
+import { TownLocationLayer } from "@/components/organisms/map/TownLocationLayer";
 import { fetchMapMonsterFamilyIndex, type MapMonsterFamily } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import {
@@ -19,6 +20,7 @@ import {
 } from "@/lib/mapMonsterMarkers";
 import { mapRegions } from "@/lib/mapRegions";
 import { getTestIdSegment } from "@/lib/testIds";
+import { townMapLocations, type TownMapLocation } from "@/lib/townMapLocations";
 
 const minMapZoom = 1;
 const maxMapZoom = 2.5;
@@ -35,6 +37,8 @@ type MapPageProps = {
 export function MapPage({ onSelectMonster }: MapPageProps) {
   const [activeRegionId, setActiveRegionId] = useState<MapRegionId | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<MapRegionId | null>(null);
+  const [selectedTown, setSelectedTown] = useState<MapMonsterMarker | null>(null);
+  const [selectedTownLocation, setSelectedTownLocation] = useState<TownMapLocation | null>(null);
   const [mapZoom, setMapZoom] = useState(minMapZoom);
   const [mapPan, setMapPan] = useState(zeroPan);
   const [isPanning, setIsPanning] = useState(false);
@@ -45,6 +49,8 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   const activeRegion =
     mapRegions.find((region) => region.id === (activeRegionId ?? selectedRegionId)) ?? selectedRegion;
   const panelRegion = selectedRegion ?? activeRegion;
+  const displayedMapSrc = selectedTown?.townMapSrc ?? selectedRegion?.regionMapSrc;
+  const selectedTownLocations = selectedTown?.townMapId ? townMapLocations[selectedTown.townMapId] : [];
   const selectedRegionLocationMarkers = selectedRegion
     ? mapLocationMarkers[selectedRegion.id]
     : emptyMonsterMarkers;
@@ -61,7 +67,8 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   useEffect(() => {
     setMapZoom(minMapZoom);
     resetMapPan();
-  }, [selectedRegionId]);
+    setSelectedTownLocation(null);
+  }, [selectedRegionId, selectedTown?.id]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -94,6 +101,16 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   function handleResetZoom() {
     setMapZoom(minMapZoom);
     resetMapPan();
+  }
+
+  function selectRegion(regionId: MapRegionId) {
+    setSelectedTown(null);
+    setSelectedRegionId(regionId);
+  }
+
+  function backToWorld() {
+    setSelectedTown(null);
+    setSelectedRegionId(null);
   }
 
   function resetMapPan() {
@@ -195,7 +212,13 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
         as="section"
         className="relative aspect-[1195/896] h-full min-h-0 max-h-full max-w-full justify-self-center overflow-hidden p-2"
         data-testid="map_panel_canvas"
-        aria-label={selectedRegion ? `${selectedRegion.label} region map` : "World map"}
+        aria-label={
+          selectedTown
+            ? `${selectedTown.label} town map`
+            : selectedRegion
+              ? `${selectedRegion.label} region map`
+              : "World map"
+        }
       >
         <MapZoomControls
           canZoomIn={mapZoom < maxMapZoom}
@@ -205,7 +228,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
           onZoomOut={handleZoomOut}
           zoom={mapZoom}
         />
-        {selectedRegion ? (
+        {selectedRegion && displayedMapSrc ? (
           <div
             ref={mapViewportRef}
             className={cx(
@@ -230,18 +253,28 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
             >
               <Image
                 className="h-full w-full object-contain"
-                src={selectedRegion.regionMapSrc}
-                alt={`${selectedRegion.label} map`}
+                src={displayedMapSrc}
+                alt={`${selectedTown?.label ?? selectedRegion.label} map`}
                 width={1280}
                 height={960}
                 priority
                 unoptimized
               />
-              <MonsterMarkerLayer
-                markers={selectedRegionMarkers}
-                monsterFamiliesByMarkerId={monsterFamiliesByMarkerId}
-                onSelectMonster={onSelectMonster}
-              />
+              {!selectedTown ? (
+                <MonsterMarkerLayer
+                  markers={selectedRegionMarkers}
+                  monsterFamiliesByMarkerId={monsterFamiliesByMarkerId}
+                  onSelectMonster={onSelectMonster}
+                  onSelectTown={setSelectedTown}
+                />
+              ) : (
+                <TownLocationLayer
+                  locations={selectedTownLocations}
+                  onSelectLocation={setSelectedTownLocation}
+                  selectedLocationId={selectedTownLocation?.id}
+                  zoom={mapZoom}
+                />
+              )}
             </div>
           </div>
         ) : (
@@ -296,7 +329,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                   aria-label={`Select ${region.label}`}
                   data-testid={`map_button_region_hotspot_${getTestIdSegment(region.id)}`}
                   className="absolute rounded-[999px] border-2 border-transparent bg-transparent transition-colors hover:border-[#fff1ba]/80 focus-visible:border-[#fff1ba] focus-visible:bg-[#fff1ba]/10 focus-visible:outline-none"
-                  onClick={() => setSelectedRegionId(region.id)}
+                  onClick={() => selectRegion(region.id)}
                   onFocus={() => setActiveRegionId(region.id)}
                   onMouseEnter={() => setActiveRegionId(region.id)}
                   style={region.hitArea}
@@ -311,27 +344,40 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
       <Panel as="aside" className="h-full content-start gap-4" data-testid="map_panel_regions">
         <div className="flex items-start justify-between gap-3" data-testid="map_div_region_header">
           <SectionHeading
-            eyebrow={selectedRegion ? "Region Map" : "World Map"}
+            eyebrow={selectedTown ? "Town Map" : selectedRegion ? "Region Map" : "World Map"}
             testId="map_heading_region"
-            title={panelRegion?.label ?? "Select a region"}
+            title={selectedTown?.label ?? panelRegion?.label ?? "Select a region"}
           />
           {selectedRegion ? (
             <Button
               type="button"
-              data-testid="map_button_back_to_world"
+              data-testid={selectedTown ? "map_button_back_to_region" : "map_button_back_to_world"}
               variant="secondary"
               className="min-h-10 shrink-0 px-3"
-              onClick={() => setSelectedRegionId(null)}
+              onClick={() => (selectedTown ? setSelectedTown(null) : backToWorld())}
             >
-              Back to world
+              {selectedTown ? "Back to region" : "Back to world"}
             </Button>
           ) : null}
         </div>
         <MutedText data-testid="map_p_region_description">
-          {panelRegion
-            ? panelRegion.description
-            : "Hover over a region to preview its highlighted world location, then select it to open the region map."}
+          {selectedTown
+            ? selectedTown.description
+            : panelRegion
+              ? panelRegion.description
+              : "Hover over a region to preview its highlighted world location, then select it to open the region map."}
         </MutedText>
+        {selectedTownLocation ? (
+          <div
+            className="grid gap-1 rounded-control border-2 border-primary bg-panel-muted px-3 py-2"
+            data-testid="map_div_selected_town_location"
+          >
+            <span className="text-[0.65rem] font-black uppercase tracking-wide text-text-muted">
+              Selected {selectedTownLocation.kind}
+            </span>
+            <span className="text-sm font-extrabold text-foreground">{selectedTownLocation.label}</span>
+          </div>
+        ) : null}
         <div className="grid gap-2" data-testid="map_div_region_list">
           {mapRegions.map((region) => (
             <button
@@ -343,7 +389,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                   ? "border-primary bg-panel-muted text-foreground"
                   : "border-border bg-transparent text-text-muted hover:border-primary hover:text-foreground"
               )}
-              onClick={() => setSelectedRegionId(region.id)}
+              onClick={() => selectRegion(region.id)}
               onFocus={() => setActiveRegionId(region.id)}
               onMouseEnter={() => setActiveRegionId(region.id)}
               type="button"
