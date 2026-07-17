@@ -165,7 +165,34 @@ export async function fetchMapMonsterFamiliesByRegion(region: string): Promise<M
     "location.region": region,
     limit: 500
   });
-  const monsterFamilies = getMapMonsterFamilies(mapMonsters);
+  return hydrateMapMonsterFamilies(getMapMonsterFamilies(mapMonsters));
+}
+
+let mapMonsterFamilyIndexPromise: Promise<Record<string, MapMonsterFamily[]>> | null = null;
+
+export function fetchMapMonsterFamilyIndex() {
+  mapMonsterFamilyIndexPromise ??= loadMapMonsterFamilyIndex().catch((error: unknown) => {
+    mapMonsterFamilyIndexPromise = null;
+    throw error;
+  });
+
+  return mapMonsterFamilyIndexPromise;
+}
+
+async function loadMapMonsterFamilyIndex() {
+  const mapMonsters = await fetchDataSet<MapMonsterMetadata>("mapMonsters", {
+    fields: `${monsterFamilyFields},family,location`,
+    limit: 500
+  });
+  const families = await hydrateMapMonsterFamilies(getMapMonsterFamilies(mapMonsters));
+
+  return families.reduce<Record<string, MapMonsterFamily[]>>((familiesByRegion, family) => {
+    familiesByRegion[family.location.region] = [...(familiesByRegion[family.location.region] ?? []), family];
+    return familiesByRegion;
+  }, {});
+}
+
+async function hydrateMapMonsterFamilies(monsterFamilies: MapMonsterFamily[]) {
   const questDropIds = getQuestDropItemIds(monsterFamilies.flatMap((family) => family.variants));
   const questDropsByItemId = await fetchQuestDropsByItemId(questDropIds);
 

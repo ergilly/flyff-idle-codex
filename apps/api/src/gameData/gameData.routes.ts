@@ -3,6 +3,11 @@ import { findDataRecord, isDataSetName, listDataSets, queryDataSet } from "./gam
 
 export const gameDataRouter = Router();
 
+gameDataRouter.use((_request, response, next) => {
+  response.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+  next();
+});
+
 gameDataRouter.get("/", (_request, response) => {
   response.json({ dataSets: listDataSets() });
 });
