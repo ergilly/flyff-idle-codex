@@ -15,6 +15,7 @@ export type CharacterRow = {
   gender: CharacterGender;
   job: string;
   progressionRank: Character["progressionRank"];
+  location: string;
   level: number;
   exp: number;
   penya: number;

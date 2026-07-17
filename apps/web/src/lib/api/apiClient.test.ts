@@ -2,6 +2,7 @@ import {
   createCharacter,
   deleteCharacter,
   addCharacterInventoryItem,
+  addCharacterPenya,
   equipInventoryItem,
   fetchCharacters,
   fetchDataSet,
@@ -10,11 +11,15 @@ import {
   fetchMapMonsterFamiliesByRegion,
   fetchMonsterFamiliesByNames,
   fetchMonstersByNames,
+  fetchTownShop,
   getItemIconUrl,
   getMonsterIconUrl,
   login,
   lootInventoryItems,
   moveInventoryItem,
+  purchaseFlarineGeneralStoreItem,
+  purchaseTownShopItem,
+  sellCharacterInventoryItem,
   register,
   refundCharacterSkills,
   refundCharacterStats,
@@ -185,6 +190,58 @@ describe("api client", () => {
           skillLevels: { "vagrant-clean-hit": 1 }
         })
       })
+    );
+
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ character: { ...character, penya: 950 } })
+    });
+
+    await expect(purchaseFlarineGeneralStoreItem("token", "char-1", "5869", 3)).resolves.toEqual({
+      ...character,
+      penya: 950
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/characters/char-1/shops/flarine-general-store/purchases",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ itemId: "5869", quantity: 3 })
+      })
+    );
+
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        shop: { id: "darken-city/food-vendor", merchantNames: ["Bolpor"], merchants: [] }
+      })
+    });
+    await expect(fetchTownShop("darken-city", "food-vendor")).resolves.toMatchObject({
+      id: "darken-city/food-vendor"
+    });
+    expect(global.fetch).toHaveBeenCalledWith("http://localhost:4000/api/shops/darken-city/food-vendor");
+
+    mockFetch({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ character: { ...character, penya: 920 } })
+    });
+    await expect(
+      purchaseTownShopItem("token", "char-1", "darken-city", "food-vendor", "5325", 2)
+    ).resolves.toMatchObject({ penya: 920 });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/characters/char-1/shops/darken-city/food-vendor/purchases",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ itemId: "5325", quantity: 2 })
+      })
+    );
+
+    mockFetch({ ok: true, json: jest.fn().mockResolvedValue({ character: { ...character, penya: 25 } }) });
+    await expect(sellCharacterInventoryItem("token", "char-1", 0, 2)).resolves.toMatchObject({
+      penya: 25
+    });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/characters/char-1/shops/sales",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ slotIndex: 0, quantity: 2 }) })
     );
 
     mockFetch({
@@ -660,6 +717,17 @@ describe("api client", () => {
     expect(global.fetch).toHaveBeenCalledWith(
       "http://localhost:4000/api/admin/characters/char-1/refund-skills",
       expect.objectContaining({ method: "POST" })
+    );
+
+    mockFetch({ ok: true, json: jest.fn().mockResolvedValue({ character: { ...character, penya: 2_500 } }) });
+
+    await expect(addCharacterPenya("token", "char-1", 2_500)).resolves.toMatchObject({ penya: 2_500 });
+    expect(global.fetch).toHaveBeenCalledWith(
+      "http://localhost:4000/api/admin/characters/char-1/penya",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ amount: 2_500 })
+      })
     );
 
     mockFetch({ ok: true, json: jest.fn().mockResolvedValue({ character }) });

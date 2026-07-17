@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MapPage } from "./MapPage";
+import { flarineGeneralStoreTabs } from "@/lib/townShops";
 
 describe("MapPage", () => {
   beforeEach(() => {
@@ -46,6 +47,19 @@ describe("MapPage", () => {
         "Captain Bearnerky": { element: "earth", level: 110, rank: "captain" },
         "General Bearnerky": { element: "earth", level: 113, rank: "giant" }
       };
+
+      if (requestUrl.pathname.endsWith("/api/shops/flarine-town/general-store")) {
+        return Promise.resolve({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            shop: {
+              id: "flarine-town/general-store",
+              merchantNames: ["Lui"],
+              merchants: [{ id: "850", name: "Lui", tabs: flarineGeneralStoreTabs }]
+            }
+          })
+        });
+      }
 
       if (requestUrl.pathname.endsWith("/api/data/mapMonsters")) {
         return Promise.resolve({
@@ -160,6 +174,7 @@ describe("MapPage", () => {
     render(<MapPage />);
 
     expect(screen.getByRole("img", { name: "Madrigal world map" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Current location: Flaris" })).toHaveTextContent("You are here");
     expect(screen.getByText("Select a region")).toBeInTheDocument();
 
     fireEvent.mouseEnter(screen.getByRole("button", { name: "Select Flaris" }));
@@ -181,6 +196,43 @@ describe("MapPage", () => {
 
     expect(screen.getByRole("img", { name: "Madrigal world map" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reset zoom" })).toHaveTextContent("100%");
+  });
+
+  it("confirms travel and offers only available flying or Blinkwing methods", async () => {
+    const onTravel = jest.fn().mockResolvedValue(undefined);
+    render(
+      <MapPage
+        characterInventory={{
+          size: 50,
+          items: [{ slotIndex: 4, itemId: "6617", quantity: 2 }]
+        }}
+        characterLocation="Flaris"
+        onTravel={onTravel}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Saint Morning" }));
+
+    expect(screen.getByRole("dialog", { name: "Travel to Saint Morning?" })).toBeInTheDocument();
+    expect(screen.getByTestId("map_travel_button_flying")).toBeDisabled();
+    expect(screen.getByText("Blinkwing of Saint Morning: 2 available")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Use Blinkwing" }));
+
+    await waitFor(() => expect(onTravel).toHaveBeenCalledWith("saint", "blinkwing"));
+    expect(await screen.findByRole("img", { name: "Saint Morning map" })).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("requires flying travel for an area without a Blinkwing", () => {
+    render(<MapPage characterLocation="Flaris" onTravel={jest.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Rhisis" }));
+
+    expect(screen.getByRole("dialog", { name: "Travel to Rhisis?" })).toBeInTheDocument();
+    expect(screen.getByText("No Blinkwing travels to this area")).toBeInTheDocument();
+    expect(screen.getByTestId("map_travel_button_flying")).toBeDisabled();
+    expect(screen.queryByTestId("map_travel_button_blinkwing")).not.toBeInTheDocument();
   });
 
   it("shows monster details from the assigned marker name", async () => {
@@ -236,14 +288,18 @@ describe("MapPage", () => {
 
   it.each([
     ["Flaris", "Flarine Town", "/images/maps/towns/Town_Flarine_Clean.png", "Red Chip Merchant, shop"],
-    ["Saint Morning", "Sain City", "/images/maps/towns/Town_Saincity_Clean.png", "Station, npc"],
+    ["Saint Morning", "Sain City", "/images/maps/towns/Town_Saincity_Clean.png", "Station, shop"],
     ["Darkon 1 and 2", "Darken City", "/images/maps/towns/Town_Darken_Clean.png", "Armory, shop"],
-    ["Kaillun", "Eillun", "/images/maps/towns/Town_Elliun_Clean.png", "Guild House Manager, npc"]
+    ["Eillun", "Eillun", "/images/maps/towns/Town_Elliun_Clean.png", "Guild House Manager, npc"]
   ])("opens the %s town map from its marker", async (region, town, townMapSrc, locationButtonName) => {
     render(<MapPage />);
 
     fireEvent.click(screen.getByRole("button", { name: `Select ${region}` }));
-    fireEvent.click(screen.getByRole("button", { name: town }));
+    fireEvent.click(
+      region === "Eillun"
+        ? screen.getByTestId("map_button_monster_marker_kaillun_town_eillun")
+        : screen.getByRole("button", { name: town })
+    );
 
     expect(screen.getByRole("img", { name: `${town} map` })).toHaveAttribute("src", townMapSrc);
     expect(screen.getByRole("heading", { name: town })).toBeInTheDocument();
@@ -257,7 +313,7 @@ describe("MapPage", () => {
     expect(screen.getByRole("img", { name: `${region} map` })).toBeInTheDocument();
   });
 
-  it("turns town shops and NPCs into selectable map buttons", () => {
+  it("turns town shops and NPCs into selectable map buttons", async () => {
     render(<MapPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
@@ -268,7 +324,7 @@ describe("MapPage", () => {
 
     expect(generalStore).toHaveAttribute("aria-pressed", "false");
     expect(petTamer).toBeInTheDocument();
-    expect(generalStore).toHaveTextContent("General Store - TBC");
+    expect(generalStore).toHaveTextContent("General Store");
     expect(generalStore.querySelector("img")).toHaveAttribute(
       "src",
       "/images/maps/town-icons/general-store.png"
@@ -277,8 +333,55 @@ describe("MapPage", () => {
     fireEvent.click(generalStore);
 
     expect(generalStore).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByTestId("map_div_selected_town_location")).toHaveTextContent(
-      "Selected shopGeneral Store"
+    expect(await screen.findByTestId("map_section_general_store")).toHaveTextContent("General Store");
+  });
+
+  it("uses the town panel for Flarine General Store inventory", async () => {
+    const handleBuyShopItem = jest.fn().mockResolvedValue(undefined);
+
+    render(<MapPage characterPenya={10_000} onBuyShopItem={handleBuyShopItem} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
+    fireEvent.click(screen.getByRole("button", { name: "Flarine Town" }));
+
+    expect(screen.queryByTestId("map_div_region_list")).not.toBeInTheDocument();
+    expect(screen.getByTestId("map_div_town_interaction_prompt")).toHaveTextContent("Select a town location");
+
+    fireEvent.click(screen.getByRole("button", { name: "General Store, shop" }));
+
+    expect(await screen.findByRole("tab", { name: "Posters" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Skill Poster");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Bless Poster");
+    expect(screen.getByTestId("map_panel_general_store_price")).toHaveTextContent(
+      "Skill PosterBuy price: 50 Penya eachTotal50 Penya"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Bless Poster, 50 Penya" }));
+    const quantityInput = screen.getByRole("spinbutton", { name: "Purchase quantity" });
+    expect(quantityInput).toHaveAttribute("max", "9999");
+    fireEvent.change(quantityInput, {
+      target: { value: "3" }
+    });
+    expect(screen.getByTestId("map_panel_general_store_price")).toHaveTextContent("Total150 Penya");
+    fireEvent.click(screen.getByRole("button", { name: "Buy 3 Bless Poster" }));
+
+    await waitFor(() =>
+      expect(handleBuyShopItem).toHaveBeenCalledWith("flarine-town", "general-store", "3907", 3)
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Magic Tools" }));
+
+    const magicTools = screen.getByRole("tabpanel");
+    expect(magicTools).toHaveTextContent("First Refresher");
+    expect(magicTools).toHaveTextContent("Fifth Refresher");
+    expect(magicTools).toHaveTextContent("VitalDrink 100");
+    expect(magicTools).toHaveTextContent("VitalDrink 500");
+
+    fireEvent.click(screen.getByRole("tab", { name: "Arrows" }));
+
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("Arrows");
+    expect(screen.getByTestId("map_panel_general_store_price")).toHaveTextContent(
+      "ArrowsBuy price: 1 Penya eachTotal1 Penya"
     );
   });
 

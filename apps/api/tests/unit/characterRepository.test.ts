@@ -139,6 +139,80 @@ describe("character repository", () => {
     ]);
   });
 
+  it("purchases an inventory item and charges Penya atomically", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 9,
+      name: "Shopper",
+      gender: "male"
+    });
+
+    characterRepository.updateProgressionForPlayer(character!.id, user!.id, { penya: 1_000 });
+
+    const purchase = characterRepository.purchaseInventoryItemForPlayer(
+      character!.id,
+      user!.id,
+      "5869",
+      3,
+      50,
+      9_999
+    );
+
+    expect(purchase.error).toBeNull();
+    expect(purchase.character).toEqual(
+      expect.objectContaining({
+        penya: 850,
+        inventory: expect.objectContaining({
+          items: expect.arrayContaining([expect.objectContaining({ itemId: "5869", quantity: 3 })])
+        })
+      })
+    );
+
+    const unaffordablePurchase = characterRepository.purchaseInventoryItemForPlayer(
+      character!.id,
+      user!.id,
+      "4758",
+      2,
+      1_000,
+      9_999
+    );
+
+    expect(unaffordablePurchase).toEqual({ character: null, error: "Not enough Penya" });
+    expect(characterRepository.findById(character!.id)).toEqual(
+      expect.objectContaining({
+        penya: 850,
+        inventory: expect.objectContaining({
+          items: expect.not.arrayContaining([expect.objectContaining({ itemId: "4758" })])
+        })
+      })
+    );
+  });
+
+  it("sells an inventory stack and adds Penya atomically", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local")!;
+    const character = characterRepository.create({
+      playerId: user.id,
+      slotIndex: 14,
+      name: "Seller",
+      gender: "female"
+    })!;
+
+    const result = characterRepository.sellInventoryItemForPlayer(character.id, user.id, 0, 2, 10);
+
+    expect(result.character).toEqual(
+      expect.objectContaining({
+        penya: 20,
+        inventory: expect.objectContaining({
+          items: expect.arrayContaining([{ slotIndex: 0, itemId: "5325", quantity: 1 }])
+        })
+      })
+    );
+    expect(characterRepository.sellInventoryItemForPlayer(character.id, user.id, 0, 2, 10)).toEqual(
+      expect.objectContaining({ character: null, error: "Not enough items in this stack" })
+    );
+  });
+
   it("adds stackable items to existing stacks before using new slots", () => {
     const user = userRepository.findByEmail("test@flyff-idle.local");
     const character = characterRepository.create({
@@ -396,6 +470,11 @@ describe("character repository", () => {
       itemId: "999999",
       quantity: 1
     });
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 6,
+      itemId: "8507",
+      quantity: 1
+    });
 
     expect(characterRepository.equipInventoryItemForPlayer(character!.id, "other-player", 3)).toEqual({
       character: null,
@@ -411,6 +490,14 @@ describe("character repository", () => {
     });
     expect(characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 3).error).toContain(
       "Missing requirements"
+    );
+
+    db.prepare("UPDATE characters SET level = 15 WHERE id = ?").run(character!.id);
+    const equippedFlyingItem = characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 6);
+
+    expect(equippedFlyingItem.error).toBeNull();
+    expect(equippedFlyingItem.character?.equipment).toEqual(
+      expect.objectContaining({ flying: "8507", boots: "8195" })
     );
   });
 
@@ -465,6 +552,62 @@ describe("character repository", () => {
       character: null,
       error: "Character not found"
     });
+  });
+
+  it("restricts travel by flying tier and consumes destination Blinkwings", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 18,
+      name: "Traveller",
+      gender: "male"
+    });
+
+    db.prepare("UPDATE characters SET level = 15 WHERE id = ?").run(character!.id);
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 6,
+      itemId: "8507",
+      quantity: 1
+    });
+    characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 6);
+
+    expect(characterRepository.travelForPlayer(character!.id, user!.id, "rhisis", "flying", 0)).toEqual(
+      expect.objectContaining({
+        error: null,
+        character: expect.objectContaining({ location: "Rhisis" })
+      })
+    );
+    expect(characterRepository.travelForPlayer(character!.id, user!.id, "darkon3", "flying", 0)).toEqual({
+      character: null,
+      error: "A tier 2 flying item is required"
+    });
+    expect(characterRepository.travelForPlayer(character!.id, user!.id, "darkon3", "blinkwing", 0)).toEqual({
+      character: null,
+      error: "Darkon 3 cannot be reached by Blinkwing"
+    });
+
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 7,
+      itemId: "4602",
+      quantity: 2
+    });
+    const blinkwingTravel = characterRepository.travelForPlayer(
+      character!.id,
+      user!.id,
+      "darkon12",
+      "blinkwing",
+      0
+    );
+
+    expect(blinkwingTravel.error).toBeNull();
+    expect(blinkwingTravel.character).toEqual(
+      expect.objectContaining({
+        location: "Darkon 1 and 2",
+        inventory: expect.objectContaining({
+          items: expect.arrayContaining([{ slotIndex: 7, itemId: "4602", quantity: 1 }])
+        })
+      })
+    );
   });
 
   it("stacks looted matching consumables into equipped consumable slots before inventory", () => {
@@ -746,6 +889,22 @@ describe("character repository", () => {
       })
     );
     expect(characterRepository.refundSkillsForPlayer(character!.id, "other-player")).toBeNull();
+  });
+
+  it("adds Penya only for the owning player", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 13,
+      name: "Penya Hero",
+      gender: "female"
+    });
+
+    expect(characterRepository.addPenyaForPlayer(character!.id, user!.id, 2_500)).toEqual(
+      expect.objectContaining({ penya: 2_500 })
+    );
+    expect(characterRepository.addPenyaForPlayer(character!.id, "other-player", 1_000)).toBeNull();
+    expect(characterRepository.findById(character!.id)?.penya).toBe(2_500);
   });
 
   it("deletes characters by id and player", () => {

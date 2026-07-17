@@ -1,10 +1,16 @@
 import { act, renderHook } from "@testing-library/react";
-import { addCharacterInventoryItem, refundCharacterSkills, refundCharacterStats } from "@/lib/api";
+import {
+  addCharacterInventoryItem,
+  addCharacterPenya,
+  refundCharacterSkills,
+  refundCharacterStats
+} from "@/lib/api";
 import { useAdminActions } from "@/hooks/main-application/useAdminActions";
 import { buildCharacter } from "@/test/fixtures";
 
 jest.mock("@/lib/api", () => ({
   addCharacterInventoryItem: jest.fn(),
+  addCharacterPenya: jest.fn(),
   refundCharacterSkills: jest.fn(),
   refundCharacterStats: jest.fn()
 }));
@@ -36,9 +42,10 @@ describe("useAdminActions", () => {
       await result.current.handleRefundStats();
       await result.current.handleRefundSkills();
       await result.current.handleAddInventoryItem("200", 1);
+      await result.current.handleAddPenya(1_000);
     });
 
-    expect(hookOptions.onAuthenticationRequired).toHaveBeenCalledTimes(3);
+    expect(hookOptions.onAuthenticationRequired).toHaveBeenCalledTimes(4);
     expect(hookOptions.updateCharacter).not.toHaveBeenCalled();
   });
 
@@ -83,6 +90,20 @@ describe("useAdminActions", () => {
 
     expect(hookOptions.handleSelectInventorySlot).toHaveBeenCalledWith(4);
     expect(result.current.isAddingInventoryItem).toBe(false);
+  });
+
+  it("adds Penya and updates the current character", async () => {
+    localStorage.setItem("flyffIdleToken", "token");
+    const hookOptions = options();
+    const updatedCharacter = buildCharacter({ penya: 5_000 });
+    (addCharacterPenya as jest.MockedFunction<typeof addCharacterPenya>).mockResolvedValue(updatedCharacter);
+    const { result } = renderHook(() => useAdminActions(hookOptions));
+
+    await act(async () => result.current.handleAddPenya(2_500));
+
+    expect(addCharacterPenya).toHaveBeenCalledWith("token", updatedCharacter.id, 2_500);
+    expect(hookOptions.updateCharacter).toHaveBeenCalledWith(updatedCharacter);
+    expect(result.current.isAddingPenya).toBe(false);
   });
 
   it("surfaces server errors and always clears pending state", async () => {

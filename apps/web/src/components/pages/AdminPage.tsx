@@ -17,9 +17,11 @@ import { getTestIdSegment } from "@/lib/testIds";
 
 type AdminPageProps = {
   addingInventoryItem: boolean;
+  addingPenya: boolean;
   character: Character;
   error: string;
   onAddInventoryItem: (itemId: string, quantity: number) => void;
+  onAddPenya: (amount: number) => void;
   refundingAction: "stats" | "skills" | null;
   onRefundSkills: () => void;
   onRefundStats: () => void;
@@ -27,9 +29,11 @@ type AdminPageProps = {
 
 export function AdminPage({
   addingInventoryItem,
+  addingPenya,
   character,
   error,
   onAddInventoryItem,
+  onAddPenya,
   refundingAction,
   onRefundSkills,
   onRefundStats
@@ -40,6 +44,7 @@ export function AdminPage({
   const [quantity, setQuantity] = useState(1);
   const [searchError, setSearchError] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [penyaAmount, setPenyaAmount] = useState(1_000);
   const assignedStatPoints =
     character.stats.str + character.stats.sta + character.stats.dex + character.stats.int - 60;
   const assignedSkillLevels = Object.values(character.skillLevels).reduce((total, level) => total + level, 0);
@@ -106,6 +111,14 @@ export function AdminPage({
     onAddInventoryItem(String(selectedItem.id), Math.min(availableAddQuantity, Math.max(1, quantity || 1)));
   }
 
+  function handleAddPenya(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const amount = Math.trunc(penyaAmount);
+
+    if (!Number.isFinite(amount) || amount < 1) return;
+    onAddPenya(Math.min(2_147_483_647, amount));
+  }
+
   return (
     <div className="grid h-full min-h-0 max-w-[1120px] content-start gap-4" data-testid="admin_div_page">
       <Panel className="content-start gap-5" data-testid="admin_panel_refunds">
@@ -158,6 +171,32 @@ export function AdminPage({
               </span>
             </Button>
           </div>
+        </Stack>
+      </Panel>
+
+      <Panel as="section" className="content-start gap-4" data-testid="admin_panel_penya">
+        <SectionHeading eyebrow="Character currency" testId="admin_heading_penya" title="Add Penya" />
+        <Stack as="form" className="max-w-md" onSubmit={handleAddPenya}>
+          <div className="rounded-card border-2 border-border bg-panel-muted p-4">
+            <StatRow label="Current Penya" value={character.penya.toLocaleString()} />
+          </div>
+          <TextField
+            data-testid="admin_input_penya_amount"
+            id="adminPenyaAmount"
+            label="Amount to add"
+            max={2_147_483_647}
+            min={1}
+            onChange={(event) => setPenyaAmount(Number(event.target.value))}
+            type="number"
+            value={penyaAmount}
+          />
+          <Button
+            data-testid="admin_button_add_penya"
+            disabled={addingPenya || !Number.isFinite(penyaAmount) || penyaAmount < 1}
+            type="submit"
+          >
+            {addingPenya ? "Adding..." : "Add Penya"}
+          </Button>
         </Stack>
       </Panel>
 

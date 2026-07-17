@@ -45,6 +45,12 @@ export function MainApplicationHeader({
           <span data-testid="game_header_span_stat_level_label">Level</span>
           <strong data-testid="game_header_strong_stat_level_value">{character.level}</strong>
         </HeaderStat>
+        <HeaderStat testId="game_header_div_stat_location">
+          <span data-testid="game_header_span_stat_location_label">Location</span>
+          <strong data-testid="game_header_strong_stat_location_value">
+            {character.location ?? "Flaris"}
+          </strong>
+        </HeaderStat>
         <HeaderStat testId="game_header_div_stat_penya">
           <span data-testid="game_header_span_stat_penya_label">Penya</span>
           <strong data-testid="game_header_strong_stat_penya_value">

@@ -28,6 +28,90 @@ import {
 } from "./characterRepository.types.js";
 
 export const characterInventoryOperations = {
+  sellInventoryItemForPlayer(
+    id: string,
+    playerId: string,
+    slotIndex: number,
+    quantity: number,
+    unitPrice: number
+  ) {
+    try {
+      db.exec("BEGIN");
+      const character = characterCoreRepository.findById(id);
+      const inventoryItem = character?.inventory.items.find((item) => item.slotIndex === slotIndex);
+
+      if (!character || character.playerId !== playerId) throw new Error("Character not found");
+      if (!inventoryItem) throw new Error("Inventory item not found");
+      if (quantity > inventoryItem.quantity) throw new Error("Not enough items in this stack");
+
+      const now = new Date().toISOString();
+      if (quantity === inventoryItem.quantity) {
+        db.prepare("DELETE FROM character_inventory_items WHERE character_id = ? AND slot_index = ?").run(
+          id,
+          slotIndex
+        );
+      } else {
+        db.prepare(
+          "UPDATE character_inventory_items SET quantity = quantity - ?, updated_at = ? WHERE character_id = ? AND slot_index = ?"
+        ).run(quantity, now, id, slotIndex);
+      }
+      db.prepare(
+        "UPDATE characters SET penya = penya + ?, updated_at = ? WHERE id = ? AND player_id = ?"
+      ).run(unitPrice * quantity, now, id, playerId);
+      db.exec("COMMIT");
+      return { character: characterCoreRepository.findById(id), error: null };
+    } catch (error) {
+      if (db.isTransaction) db.exec("ROLLBACK");
+      return { character: null, error: error instanceof Error ? error.message : "Unable to sell item" };
+    }
+  },
+  purchaseInventoryItemForPlayer(
+    id: string,
+    playerId: string,
+    itemId: string,
+    quantity: number,
+    unitPrice: number,
+    maxStackSize: number
+  ) {
+    try {
+      db.exec("BEGIN");
+      const character = characterCoreRepository.findById(id);
+
+      if (!character || character.playerId !== playerId) {
+        db.exec("ROLLBACK");
+        return { character: null, error: "Character not found" };
+      }
+
+      const totalPrice = unitPrice * quantity;
+
+      if (character.penya < totalPrice) {
+        db.exec("ROLLBACK");
+        return { character: null, error: "Not enough Penya" };
+      }
+
+      const now = new Date().toISOString();
+
+      if (!addInventoryQuantity(id, character, itemId, quantity, now, { maxStackSize })) {
+        throw new Error("Not enough inventory space");
+      }
+
+      db.prepare(
+        "UPDATE characters SET penya = penya - ?, updated_at = ? WHERE id = ? AND player_id = ?"
+      ).run(totalPrice, now, id, playerId);
+      db.exec("COMMIT");
+
+      return { character: characterCoreRepository.findById(id), error: null };
+    } catch (error) {
+      if (db.isTransaction) {
+        db.exec("ROLLBACK");
+      }
+
+      return {
+        character: null,
+        error: error instanceof Error ? error.message : "Unable to purchase item"
+      };
+    }
+  },
   setInventoryItemForPlayer(
     id: string,
     playerId: string,

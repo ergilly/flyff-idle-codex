@@ -38,6 +38,7 @@ export const characterCoreRepository = {
         gender,
         job,
         progression_rank,
+        location,
         level,
         exp,
         penya,
@@ -54,7 +55,7 @@ export const characterCoreRepository = {
         mainhand,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       playerId,
@@ -63,6 +64,7 @@ export const characterCoreRepository = {
       gender,
       "Vagrant",
       "normal",
+      "Flaris",
       1,
       0,
       0,
@@ -122,6 +124,14 @@ export const characterCoreRepository = {
           WHERE id = ? AND player_id = ?`
       )
       .run(now, id, playerId);
+
+    return result.changes > 0 ? this.findById(id) : null;
+  },
+  addPenyaForPlayer(id: string, playerId: string, amount: number) {
+    const now = new Date().toISOString();
+    const result = db
+      .prepare("UPDATE characters SET penya = penya + ?, updated_at = ? WHERE id = ? AND player_id = ?")
+      .run(amount, now, id, playerId);
 
     return result.changes > 0 ? this.findById(id) : null;
   },
@@ -193,6 +203,7 @@ export const characterCoreRepository = {
           gender,
           job,
           progression_rank AS progressionRank,
+          location,
           level,
           exp,
           penya,
@@ -245,6 +256,7 @@ export const characterCoreRepository = {
           gender,
           job,
           progression_rank AS progressionRank,
+          location,
           level,
           exp,
           penya,

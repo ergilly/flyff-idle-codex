@@ -5,6 +5,7 @@ import request from "supertest";
 import { createApp } from "../../src/app.js";
 import { config } from "../../src/config.js";
 import { db } from "../../src/data/database.js";
+import { characterRepository } from "../../src/data/characterRepository.js";
 import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
 describe("app route integration", () => {
@@ -273,6 +274,7 @@ describe("app route integration", () => {
           gender: "male",
           job: "Vagrant",
           progressionRank: "normal",
+          location: "Flaris",
           equipment: expect.objectContaining({
             mainhand: "3497",
             suit: "3314",
@@ -329,6 +331,7 @@ describe("app route integration", () => {
           expect.objectContaining({
             id: "5325",
             name: "Lollipop",
+            buyPrice: 40,
             cooldown: 2.5,
             stack: 9999,
             consumable: true
@@ -511,12 +514,238 @@ describe("app route integration", () => {
     });
   });
 
+  it("validates travel access and consumes the matching Blinkwing", async () => {
+    const registerResponse = await registerFreshPlayer("Traveller");
+    const authorization = `Bearer ${registerResponse.body.token}`;
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", authorization)
+      .send({ slotIndex: 0, name: "MapTraveller", gender: "male" });
+    const characterId = createResponse.body.character.id as string;
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/travel`)
+        .set("Authorization", authorization)
+        .send({ destination: "darkon3", method: "flying" })
+    ).resolves.toMatchObject({
+      status: 403,
+      body: { error: "A tier 2 flying item is required" }
+    });
+
+    characterRepository.setInventoryItemForPlayer(characterId, registerResponse.body.user.id, {
+      slotIndex: 6,
+      itemId: "4602",
+      quantity: 1
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/travel`)
+        .set("Authorization", authorization)
+        .send({ destination: "darkon12", method: "blinkwing" })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          location: "Darkon 1 and 2",
+          inventory: expect.objectContaining({
+            items: expect.not.arrayContaining([expect.objectContaining({ itemId: "4602" })])
+          })
+        })
+      }
+    });
+  });
+
+  it("serves local town shop inventories", async () => {
+    await expect(request(app).get("/api/shops/sain-city/magic-vendor")).resolves.toMatchObject({
+      status: 200,
+      body: {
+        shop: {
+          id: "sain-city/magic-vendor",
+          merchantNames: ["Martin"],
+          merchants: expect.arrayContaining([
+            expect.objectContaining({
+              name: "Martin",
+              tabs: expect.arrayContaining([
+                expect.objectContaining({
+                  label: "Wand",
+                  items: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: "1067",
+                      name: "Cubic Wand from Game Data",
+                      icon: "fixture-cubic-wand.png",
+                      buyPrice: 6600,
+                      maxStack: 1,
+                      price: 6600
+                    })
+                  ])
+                })
+              ])
+            })
+          ])
+        }
+      }
+    });
+
+    await expect(request(app).get("/api/shops/flarine-town/red-chip-merchant")).resolves.toMatchObject({
+      status: 404,
+      body: { error: "Shop not found" }
+    });
+
+    await expect(request(app).get("/api/shops/flarine-town/station")).resolves.toMatchObject({
+      status: 200,
+      body: {
+        shop: {
+          merchantNames: ["Dior"],
+          merchants: [
+            expect.objectContaining({
+              name: "Dior",
+              tabs: expect.arrayContaining([
+                expect.objectContaining({
+                  label: "Broom",
+                  items: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: "8507",
+                      name: "Magic Broom",
+                      price: 50000,
+                      description: expect.stringContaining(
+                        "Allows free travel up to Saint Morning and Rhisis."
+                      )
+                    }),
+                    expect.objectContaining({
+                      id: "2128",
+                      description: expect.stringContaining(
+                        "Allows free travel up to Darkon 1, 2, and Darkon 3."
+                      )
+                    }),
+                    expect.objectContaining({
+                      id: "3258",
+                      description: expect.stringContaining(
+                        "Allows free travel up to Shaduwar and the Valley of the Risen."
+                      )
+                    }),
+                    expect.objectContaining({
+                      id: "7336",
+                      description: expect.stringContaining("Allows free travel up to Eillun and Bahara.")
+                    })
+                  ])
+                }),
+                expect.objectContaining({
+                  label: "Board",
+                  items: expect.arrayContaining([
+                    expect.objectContaining({
+                      id: "7182",
+                      description: expect.stringContaining(
+                        "Allows free travel up to Saint Morning and Rhisis."
+                      )
+                    }),
+                    expect.objectContaining({
+                      id: "4482",
+                      description: expect.stringContaining(
+                        "Allows free travel up to Darkon 1, 2, and Darkon 3."
+                      )
+                    }),
+                    expect.objectContaining({
+                      id: "6333",
+                      description: expect.stringContaining(
+                        "Allows free travel up to Shaduwar and the Valley of the Risen."
+                      )
+                    }),
+                    expect.objectContaining({
+                      id: "4715",
+                      description: expect.stringContaining("Allows free travel up to Eillun and Bahara.")
+                    })
+                  ])
+                })
+              ])
+            })
+          ]
+        }
+      }
+    });
+  });
+
+  it("purchases only stocked town shop items at server-controlled prices", async () => {
+    const registerResponse = await registerFreshPlayer("Shopper");
+    const authorization = `Bearer ${registerResponse.body.token}`;
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", authorization)
+      .send({ slotIndex: 0, name: "StoreHero", gender: "female" });
+    const characterId = createResponse.body.character.id;
+
+    await request(app)
+      .patch(`/api/characters/${characterId}/progression`)
+      .set("Authorization", authorization)
+      .send({ penya: 1_000 });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/shops/darken-city/food-vendor/purchases`)
+        .set("Authorization", authorization)
+        .send({ itemId: "5325", quantity: 2 })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: { character: expect.objectContaining({ penya: 920 }) }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/shops/flarine-general-store/purchases`)
+        .set("Authorization", authorization)
+        .send({ itemId: "5869", quantity: 3 })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          penya: 770,
+          inventory: expect.objectContaining({
+            items: expect.arrayContaining([expect.objectContaining({ itemId: "5869", quantity: 3 })])
+          })
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/shops/flarine-general-store/purchases`)
+        .set("Authorization", authorization)
+        .send({ itemId: "999999", quantity: 1 })
+    ).resolves.toMatchObject({ status: 404, body: { error: "Shop item not found" } });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/shops/flarine-general-store/purchases`)
+        .set("Authorization", authorization)
+        .send({ itemId: "5869", quantity: 10_000 })
+    ).resolves.toMatchObject({ status: 400 });
+  });
+
   it("lets admins refund stat and skill points for their characters", async () => {
     const loginResponse = await loginDemoPlayer();
     const charactersResponse = await request(app)
       .get("/api/characters")
       .set("Authorization", `Bearer ${loginResponse.body.token}`);
     const characterId = charactersResponse.body.characters[0].id;
+    const startingPenya = charactersResponse.body.characters[0].penya;
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/penya`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ amount: 2_500 })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: { character: expect.objectContaining({ penya: startingPenya + 2_500 }) }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/admin/characters/${characterId}/penya`)
+        .set("Authorization", `Bearer ${loginResponse.body.token}`)
+        .send({ amount: 0 })
+    ).resolves.toMatchObject({ status: 400, body: { error: "A positive Penya amount is required" } });
 
     await request(app)
       .patch(`/api/characters/${characterId}/progression`)

@@ -3,6 +3,7 @@ import {
   consumeInventoryItem,
   equipConsumableItem,
   lootInventoryItems,
+  travelCharacter,
   updateCharacterProgression
 } from "@/lib/api";
 import { buildCharacter } from "@/test/fixtures";
@@ -83,6 +84,20 @@ describe("character API action contracts", () => {
             { itemId: "200", quantity: 1 }
           ]
         })
+      })
+    );
+  });
+
+  it("sends the selected travel method and equipment set", async () => {
+    respond({});
+
+    await travelCharacter("token", "character-1", "darkon12", "blinkwing", 2);
+
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "http://localhost:4000/api/characters/character-1/travel",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ destination: "darkon12", method: "blinkwing", equipmentSet: 2 })
       })
     );
   });

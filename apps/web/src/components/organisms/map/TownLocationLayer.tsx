@@ -51,7 +51,7 @@ export function TownLocationLayer({
               className="pointer-events-none absolute left-1/2 top-[calc(100%+0.3rem)] w-max -translate-x-1/2 rounded-control border border-[#fff1ba]/70 bg-black/90 px-2 py-1 text-[0.65rem] font-black uppercase tracking-wide text-[#fff1ba] opacity-0 shadow-menu transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
               role="tooltip"
             >
-              {location.label} - TBC
+              {location.label}
             </span>
           </button>
         );
