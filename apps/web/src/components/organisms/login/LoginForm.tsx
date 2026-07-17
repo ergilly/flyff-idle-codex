@@ -53,8 +53,8 @@ export function LoginForm() {
   const [isHydrated, setIsHydrated] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
   const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("test@flyff-idle.local");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -115,8 +115,8 @@ export function LoginForm() {
           onClick={() => {
             setMode("login");
             setError("");
-            setEmail("test@flyff-idle.local");
-            setPassword("password123");
+            setEmail("");
+            setPassword("");
           }}
         >
           Login
@@ -170,6 +170,7 @@ export function LoginForm() {
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="test@flyff-idle.local"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
@@ -181,6 +182,7 @@ export function LoginForm() {
           name="password"
           type="password"
           autoComplete={isRegistering ? "new-password" : "current-password"}
+          placeholder={isRegistering ? "Create a password" : "password123"}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required

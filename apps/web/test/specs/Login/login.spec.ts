@@ -8,13 +8,15 @@ test.beforeEach(async ({ page, loginPage }) => {
 test.describe("Login Page", () => {
   test.describe("initial state", () => {
     test(
-      "should display the login form in login mode with pre-filled credentials",
+      "should display empty login fields with demo credential placeholders",
       { tag: "@login" },
       async ({ loginPage }) => {
         await expect(loginPage.elements.emailInput).toBeVisible();
-        expect(await loginPage.elements.emailInput.inputValue()).toBe("test@flyff-idle.local");
+        await expect(loginPage.elements.emailInput).toHaveValue("");
+        await expect(loginPage.elements.emailInput).toHaveAttribute("placeholder", "test@flyff-idle.local");
         await expect(loginPage.elements.passwordInput).toBeVisible();
-        expect(await loginPage.elements.passwordInput.inputValue()).toBe("password123");
+        await expect(loginPage.elements.passwordInput).toHaveValue("");
+        await expect(loginPage.elements.passwordInput).toHaveAttribute("placeholder", "password123");
         await expect(loginPage.elements.submitButton).toBeVisible();
         await expect(loginPage.elements.loginSelectButton).toBeVisible();
         await expect(loginPage.elements.registerSelectButton).toBeVisible();

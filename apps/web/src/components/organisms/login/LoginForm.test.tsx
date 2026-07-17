@@ -26,6 +26,8 @@ describe("LoginForm", () => {
     });
 
     render(<LoginForm />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "test@flyff-idle.local" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password123" } });
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/characters"));
@@ -50,16 +52,21 @@ describe("LoginForm", () => {
     expect(register).toHaveBeenCalledWith("New Pilot", "new@flyff-idle.local", "password123");
   });
 
-  it("resets demo credentials when switching back to login mode", () => {
+  it("shows demo credentials as placeholders while keeping login fields empty", () => {
     render(<LoginForm />);
+
+    expect(screen.getByLabelText("Email")).toHaveValue("");
+    expect(screen.getByLabelText("Email")).toHaveAttribute("placeholder", "test@flyff-idle.local");
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+    expect(screen.getByLabelText("Password")).toHaveAttribute("placeholder", "password123");
 
     fireEvent.click(screen.getByRole("button", { name: "Register" }));
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "new@flyff-idle.local" } });
     fireEvent.change(screen.getByLabelText("Password"), { target: { value: "new-password" } });
     fireEvent.click(screen.getByRole("button", { name: "Login" }));
 
-    expect(screen.getByLabelText("Email")).toHaveValue("test@flyff-idle.local");
-    expect(screen.getByLabelText("Password")).toHaveValue("password123");
+    expect(screen.getByLabelText("Email")).toHaveValue("");
+    expect(screen.getByLabelText("Password")).toHaveValue("");
   });
 
   it("shows tailored errors from failed auth requests", async () => {
@@ -67,6 +74,8 @@ describe("LoginForm", () => {
     (register as jest.Mock).mockRejectedValue(new Error("Email already registered"));
 
     render(<LoginForm />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "test@flyff-idle.local" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "password123" } });
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(await screen.findByText("That password does not match this player account.")).toBeInTheDocument();
