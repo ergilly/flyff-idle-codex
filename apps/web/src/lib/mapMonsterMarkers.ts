@@ -159,7 +159,7 @@ function createDungeonMarker(
   return {
     description: `Dungeon entrance for ${label}.`,
     family: id,
-    iconSrc: `/images/maps/icons/purple-background-regenerated/256px/${iconSlug}.png`,
+    iconSrc: `/images/maps/icons/purple-background-regenerated/256px/${iconSlug}.webp`,
     id: `${region}-dungeon-${id}`,
     label,
     markerType: "dungeon",
@@ -181,7 +181,7 @@ function createTownMarker(
   return {
     description: `Town marker for ${label}.`,
     family: id,
-    iconSrc: `/images/maps/icons/${iconSlug}-256.png`,
+    iconSrc: `/images/maps/icons/${iconSlug}-256.webp`,
     id: `${region}-town-${id}`,
     label,
     markerType: "town",
@@ -204,7 +204,7 @@ function createMapIconMarker(
   return {
     description,
     family: id,
-    iconSrc: `/images/maps/icons/${iconSlug}-256.png`,
+    iconSrc: `/images/maps/icons/${iconSlug}-256.webp`,
     id: `${region}-dungeon-${id}`,
     label,
     markerType: "dungeon",

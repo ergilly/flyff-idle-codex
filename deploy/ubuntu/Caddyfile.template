@@ -1,6 +1,12 @@
 __SITE_ADDRESS__ {
   encode zstd gzip
 
+  @nextAssets path /_next/static/*
+  header @nextAssets Cache-Control "public, max-age=31536000, immutable"
+
+  @images path /images/*
+  header @images Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+
   handle /api/* {
     reverse_proxy 127.0.0.1:4000
   }

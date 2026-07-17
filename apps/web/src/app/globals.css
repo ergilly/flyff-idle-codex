@@ -63,8 +63,7 @@ body {
   margin: 0;
   background:
     radial-gradient(circle at 50% 10%, var(--page-highlight), transparent 42%),
-    linear-gradient(var(--page-overlay-start), var(--page-overlay-end)),
-    url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80");
+    linear-gradient(var(--page-overlay-start), var(--page-overlay-end)), url("/images/backgrounds/page.webp");
   background-attachment: fixed;
   background-position: center;
   background-size: cover;

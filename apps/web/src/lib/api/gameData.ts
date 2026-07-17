@@ -13,15 +13,16 @@ import {
   type MonsterVariantRank
 } from "@/lib/api/types";
 
-const flyffItemImageBaseUrl = "https://api.flyff.com/image/item";
-const flyffMonsterImageBaseUrl = "https://api.flyff.com/image/monster";
-
 export function getItemIconUrl(icon: string) {
-  return `${flyffItemImageBaseUrl}/${encodeURIComponent(icon)}`;
+  return `${apiBaseUrl}/api/images/item/${encodeURIComponent(icon)}`;
 }
 
 export function getMonsterIconUrl(icon: string) {
-  return `${flyffMonsterImageBaseUrl}/${encodeURIComponent(icon)}`;
+  return `${apiBaseUrl}/api/images/monster/${encodeURIComponent(icon)}`;
+}
+
+export function getSkillIconUrl(icon: string) {
+  return `${apiBaseUrl}/api/images/skill/${encodeURIComponent(icon)}`;
 }
 
 export async function fetchItems(token: string, itemIds: string[]): Promise<ItemMetadata[]> {

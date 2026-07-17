@@ -206,10 +206,10 @@ describe("MapPage", () => {
     expect(screen.getByRole("button", { name: "Mars Mine" })).toBeInTheDocument();
     expect(
       screen.getByTestId("map_span_monster_marker_icon_flaris_town_flarine_town").querySelector("img")
-    ).toHaveAttribute("src", "/images/maps/icons/town-flarine-256.png");
+    ).toHaveAttribute("src", "/images/maps/icons/town-flarine-256.webp");
     expect(
       screen.getByTestId("map_span_monster_marker_icon_flaris_dungeon_mars_mine").querySelector("img")
-    ).toHaveAttribute("src", "/images/maps/icons/purple-background-regenerated/256px/dungeon-mars-mine.png");
+    ).toHaveAttribute("src", "/images/maps/icons/purple-background-regenerated/256px/dungeon-mars-mine.webp");
     await waitFor(() => expect(screen.queryByTestId("map_div_monsters_loading")).not.toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "Back to world" }));
@@ -223,7 +223,7 @@ describe("MapPage", () => {
     expect(screen.getByRole("button", { name: "Island of Nightmares" })).toBeInTheDocument();
     expect(
       screen.getByTestId("map_span_monster_marker_icon_darkon12_dungeon_floating_castle").querySelector("img")
-    ).toHaveAttribute("src", "/images/maps/icons/floating-fortress-saturated-256.png");
+    ).toHaveAttribute("src", "/images/maps/icons/floating-fortress-saturated-256.webp");
     await waitFor(() => expect(screen.queryByTestId("map_div_monsters_loading")).not.toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "Back to world" }));

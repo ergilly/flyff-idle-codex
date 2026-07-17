@@ -7,6 +7,7 @@ import { adminRouter } from "./admin/admin.routes.js";
 import { authRouter } from "./auth/auth.routes.js";
 import { characterRouter } from "./characters/character.routes.js";
 import { gameDataRouter } from "./gameData/gameData.routes.js";
+import { imageRouter } from "./images/image.routes.js";
 import { itemRouter } from "./items/item.routes.js";
 
 const openApiPath = path.resolve(process.cwd(), "../../docs/api/openapi.yaml");
@@ -48,6 +49,7 @@ export function createApp() {
   app.use("/api/admin", adminRouter);
   app.use("/api/characters", characterRouter);
   app.use("/api/data", gameDataRouter);
+  app.use("/api/images", imageRouter);
   app.use("/api/items", itemRouter);
   app.get("/swagger", (_request, response) => {
     response.type("html").send(swaggerHtml);

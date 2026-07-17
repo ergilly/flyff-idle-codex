@@ -289,7 +289,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
             >
               <Image
                 className="h-full w-full object-contain"
-                src="/images/maps/World/BaseMap.png"
+                src="/images/maps/World/BaseMap.webp"
                 alt="Madrigal world map"
                 width={1195}
                 height={896}
@@ -304,7 +304,6 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                   aria-hidden="true"
                   width={1195}
                   height={896}
-                  priority
                   unoptimized
                 />
               ) : null}
