@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MapPage } from "./MapPage";
 import { flarineGeneralStoreTabs } from "@/lib/townShops";
 
@@ -224,7 +224,7 @@ describe("MapPage", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("requires flying travel for an area without a Blinkwing", () => {
+  it("requires flying travel for an area without a Blinkwing", async () => {
     render(<MapPage characterLocation="Flaris" onTravel={jest.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Select Rhisis" }));
@@ -233,6 +233,10 @@ describe("MapPage", () => {
     expect(screen.getByText("No Blinkwing travels to this area")).toBeInTheDocument();
     expect(screen.getByTestId("map_travel_button_flying")).toBeDisabled();
     expect(screen.queryByTestId("map_travel_button_blinkwing")).not.toBeInTheDocument();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it("shows monster details from the assigned marker name", async () => {
@@ -311,6 +315,10 @@ describe("MapPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Back to region" }));
 
     expect(screen.getByRole("img", { name: `${region} map` })).toBeInTheDocument();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it("turns town shops and NPCs into selectable map buttons", async () => {
@@ -385,7 +393,7 @@ describe("MapPage", () => {
     );
   });
 
-  it("keeps town shop and NPC icons the same size while zooming", () => {
+  it("keeps town shop and NPC icons the same size while zooming", async () => {
     render(<MapPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
@@ -397,6 +405,10 @@ describe("MapPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
 
     expect(generalStore).toHaveStyle({ width: "2.6%" });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
   });
 
   it("renders explicit family names for Darkon 3 monsters", async () => {

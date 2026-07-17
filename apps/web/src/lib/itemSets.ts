@@ -16,7 +16,7 @@ export type ItemSetMetadata = {
   bonus: ReadonlyArray<ItemSetBonus>;
 };
 
-const itemSetsById = itemSetIndex as unknown as Record<string, ItemSetMetadata>;
+const itemSetsById: Record<string, ItemSetMetadata> = itemSetIndex;
 const itemSetByPartId = new Map<string, ItemSetMetadata>();
 
 Object.values(itemSetsById).forEach((itemSet) => {

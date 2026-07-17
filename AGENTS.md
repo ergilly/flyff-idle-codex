@@ -33,3 +33,39 @@ These instructions apply to all code changes in this repository.
 
 - Before finishing, review changed files for mixed responsibilities, misplaced atomic components, missing colocated tests, and avoidable file growth.
 - Report the verification commands run and any checks that could not be completed.
+
+## Domain rules and data ownership
+
+- Keep each business or domain rule in one canonical module and reuse it from every consumer.
+- Do not duplicate progression mappings, pricing rules, equipment requirements, travel rules, or other domain decisions across components or services.
+- Use game data as the source of truth for item metadata wherever it provides the required field.
+- Local shop inventory files may define which items a vendor stocks and how those items are organized, but must not duplicate game-data metadata.
+- Enforce security, authorization, ownership, pricing, inventory, and eligibility rules on the API even when the UI also validates them for user feedback.
+
+## Type safety and dependencies
+
+- Keep TypeScript strict and use precise domain types at module boundaries.
+- Do not introduce unexplained `any`, unsafe type assertions, ignored TypeScript errors, or lint suppressions. If an exceptional suppression is unavoidable, keep it narrow and document why it is safe.
+- Validate untrusted runtime data before treating it as a domain type.
+- Avoid adding a dependency when a small, clear local implementation is sufficient.
+
+## UI quality
+
+- Make interactive UI accessible by keyboard and expose appropriate semantic roles, names, labels, and state.
+- Preserve visible focus behavior and do not rely on hover as the only way to access information or actions.
+- Keep layouts usable at the application's supported viewport sizes and prevent content from overflowing its owning panel.
+- Async UI must provide appropriate loading, empty, disabled, and error states. Avoid stale or ambiguous UI while operations are pending.
+
+## Behavioral safety and scope
+
+- Preserve existing behavior during refactors. For risky changes, establish regression coverage before moving or rewriting code.
+- Keep changes scoped to the user's request and preserve unrelated worktree changes.
+- Do not overwrite or remove existing work merely to simplify a refactor.
+- Prefer incremental, independently verifiable changes over broad rewrites.
+
+## Test quality
+
+- Cover boundary conditions, validation failures, authorization failures, and error paths in addition to successful behavior.
+- Keep tests deterministic and independent of execution order or external mutable state.
+- Use the narrowest suitable test level: unit tests for domain logic, component tests for interactions, integration tests for boundaries, and end-to-end tests only for critical cross-system flows.
+- Avoid tests that merely duplicate implementation details or assert static markup without meaningful behavior.
