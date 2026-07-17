@@ -68,6 +68,10 @@ latest Caddy configuration, and restarts the API. It also repairs checkout owner
 the installed deployment helpers. Player data and production secrets live outside the checkout, and deployment
 deliberately does not seed the player database.
 
+Older installations may not have `/etc/flyff-idle/site-address`. The first updated deployment recovers it from
+the active Caddyfile and stores it for later releases. If the active configuration uses a custom layout that cannot
+be recognized, deployment preserves that working Caddyfile and emits a warning instead of interrupting the release.
+
 ## Automatic deployment from GitHub
 
 `.github/workflows/deploy-production.yml` verifies and deploys every push to `main`, including merged pull
