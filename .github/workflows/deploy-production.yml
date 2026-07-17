@@ -81,4 +81,7 @@ jobs:
             -o BatchMode=yes \
             -o StrictHostKeyChecking=yes \
             "$PRODUCTION_USER@$PRODUCTION_HOST" \
-            'sudo -n /usr/local/sbin/flyff-idle-deploy'
+            'sudo -n chown -R flyff-idle:flyff-idle /opt/flyff-idle &&
+             sudo -n -u flyff-idle env HOME=/home/flyff-idle git -C /opt/flyff-idle pull --ff-only &&
+             sudo -n install -m 0755 /opt/flyff-idle/deploy/ubuntu/deploy.sh /usr/local/sbin/flyff-idle-deploy &&
+             sudo -n /usr/local/sbin/flyff-idle-deploy'
