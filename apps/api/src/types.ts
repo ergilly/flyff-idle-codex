@@ -16,6 +16,7 @@ export type Character = {
   gender: CharacterGender;
   job: string;
   progressionRank: CharacterProgressionRank;
+  location: string;
   level: number;
   exp: number;
   penya: number;

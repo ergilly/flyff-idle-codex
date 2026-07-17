@@ -29,8 +29,19 @@ import {
   MainApplicationErrorPanel,
   MainApplicationTemplate
 } from "@/components/templates/main-application/MainApplicationTemplate";
-import { fetchCharacters, type Character, type ItemMetadata, type MapMonsterFamily } from "@/lib/api";
+import {
+  fetchCharacters,
+  purchaseTownShopItem,
+  sellCharacterInventoryItem,
+  travelCharacter,
+  type Character,
+  type ItemMetadata,
+  type MapMonsterFamily
+} from "@/lib/api";
 import { getCombatStats } from "@/lib/combatStats";
+import { getCharacterEquipmentSet } from "@/lib/characterEquipment";
+import type { MapRegionId } from "@/lib/mapMonsterMarkers";
+import type { TravelMethod } from "@/lib/mapTravel";
 
 const storageKey = "flyffIdleTheme";
 
@@ -168,9 +179,11 @@ export function MainApplicationPage() {
   const {
     adminError,
     handleAddInventoryItem,
+    handleAddPenya,
     handleRefundSkills,
     handleRefundStats,
     isAddingInventoryItem,
+    isAddingPenya,
     refundingAdminAction
   } = useAdminActions({
     handleResetSkills,
@@ -195,6 +208,52 @@ export function MainApplicationPage() {
     setSelectedMonsterFamily(monsterFamily);
     setActiveNavItem("Combat");
     setIsMobileNavOpen(false);
+  }
+
+  async function handleBuyShopItem(
+    townMapId: import("@/lib/townMapLocations").TownMapId,
+    locationId: string,
+    itemId: string,
+    quantity: number
+  ) {
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token || !selectedCharacter) {
+      router.replace("/");
+      throw new Error("Authentication is required");
+    }
+
+    const updatedCharacter = await purchaseTownShopItem(
+      token,
+      selectedCharacter.id,
+      townMapId,
+      locationId,
+      itemId,
+      quantity
+    );
+    updateCharacter(updatedCharacter);
+  }
+
+  async function handleSellShopItem(slotIndex: number, quantity: number) {
+    const token = localStorage.getItem("flyffIdleToken");
+    if (!token || !selectedCharacter) {
+      router.replace("/");
+      throw new Error("Authentication is required");
+    }
+    updateCharacter(await sellCharacterInventoryItem(token, selectedCharacter.id, slotIndex, quantity));
+  }
+
+  async function handleTravel(destination: MapRegionId, method: TravelMethod) {
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token || !selectedCharacter) {
+      router.replace("/");
+      throw new Error("Authentication is required");
+    }
+
+    updateCharacter(
+      await travelCharacter(token, selectedCharacter.id, destination, method, activeEquipmentSet)
+    );
   }
 
   function updateCharacter(updatedCharacter: Character) {
@@ -328,7 +387,19 @@ export function MainApplicationPage() {
             selectedSlotIndex={selectedInventorySlotIndex}
           />
         ) : activeNavItem === "Map" ? (
-          <MapPage onSelectMonster={handleSelectMapMonster} />
+          <MapPage
+            characterLocation={selectedCharacter.location}
+            characterLevel={selectedCharacter.level}
+            characterInventory={selectedCharacter.inventory}
+            characterPenya={selectedCharacter.penya}
+            characterSex={selectedCharacter.gender}
+            equippedFlyingItemId={getCharacterEquipmentSet(selectedCharacter, activeEquipmentSet).flying}
+            itemsById={itemsById}
+            onBuyShopItem={handleBuyShopItem}
+            onSellShopItem={handleSellShopItem}
+            onSelectMonster={handleSelectMapMonster}
+            onTravel={handleTravel}
+          />
         ) : activeNavItem === "Combat" ? (
           <BattlePage
             character={selectedCharacter}
@@ -348,9 +419,11 @@ export function MainApplicationPage() {
         ) : activeNavItem === "Admin" ? (
           <AdminPage
             addingInventoryItem={isAddingInventoryItem}
+            addingPenya={isAddingPenya}
             character={selectedCharacter}
             error={adminError}
             onAddInventoryItem={handleAddInventoryItem}
+            onAddPenya={handleAddPenya}
             onRefundSkills={handleRefundSkills}
             onRefundStats={handleRefundStats}
             refundingAction={refundingAdminAction}

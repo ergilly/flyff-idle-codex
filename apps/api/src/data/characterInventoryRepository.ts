@@ -95,10 +95,10 @@ export function addInventoryQuantity(
   itemId: string,
   quantity: number,
   now: string,
-  options: { stackIntoEquippedConsumables?: boolean } = {}
+  options: { maxStackSize?: number; stackIntoEquippedConsumables?: boolean } = {}
 ) {
   let remainingQuantity = quantity;
-  const maxStackSize = getMaxStackSize(itemId);
+  const maxStackSize = options.maxStackSize ?? getMaxStackSize(itemId);
   const shouldStackIntoEquippedConsumables = options.stackIntoEquippedConsumables ?? true;
   const matchingConsumableResources = shouldStackIntoEquippedConsumables
     ? consumableResources.filter((resource) => {

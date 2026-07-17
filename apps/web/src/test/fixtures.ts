@@ -37,6 +37,7 @@ export function buildCharacter(overrides: Partial<Character> = {}): Character {
     gender: "male",
     job: "Vagrant",
     progressionRank: "normal",
+    location: "Flaris",
     level: 20,
     exp: 0,
     penya: 0,

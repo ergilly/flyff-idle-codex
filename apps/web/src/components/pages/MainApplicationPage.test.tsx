@@ -7,6 +7,7 @@ import {
   fetchCharacters,
   fetchItems,
   moveInventoryItem,
+  purchaseTownShopItem,
   refundCharacterSkills,
   refundCharacterStats,
   sortInventory,
@@ -32,9 +33,12 @@ jest.mock("@/lib/api", () => ({
   fetchItems: jest.fn(),
   lootInventoryItems: jest.fn(),
   moveInventoryItem: jest.fn(),
+  purchaseTownShopItem: jest.fn(),
+  sellCharacterInventoryItem: jest.fn(),
   refundCharacterSkills: jest.fn(),
   refundCharacterStats: jest.fn(),
   sortInventory: jest.fn(),
+  travelCharacter: jest.fn(),
   unequipItem: jest.fn(),
   updateCharacterProgression: jest.fn()
 }));
@@ -326,11 +330,20 @@ jest.mock("./BattlePage", () => ({
 }));
 
 jest.mock("./MapPage", () => ({
-  MapPage: ({ onSelectMonster }: { onSelectMonster: (monsterFamily: { name: string }) => void }) => (
+  MapPage: ({
+    onBuyShopItem,
+    onSelectMonster
+  }: {
+    onBuyShopItem: (townMapId: string, locationId: string, itemId: string, quantity: number) => void;
+    onSelectMonster: (monsterFamily: { name: string }) => void;
+  }) => (
     <section aria-label="mock map">
       Map page
       <button type="button" onClick={() => onSelectMonster({ name: "Aibatt" })}>
         Fight Aibatt
+      </button>
+      <button type="button" onClick={() => onBuyShopItem("flarine-town", "general-store", "5869", 3)}>
+        Buy Skill Poster
       </button>
     </section>
   )
@@ -675,6 +688,35 @@ describe("MainApplicationPage", () => {
     expect(screen.getByText("Battle target Aibatt")).toBeInTheDocument();
     await waitFor(() => expect(fetchItems).toHaveBeenCalledTimes(2));
     await act(async () => resolveMonsterItems());
+  });
+
+  it("purchases General Store items for the selected character", async () => {
+    arrangeSession({ ...baseCharacter, penya: 1_000 });
+    (purchaseTownShopItem as jest.Mock).mockResolvedValue({
+      ...baseCharacter,
+      penya: 950,
+      inventory: {
+        ...baseCharacter.inventory,
+        items: [...baseCharacter.inventory.items, { slotIndex: 1, itemId: "5869", quantity: 1 }]
+      }
+    });
+
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Buy Skill Poster" }));
+
+    await waitFor(() =>
+      expect(purchaseTownShopItem).toHaveBeenCalledWith(
+        "token",
+        "char-1",
+        "flarine-town",
+        "general-store",
+        "5869",
+        3
+      )
+    );
   });
 
   it("decrements equipped consumable stacks through the inventory API", async () => {

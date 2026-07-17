@@ -32,6 +32,16 @@
     "level": 1,
     "stack": 999
   },
+  "1067": {
+    "id": 1067,
+    "name": "Cubic Wand from Game Data",
+    "icon": "fixture-cubic-wand.png",
+    "category": "weapon",
+    "subcategory": "wand",
+    "level": 15,
+    "stack": 1,
+    "buyPrice": 6600
+  },
   "1764": {
     "id": 1764,
     "name": "Arek Ring",
@@ -109,6 +119,7 @@
     "level": 1,
     "cooldown": 2.5,
     "stack": 9999,
+    "buyPrice": 40,
     "consumable": true
   },
   "5535": {
@@ -128,6 +139,14 @@
     "level": 1,
     "stack": 1
   },
+  "5869": {
+    "id": 5869,
+    "name": "Skill Poster",
+    "category": "poster",
+    "level": 1,
+    "stack": 9999,
+    "buyPrice": 50
+  },
   "6040": {
     "id": 6040,
     "name": "Cream Suit",
@@ -145,6 +164,16 @@
     "level": 1,
     "sex": "female",
     "stack": 1
+  },
+  "8507": {
+    "id": 8507,
+    "name": "Magic Broom",
+    "icon": "ridridstimagic.png",
+    "category": "flying",
+    "subcategory": "broom",
+    "level": 15,
+    "stack": 1,
+    "buyPrice": 50000
   },
   "9449": {
     "id": 9449,

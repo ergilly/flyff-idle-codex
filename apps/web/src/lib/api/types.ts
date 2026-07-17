@@ -15,6 +15,7 @@ export type Character = {
   gender: CharacterGender;
   job: string;
   progressionRank: CharacterProgressionRank;
+  location?: string;
   level: number;
   exp: number;
   penya: number;
@@ -101,9 +102,12 @@ export type ItemMetadata = {
   twoHanded: boolean | null;
   minDefense: number | null;
   maxDefense: number | null;
+  buyPrice?: number | null;
   stack?: number | null;
   consumable?: boolean | null;
   cooldown?: number | null;
+  sellPrice?: number | null;
+  tradable?: boolean | null;
   abilities: Array<{
     parameter: string;
     add: number | null;

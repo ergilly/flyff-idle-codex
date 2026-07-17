@@ -4,6 +4,7 @@ node_modules
 out
 dist
 coverage
+apps/api/data/image-cache/
 playwright-report
 allure-results
 allure-report

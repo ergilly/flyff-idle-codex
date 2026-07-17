@@ -31,6 +31,7 @@ test("login returns a token and the token can load characters", async ({ request
           gender: "female",
           job: "Mercenary",
           progressionRank: "normal",
+          location: "Flaris",
           penya: 0,
           stats: {
             str: 15,
@@ -89,6 +90,7 @@ test("authenticated players can create a vagrant in an open slot", async ({ requ
         gender: "female",
         job: "Vagrant",
         progressionRank: "normal",
+        location: "Flaris",
         level: 1,
         exp: 0,
         penya: 0,

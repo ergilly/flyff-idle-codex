@@ -17,7 +17,7 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     shop("general-store", "General Store", 30.2, 45.3),
     npc("arena-manager", "Arena Manager", 19.9, 52),
     npc("pet-tamer", "Pet Tamer", 35, 51.8),
-    npc("station", "Station", 26.3, 57.1),
+    shop("station", "Station", 26.3, 57.1),
     shop("armory", "Armory", 18.6, 60.3),
     npc("housing-specialist", "Housing Specialist", 35.5, 59.8),
     npc("buff-pang", "Buff Pang", 29.5, 65.1),
@@ -27,7 +27,7 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     shop("food-vendor", "Food Vendor", 77.7, 66.1)
   ],
   "sain-city": [
-    npc("station", "Station", 44.9, 25.1),
+    shop("station", "Station", 44.9, 25.1),
     shop("magic-vendor", "Magic Vendor", 35.5, 63.5),
     shop("armory", "Armory", 40.9, 73.3),
     shop("general-store", "General Store", 47, 72.6),
@@ -44,7 +44,7 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     shop("general-store", "General Store", 54.4, 46.9),
     npc("arena-manager", "Arena Manager", 36.1, 50),
     npc("buff-pang", "Buff Pang", 34.3, 50.4),
-    npc("station", "Station", 47.7, 51.4),
+    shop("station", "Station", 47.7, 51.4),
     npc("quest-office", "Quest Office", 42.3, 57.3),
     shop("armory", "Armory", 22.8, 59.7),
     shop("magic-vendor", "Magic Vendor", 60.4, 71.9),

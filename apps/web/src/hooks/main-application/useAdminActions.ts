@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   addCharacterInventoryItem,
+  addCharacterPenya,
   refundCharacterSkills,
   refundCharacterStats,
   type Character
@@ -26,6 +27,7 @@ export function useAdminActions({
   const [adminError, setAdminError] = useState("");
   const [refundingAdminAction, setRefundingAdminAction] = useState<"stats" | "skills" | null>(null);
   const [isAddingInventoryItem, setIsAddingInventoryItem] = useState(false);
+  const [isAddingPenya, setIsAddingPenya] = useState(false);
 
   async function handleRefundStats() {
     if (!selectedCharacter) {
@@ -119,12 +121,36 @@ export function useAdminActions({
     }
   }
 
+  async function handleAddPenya(amount: number) {
+    if (!selectedCharacter) return;
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      onAuthenticationRequired();
+      return;
+    }
+
+    setAdminError("");
+    setIsAddingPenya(true);
+
+    try {
+      updateCharacter(await addCharacterPenya(token, selectedCharacter.id, amount));
+    } catch (addPenyaError) {
+      setAdminError(addPenyaError instanceof Error ? addPenyaError.message : "Unable to add Penya");
+    } finally {
+      setIsAddingPenya(false);
+    }
+  }
+
   return {
     adminError,
     handleAddInventoryItem,
+    handleAddPenya,
     handleRefundSkills,
     handleRefundStats,
     isAddingInventoryItem,
+    isAddingPenya,
     refundingAdminAction
   };
 }

@@ -8,8 +8,11 @@ import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { MapZoomControls } from "@/components/molecules/map/MapZoomControls";
 import { MonsterMarkerLayer } from "@/components/organisms/map/MonsterMarkerLayer";
+import { MapTravelDialog } from "@/components/organisms/map/MapTravelDialog";
 import { TownLocationLayer } from "@/components/organisms/map/TownLocationLayer";
+import { TownInteractionPanel } from "@/components/organisms/map/TownInteractionPanel";
 import { fetchMapMonsterFamilyIndex, type MapMonsterFamily } from "@/lib/api";
+import { type CharacterInventory, type ItemMetadata } from "@/lib/api/types";
 import { cx } from "@/lib/classNames";
 import {
   createMapMonsterMarkers,
@@ -19,6 +22,7 @@ import {
   type MapMonsterMarker
 } from "@/lib/mapMonsterMarkers";
 import { mapRegions } from "@/lib/mapRegions";
+import { getRegionIdForLocation, mapTravelDestinations, type TravelMethod } from "@/lib/mapTravel";
 import { getTestIdSegment } from "@/lib/testIds";
 import { townMapLocations, type TownMapLocation } from "@/lib/townMapLocations";
 
@@ -31,10 +35,37 @@ const emptyMonsterFamilies: MapMonsterFamily[] = [];
 const emptyMonsterFamilyIndex: Record<string, MapMonsterFamily[]> = {};
 
 type MapPageProps = {
+  characterLocation?: string;
+  characterLevel?: number;
+  characterInventory?: CharacterInventory;
+  characterPenya?: number;
+  characterSex?: "female" | "male";
+  equippedFlyingItemId?: string | null;
+  itemsById?: Record<string, ItemMetadata>;
+  onBuyShopItem?: (
+    townMapId: import("@/lib/townMapLocations").TownMapId,
+    locationId: string,
+    itemId: string,
+    quantity: number
+  ) => Promise<void>;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
+  onSellShopItem?: (slotIndex: number, quantity: number) => Promise<void>;
+  onTravel?: (destination: MapRegionId, method: TravelMethod) => Promise<void>;
 };
 
-export function MapPage({ onSelectMonster }: MapPageProps) {
+export function MapPage({
+  characterLocation = "Flaris",
+  characterLevel,
+  characterInventory,
+  characterPenya,
+  characterSex,
+  equippedFlyingItemId,
+  itemsById,
+  onBuyShopItem,
+  onSelectMonster,
+  onSellShopItem,
+  onTravel
+}: MapPageProps) {
   const [activeRegionId, setActiveRegionId] = useState<MapRegionId | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<MapRegionId | null>(null);
   const [selectedTown, setSelectedTown] = useState<MapMonsterMarker | null>(null);
@@ -43,6 +74,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   const [mapPan, setMapPan] = useState(zeroPan);
   const [isPanning, setIsPanning] = useState(false);
   const [monsterFamilyIndex, setMonsterFamilyIndex] = useState(emptyMonsterFamilyIndex);
+  const [pendingTravelRegionId, setPendingTravelRegionId] = useState<MapRegionId | null>(null);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const panStartRef = useRef({ panX: 0, panY: 0, x: 0, y: 0 });
   const selectedRegion = mapRegions.find((region) => region.id === selectedRegionId) ?? null;
@@ -63,6 +95,11 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   const monsterFamiliesByMarkerId = getMonsterFamiliesByMarkerId(
     selectedRegion ? (monsterFamilyIndex[selectedRegion.id] ?? emptyMonsterFamilies) : emptyMonsterFamilies
   );
+  const currentRegionId = getRegionIdForLocation(characterLocation);
+  const currentRegion = mapRegions.find((region) => region.id === currentRegionId);
+  const pendingTravelDestination = pendingTravelRegionId
+    ? mapTravelDestinations[pendingTravelRegionId]
+    : null;
 
   useEffect(() => {
     setMapZoom(minMapZoom);
@@ -104,8 +141,23 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   }
 
   function selectRegion(regionId: MapRegionId) {
+    if (onTravel && regionId !== currentRegionId) {
+      setPendingTravelRegionId(regionId);
+      return;
+    }
+
     setSelectedTown(null);
     setSelectedRegionId(regionId);
+  }
+
+  async function handleTravel(method: TravelMethod) {
+    if (!onTravel || !pendingTravelRegionId) return;
+
+    const destinationId = pendingTravelRegionId;
+    await onTravel(destinationId, method);
+    setPendingTravelRegionId(null);
+    setSelectedTown(null);
+    setSelectedRegionId(destinationId);
   }
 
   function backToWorld() {
@@ -337,11 +389,29 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                   type="button"
                 />
               ))}
+              {currentRegion ? (
+                <div
+                  aria-label={`Current location: ${characterLocation}`}
+                  className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full"
+                  data-testid="map_div_current_location_marker"
+                  role="img"
+                  style={currentRegion.worldMarkerPosition}
+                >
+                  <div className="animate-bounce rounded-full border-2 border-[#fff1ba] bg-[#15130d] px-2 py-1 text-xs font-black text-[#fff1ba] shadow-[0_3px_10px_rgba(0,0,0,0.8)]">
+                    You are here
+                  </div>
+                  <div className="mx-auto h-0 w-0 border-x-[6px] border-t-[8px] border-x-transparent border-t-[#fff1ba]" />
+                </div>
+              ) : null}
             </div>
           </div>
         )}
       </Panel>
-      <Panel as="aside" className="h-full content-start gap-4" data-testid="map_panel_regions">
+      <Panel
+        as="aside"
+        className="h-full min-h-0 min-w-0 max-w-full content-start gap-4 overflow-x-hidden overflow-y-auto"
+        data-testid="map_panel_regions"
+      >
         <div className="flex items-start justify-between gap-3" data-testid="map_div_region_header">
           <SectionHeading
             eyebrow={selectedTown ? "Town Map" : selectedRegion ? "Region Map" : "World Map"}
@@ -367,38 +437,51 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
               ? panelRegion.description
               : "Hover over a region to preview its highlighted world location, then select it to open the region map."}
         </MutedText>
-        {selectedTownLocation ? (
-          <div
-            className="grid gap-1 rounded-control border-2 border-primary bg-panel-muted px-3 py-2"
-            data-testid="map_div_selected_town_location"
-          >
-            <span className="text-[0.65rem] font-black uppercase tracking-wide text-text-muted">
-              Selected {selectedTownLocation.kind}
-            </span>
-            <span className="text-sm font-extrabold text-foreground">{selectedTownLocation.label}</span>
+        {selectedTown?.townMapId ? (
+          <TownInteractionPanel
+            characterLevel={characterLevel}
+            characterInventory={characterInventory}
+            characterPenya={characterPenya}
+            characterSex={characterSex}
+            itemsById={itemsById}
+            location={selectedTownLocation}
+            onBuyItem={onBuyShopItem}
+            onSellItem={onSellShopItem}
+            townMapId={selectedTown.townMapId}
+          />
+        ) : (
+          <div className="grid gap-2" data-testid="map_div_region_list">
+            {mapRegions.map((region) => (
+              <button
+                key={region.id}
+                data-testid={`map_button_region_list_${getTestIdSegment(region.id)}`}
+                className={cx(
+                  "min-h-10 rounded-control border-2 px-3 text-left text-sm font-extrabold transition-colors",
+                  panelRegion?.id === region.id
+                    ? "border-primary bg-panel-muted text-foreground"
+                    : "border-border bg-transparent text-text-muted hover:border-primary hover:text-foreground"
+                )}
+                onClick={() => selectRegion(region.id)}
+                onFocus={() => setActiveRegionId(region.id)}
+                onMouseEnter={() => setActiveRegionId(region.id)}
+                type="button"
+              >
+                {region.label}
+              </button>
+            ))}
           </div>
-        ) : null}
-        <div className="grid gap-2" data-testid="map_div_region_list">
-          {mapRegions.map((region) => (
-            <button
-              key={region.id}
-              data-testid={`map_button_region_list_${getTestIdSegment(region.id)}`}
-              className={cx(
-                "min-h-10 rounded-control border-2 px-3 text-left text-sm font-extrabold transition-colors",
-                panelRegion?.id === region.id
-                  ? "border-primary bg-panel-muted text-foreground"
-                  : "border-border bg-transparent text-text-muted hover:border-primary hover:text-foreground"
-              )}
-              onClick={() => selectRegion(region.id)}
-              onFocus={() => setActiveRegionId(region.id)}
-              onMouseEnter={() => setActiveRegionId(region.id)}
-              type="button"
-            >
-              {region.label}
-            </button>
-          ))}
-        </div>
+        )}
       </Panel>
+      {pendingTravelDestination ? (
+        <MapTravelDialog
+          destination={pendingTravelDestination}
+          equippedFlyingItemId={equippedFlyingItemId}
+          inventory={characterInventory}
+          itemsById={itemsById}
+          onCancel={() => setPendingTravelRegionId(null)}
+          onTravel={handleTravel}
+        />
+      ) : null}
     </section>
   );
 }

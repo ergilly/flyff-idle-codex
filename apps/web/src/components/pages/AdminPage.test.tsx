@@ -82,9 +82,11 @@ describe("AdminPage", () => {
     render(
       <AdminPage
         addingInventoryItem={false}
+        addingPenya={false}
         character={character}
         error="Admin access is required"
         onAddInventoryItem={jest.fn()}
+        onAddPenya={jest.fn()}
         onRefundSkills={onRefundSkills}
         onRefundStats={onRefundStats}
         refundingAction={null}
@@ -110,9 +112,11 @@ describe("AdminPage", () => {
     render(
       <AdminPage
         addingInventoryItem={false}
+        addingPenya={false}
         character={character}
         error=""
         onAddInventoryItem={onAddInventoryItem}
+        onAddPenya={jest.fn()}
         onRefundSkills={jest.fn()}
         onRefundStats={jest.fn()}
         refundingAction={null}
@@ -147,9 +151,11 @@ describe("AdminPage", () => {
     render(
       <AdminPage
         addingInventoryItem={false}
+        addingPenya={false}
         character={character}
         error=""
         onAddInventoryItem={jest.fn()}
+        onAddPenya={jest.fn()}
         onRefundSkills={jest.fn()}
         onRefundStats={jest.fn()}
         refundingAction={null}
@@ -164,5 +170,30 @@ describe("AdminPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Search items" }));
 
     expect(await screen.findByText("No matching items found.")).toBeInTheDocument();
+  });
+
+  it("adds Penya to the current character", () => {
+    const onAddPenya = jest.fn();
+
+    render(
+      <AdminPage
+        addingInventoryItem={false}
+        addingPenya={false}
+        character={character}
+        error=""
+        onAddInventoryItem={jest.fn()}
+        onAddPenya={onAddPenya}
+        onRefundSkills={jest.fn()}
+        onRefundStats={jest.fn()}
+        refundingAction={null}
+      />
+    );
+
+    expect(screen.getByText("Current Penya")).toBeInTheDocument();
+    expect(screen.getByText("150")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Amount to add"), { target: { value: "2500" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add Penya" }));
+
+    expect(onAddPenya).toHaveBeenCalledWith(2_500);
   });
 });

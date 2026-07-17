@@ -15,6 +15,33 @@ const addInventoryItemSchema = z.object({
   itemId: z.string().regex(/^\d+$/),
   quantity: z.number().int().min(1).max(9999)
 });
+const addPenyaSchema = z.object({
+  amount: z.number().int().min(1).max(2_147_483_647)
+});
+
+adminRouter.post("/characters/:characterId/penya", requireAdmin, async (request, response) => {
+  const characterIdResult = z.string().safeParse(request.params.characterId);
+  const amountResult = addPenyaSchema.safeParse(request.body);
+
+  if (!characterIdResult.success || !amountResult.success) {
+    response.status(400).json({ error: "A positive Penya amount is required" });
+    return;
+  }
+
+  const auth = response.locals.auth as AuthTokenPayload;
+  const character = characterRepository.addPenyaForPlayer(
+    characterIdResult.data,
+    auth.sub,
+    amountResult.data.amount
+  );
+
+  if (!character) {
+    response.status(404).json({ error: "Character not found" });
+    return;
+  }
+
+  response.json({ character: toPublicCharacter(character) });
+});
 
 adminRouter.post("/characters/:characterId/refund-stats", requireAdmin, async (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);

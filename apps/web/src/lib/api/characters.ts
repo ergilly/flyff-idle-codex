@@ -66,6 +66,31 @@ export async function deleteCharacter(token: string, characterId: string, name: 
   }
 }
 
+export async function travelCharacter(
+  token: string,
+  characterId: string,
+  destination: import("@/lib/mapMonsterMarkers").MapRegionId,
+  method: "flying" | "blinkwing",
+  equipmentSet = 0
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/travel`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ destination, method, equipmentSet })
+  });
+
+  const data = (await response.json().catch(() => null)) as { character?: Character; error?: string } | null;
+
+  if (!response.ok || !data?.character) {
+    throw new Error(data?.error ?? "Unable to travel");
+  }
+
+  return data.character;
+}
+
 export async function updateCharacterProgression(
   token: string,
   characterId: string,
@@ -94,6 +119,51 @@ export async function updateCharacterProgression(
   return data.character;
 }
 
+export async function purchaseFlarineGeneralStoreItem(
+  token: string,
+  characterId: string,
+  itemId: string,
+  quantity: number
+): Promise<Character> {
+  const response = await fetch(
+    `${apiBaseUrl}/api/characters/${characterId}/shops/flarine-general-store/purchases`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ itemId, quantity })
+    }
+  );
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to purchase item");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
+export async function sellCharacterInventoryItem(
+  token: string,
+  characterId: string,
+  slotIndex: number,
+  quantity: number
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/shops/sales`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ slotIndex, quantity })
+  });
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to sell item");
+  }
+  return ((await response.json()) as { character: Character }).character;
+}
+
 async function refundCharacterPoints(
   token: string,
   characterId: string,
@@ -120,6 +190,30 @@ export function refundCharacterStats(token: string, characterId: string): Promis
 
 export function refundCharacterSkills(token: string, characterId: string): Promise<Character> {
   return refundCharacterPoints(token, characterId, "skills");
+}
+
+export async function addCharacterPenya(
+  token: string,
+  characterId: string,
+  amount: number
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/admin/characters/${characterId}/penya`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ amount })
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(
+      response.status === 403 ? "Admin access is required" : (data?.error ?? "Unable to add Penya")
+    );
+  }
+
+  return ((await response.json()) as { character: Character }).character;
 }
 
 export async function addCharacterInventoryItem(

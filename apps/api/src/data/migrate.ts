@@ -19,6 +19,7 @@ db.exec(`
     gender TEXT NOT NULL DEFAULT 'male',
     job TEXT NOT NULL,
     progression_rank TEXT NOT NULL DEFAULT 'normal',
+    location TEXT NOT NULL DEFAULT 'Flaris',
     level INTEGER NOT NULL DEFAULT 1,
     exp INTEGER NOT NULL DEFAULT 0,
     penya INTEGER NOT NULL DEFAULT 0,
@@ -102,6 +103,7 @@ addUserColumn("is_admin", "INTEGER NOT NULL DEFAULT 0");
 addCharacterColumn("str", "INTEGER NOT NULL DEFAULT 15");
 addCharacterColumn("gender", "TEXT NOT NULL DEFAULT 'male'");
 addCharacterColumn("progression_rank", "TEXT NOT NULL DEFAULT 'normal'");
+addCharacterColumn("location", "TEXT NOT NULL DEFAULT 'Flaris'");
 addCharacterColumn("penya", "INTEGER NOT NULL DEFAULT 0");
 addCharacterColumn("inventory_size", "INTEGER NOT NULL DEFAULT 50");
 addCharacterColumn("sta", "INTEGER NOT NULL DEFAULT 15");

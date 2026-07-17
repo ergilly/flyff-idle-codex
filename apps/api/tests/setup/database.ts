@@ -22,6 +22,7 @@ function ensureDatabaseSchema() {
       gender TEXT NOT NULL DEFAULT 'male',
       job TEXT NOT NULL,
       progression_rank TEXT NOT NULL DEFAULT 'normal',
+      location TEXT NOT NULL DEFAULT 'Flaris',
       level INTEGER NOT NULL DEFAULT 1,
       exp INTEGER NOT NULL DEFAULT 0,
       penya INTEGER NOT NULL DEFAULT 0,
@@ -98,6 +99,10 @@ function ensureCharacterProgressionColumns() {
 
   if (!characterColumns.has("progression_rank")) {
     db.exec("ALTER TABLE characters ADD COLUMN progression_rank TEXT NOT NULL DEFAULT 'normal'");
+  }
+
+  if (!characterColumns.has("location")) {
+    db.exec("ALTER TABLE characters ADD COLUMN location TEXT NOT NULL DEFAULT 'Flaris'");
   }
 
   if (!characterColumns.has("skill_levels")) {

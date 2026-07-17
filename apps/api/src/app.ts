@@ -9,6 +9,8 @@ import { characterRouter } from "./characters/character.routes.js";
 import { gameDataRouter } from "./gameData/gameData.routes.js";
 import { imageRouter } from "./images/image.routes.js";
 import { itemRouter } from "./items/item.routes.js";
+import { shopRouter } from "./shops/shop.routes.js";
+import { travelRouter } from "./travel/travel.routes.js";
 
 const openApiPath = path.resolve(process.cwd(), "../../docs/api/openapi.yaml");
 const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
@@ -48,9 +50,11 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/admin", adminRouter);
   app.use("/api/characters", characterRouter);
+  app.use("/api/characters", travelRouter);
   app.use("/api/data", gameDataRouter);
   app.use("/api/images", imageRouter);
   app.use("/api/items", itemRouter);
+  app.use("/api/shops", shopRouter);
   app.get("/swagger", (_request, response) => {
     response.type("html").send(swaggerHtml);
   });
