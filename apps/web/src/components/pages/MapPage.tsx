@@ -8,7 +8,7 @@ import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { MapZoomControls } from "@/components/molecules/map/MapZoomControls";
 import { MonsterMarkerLayer } from "@/components/organisms/map/MonsterMarkerLayer";
-import { fetchMapMonsterFamiliesByRegion, type MapMonsterFamily } from "@/lib/api";
+import { fetchMapMonsterFamilyIndex, type MapMonsterFamily } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import {
   createMapMonsterMarkers,
@@ -26,6 +26,7 @@ const mapZoomStep = 0.25;
 const zeroPan = { x: 0, y: 0 };
 const emptyMonsterMarkers: MapMonsterMarker[] = [];
 const emptyMonsterFamilies: MapMonsterFamily[] = [];
+const emptyMonsterFamilyIndex: Record<string, MapMonsterFamily[]> = {};
 
 type MapPageProps = {
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
@@ -37,8 +38,7 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   const [mapZoom, setMapZoom] = useState(minMapZoom);
   const [mapPan, setMapPan] = useState(zeroPan);
   const [isPanning, setIsPanning] = useState(false);
-  const [monsterFamilies, setMonsterFamilies] = useState<MapMonsterFamily[]>(emptyMonsterFamilies);
-  const [isMonsterFamilyLoading, setIsMonsterFamilyLoading] = useState(false);
+  const [monsterFamilyIndex, setMonsterFamilyIndex] = useState(emptyMonsterFamilyIndex);
   const mapViewportRef = useRef<HTMLDivElement | null>(null);
   const panStartRef = useRef({ panX: 0, panY: 0, x: 0, y: 0 });
   const selectedRegion = mapRegions.find((region) => region.id === selectedRegionId) ?? null;
@@ -49,12 +49,14 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
     ? mapLocationMarkers[selectedRegion.id]
     : emptyMonsterMarkers;
   const selectedRegionMonsterMarkers = selectedRegion
-    ? createMapMonsterMarkers(monsterFamilies)
+    ? createMapMonsterMarkers(monsterFamilyIndex[selectedRegion.id] ?? emptyMonsterFamilies)
     : emptyMonsterMarkers;
   const selectedRegionMarkers = selectedRegion
     ? [...selectedRegionLocationMarkers, ...selectedRegionMonsterMarkers]
     : emptyMonsterMarkers;
-  const monsterFamiliesByMarkerId = getMonsterFamiliesByMarkerId(monsterFamilies);
+  const monsterFamiliesByMarkerId = getMonsterFamiliesByMarkerId(
+    selectedRegion ? (monsterFamilyIndex[selectedRegion.id] ?? emptyMonsterFamilies) : emptyMonsterFamilies
+  );
 
   useEffect(() => {
     setMapZoom(minMapZoom);
@@ -64,33 +66,22 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
   useEffect(() => {
     let isCurrent = true;
 
-    if (!selectedRegion) {
-      setMonsterFamilies(emptyMonsterFamilies);
-      setIsMonsterFamilyLoading(false);
-      return;
-    }
-
-    setMonsterFamilies(emptyMonsterFamilies);
-    setIsMonsterFamilyLoading(true);
-
-    fetchMapMonsterFamiliesByRegion(selectedRegion.id)
-      .then((families) => {
+    fetchMapMonsterFamilyIndex()
+      .then((familiesByRegion) => {
         if (isCurrent) {
-          setMonsterFamilies(families);
-          setIsMonsterFamilyLoading(false);
+          setMonsterFamilyIndex(familiesByRegion);
         }
       })
       .catch(() => {
         if (isCurrent) {
-          setMonsterFamilies(emptyMonsterFamilies);
-          setIsMonsterFamilyLoading(false);
+          setMonsterFamilyIndex(emptyMonsterFamilyIndex);
         }
       });
 
     return () => {
       isCurrent = false;
     };
-  }, [selectedRegion]);
+  }, []);
 
   function handleZoomIn() {
     zoomFromViewportCenter(mapZoom + mapZoomStep);
@@ -251,14 +242,6 @@ export function MapPage({ onSelectMonster }: MapPageProps) {
                 monsterFamiliesByMarkerId={monsterFamiliesByMarkerId}
                 onSelectMonster={onSelectMonster}
               />
-              {isMonsterFamilyLoading ? (
-                <div
-                  className="pointer-events-none absolute inset-0 grid place-items-center bg-black/18 text-xs font-black uppercase tracking-wide text-[#fff1ba]"
-                  data-testid="map_div_monsters_loading"
-                >
-                  Loading monster data...
-                </div>
-              ) : null}
             </div>
           </div>
         ) : (

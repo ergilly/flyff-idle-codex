@@ -6,6 +6,7 @@ import {
   fetchCharacters,
   fetchDataSet,
   fetchItems,
+  fetchMapMonsterFamilyIndex,
   fetchMapMonsterFamiliesByRegion,
   fetchMonsterFamiliesByNames,
   fetchMonstersByNames,
@@ -586,6 +587,21 @@ describe("api client", () => {
         ]
       }
     ]);
+
+    await expect(fetchMapMonsterFamilyIndex()).resolves.toMatchObject({
+      flaris: [{ family: "aibatt" }],
+      saint: [{ family: "bang" }]
+    });
+    await expect(fetchMapMonsterFamilyIndex()).resolves.toMatchObject({
+      flaris: [{ family: "aibatt" }],
+      saint: [{ family: "bang" }]
+    });
+
+    const mapRequests = (global.fetch as jest.Mock).mock.calls.filter(([url]: [string]) =>
+      new URL(url).pathname.endsWith("/api/data/mapMonsters")
+    );
+    expect(mapRequests).toHaveLength(2);
+    expect(new URL(mapRequests[1][0]).searchParams.has("location.region")).toBe(false);
   });
 
   it("skips empty item icon requests and builds Flyff icon URLs", async () => {
