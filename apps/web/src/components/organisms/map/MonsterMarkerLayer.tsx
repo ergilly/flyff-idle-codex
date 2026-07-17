@@ -16,12 +16,14 @@ type MonsterMarkerLayerProps = {
   markers: MapMonsterMarker[];
   monsterFamiliesByMarkerId: Record<string, MapMonsterFamily>;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
+  onSelectTown?: (town: MapMonsterMarker) => void;
 };
 
 export function MonsterMarkerLayer({
   markers,
   monsterFamiliesByMarkerId,
-  onSelectMonster
+  onSelectMonster,
+  onSelectTown
 }: MonsterMarkerLayerProps) {
   if (markers.length === 0) {
     return null;
@@ -35,6 +37,7 @@ export function MonsterMarkerLayer({
           marker={marker}
           monsterFamily={monsterFamiliesByMarkerId[marker.id]}
           onSelectMonster={onSelectMonster}
+          onSelectTown={onSelectTown}
         />
       ))}
     </div>
@@ -44,11 +47,13 @@ export function MonsterMarkerLayer({
 function MonsterMarker({
   marker,
   monsterFamily,
-  onSelectMonster
+  onSelectMonster,
+  onSelectTown
 }: {
   marker: MapMonsterMarker;
   monsterFamily?: MapMonsterFamily;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
+  onSelectTown?: (town: MapMonsterMarker) => void;
 }) {
   const markerLabel = monsterFamily?.name ?? marker.label;
   const markerWidthPercent = marker.markerType === "monster" ? 4.35 : 6 * marker.scale;
@@ -77,6 +82,8 @@ function MonsterMarker({
       onClick={() => {
         if (monsterFamily) {
           onSelectMonster?.(monsterFamily);
+        } else if (marker.markerType === "town" && marker.townMapSrc) {
+          onSelectTown?.(marker);
         }
       }}
       style={markerStyle}

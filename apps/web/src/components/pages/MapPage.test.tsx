@@ -234,6 +234,68 @@ describe("MapPage", () => {
     await waitFor(() => expect(screen.queryByTestId("map_div_monsters_loading")).not.toBeInTheDocument());
   });
 
+  it.each([
+    ["Flaris", "Flarine Town", "/images/maps/towns/Town_Flarine_Clean.png", "Red Chip Merchant, shop"],
+    ["Saint Morning", "Sain City", "/images/maps/towns/Town_Saincity_Clean.png", "Station, npc"],
+    ["Darkon 1 and 2", "Darken City", "/images/maps/towns/Town_Darken_Clean.png", "Armory, shop"],
+    ["Kaillun", "Eillun", "/images/maps/towns/Town_Elliun_Clean.png", "Guild House Manager, npc"]
+  ])("opens the %s town map from its marker", async (region, town, townMapSrc, locationButtonName) => {
+    render(<MapPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: `Select ${region}` }));
+    fireEvent.click(screen.getByRole("button", { name: town }));
+
+    expect(screen.getByRole("img", { name: `${town} map` })).toHaveAttribute("src", townMapSrc);
+    expect(screen.getByRole("heading", { name: town })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back to region" })).toBeInTheDocument();
+    expect(screen.queryByTestId("map_div_monster_marker_layer")).not.toBeInTheDocument();
+    expect(screen.getByTestId("map_div_town_location_layer")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: locationButtonName })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to region" }));
+
+    expect(screen.getByRole("img", { name: `${region} map` })).toBeInTheDocument();
+  });
+
+  it("turns town shops and NPCs into selectable map buttons", () => {
+    render(<MapPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
+    fireEvent.click(screen.getByRole("button", { name: "Flarine Town" }));
+
+    const generalStore = screen.getByRole("button", { name: "General Store, shop" });
+    const petTamer = screen.getByRole("button", { name: "Pet Tamer, npc" });
+
+    expect(generalStore).toHaveAttribute("aria-pressed", "false");
+    expect(petTamer).toBeInTheDocument();
+    expect(generalStore).toHaveTextContent("General Store - TBC");
+    expect(generalStore.querySelector("img")).toHaveAttribute(
+      "src",
+      "/images/maps/town-icons/general-store.png"
+    );
+
+    fireEvent.click(generalStore);
+
+    expect(generalStore).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("map_div_selected_town_location")).toHaveTextContent(
+      "Selected shopGeneral Store"
+    );
+  });
+
+  it("keeps town shop and NPC icons the same size while zooming", () => {
+    render(<MapPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
+    fireEvent.click(screen.getByRole("button", { name: "Flarine Town" }));
+
+    const generalStore = screen.getByRole("button", { name: "General Store, shop" });
+    expect(generalStore).toHaveStyle({ width: "3.25%" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+
+    expect(generalStore).toHaveStyle({ width: "2.6%" });
+  });
+
   it("renders explicit family names for Darkon 3 monsters", async () => {
     render(<MapPage />);
 
