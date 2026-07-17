@@ -10,11 +10,23 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
+APP_DIR="$(realpath "${APP_DIR}")"
+
+if [[ "${APP_DIR}" == "/" || ! -d "${APP_DIR}/.git" ]]; then
+  echo "Refusing to deploy from invalid checkout: ${APP_DIR}" >&2
+  exit 1
+fi
+
 # Git and npm run as the service account. Repair ownership left by any prior
 # root-level maintenance before asking that account to update the checkout.
 chown -R flyff-idle:flyff-idle "${APP_DIR}"
 
-runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" pull --ff-only
+# The production checkout is disposable; persistent databases and secrets live
+# outside APP_DIR. Resetting avoids partial pulls or server-side edits blocking
+# a release and guarantees that the deployed tree exactly matches main.
+runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" fetch origin main
+runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" reset --hard origin/main
+runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" clean -fd
 
 if [[ ! -f "${APP_DIR}/apps/api/data/game-data.db" ]]; then
   echo "${APP_DIR}/apps/api/data/game-data.db is missing after updating. Build and commit it before deploying." >&2

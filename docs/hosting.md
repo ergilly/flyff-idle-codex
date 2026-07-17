@@ -62,9 +62,10 @@ Commit and push changes, then connect to the VM and run:
 sudo flyff-idle-deploy
 ```
 
-This performs a fast-forward Git pull, installs locked dependencies, rebuilds the API and static frontend, runs
-non-destructive player database migrations, validates and installs the latest Caddy configuration, and restarts
-the API. It also repairs checkout ownership before updating and refreshes the installed deployment helpers. It
+This resets the disposable application checkout to the latest `origin/main`, installs locked dependencies,
+rebuilds the API and static frontend, runs non-destructive player database migrations, validates and installs the
+latest Caddy configuration, and restarts the API. It also repairs checkout ownership before updating and refreshes
+the installed deployment helpers. Player data and production secrets live outside the checkout, and deployment
 deliberately does not seed the player database.
 
 ## Automatic deployment from GitHub
