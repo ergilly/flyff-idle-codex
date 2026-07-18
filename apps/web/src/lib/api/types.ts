@@ -83,6 +83,17 @@ export type CharacterInventoryItem = {
   quantity: number;
 };
 
+export type Bank = {
+  size: number;
+  penya: number;
+  items: CharacterInventoryItem[];
+};
+
+export type BankUpdate = {
+  bank: Bank;
+  character: Character;
+};
+
 export type InventorySortOption = "name" | "level" | "job" | "category";
 
 export type ItemMetadata = {

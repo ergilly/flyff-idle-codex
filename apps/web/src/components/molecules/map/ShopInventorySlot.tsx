@@ -7,6 +7,7 @@ import { cx } from "@/lib/classNames";
 import type { ShopInventoryItem } from "@/lib/townShops";
 
 type ShopInventorySlotProps = {
+  ariaLabel?: string;
   isSelected: boolean;
   onHideDetails: () => void;
   onInspect: (event: MouseEvent<HTMLButtonElement> | FocusEvent<HTMLButtonElement>) => void;
@@ -16,6 +17,7 @@ type ShopInventorySlotProps = {
 };
 
 export function ShopInventorySlot({
+  ariaLabel,
   isSelected,
   onHideDetails,
   onInspect,
@@ -25,7 +27,7 @@ export function ShopInventorySlot({
 }: ShopInventorySlotProps) {
   return (
     <button
-      aria-label={`${shopItem.name}, ${shopItem.price.toLocaleString()} Penya`}
+      aria-label={ariaLabel ?? `${shopItem.name}, ${shopItem.price.toLocaleString()} Penya`}
       aria-pressed={isSelected}
       className={cx(
         "relative grid h-[68px] w-[68px] place-items-center rounded-[5px] border-2 border-[rgba(118,107,73,0.72)] bg-[linear-gradient(180deg,rgba(12,12,10,0.94),rgba(0,0,0,0.98))] p-1 shadow-[inset_0_0_0_2px_rgba(0,0,0,0.9),inset_0_0_12px_rgba(214,199,119,0.1),0_0_8px_rgba(0,0,0,0.4)] hover:outline hover:outline-1 hover:-outline-offset-4 hover:outline-[rgba(255,222,91,0.74)] hover:shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",

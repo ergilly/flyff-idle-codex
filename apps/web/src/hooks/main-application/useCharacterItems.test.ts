@@ -57,6 +57,42 @@ describe("useCharacterItems", () => {
     expect(mockedFetchItems).toHaveBeenCalledWith("token", ["100", "200", "300", "200"]);
   });
 
+  it("loads metadata for consumables equipped in the battle recovery slots", async () => {
+    localStorage.setItem("flyffIdleToken", "token");
+    const food = buildItem({ id: "400", name: "Equipped Food" });
+    mockedFetchItems.mockResolvedValue([food]);
+    const selectedCharacter = buildCharacter({
+      consumableLoadout: {
+        hp: { itemId: food.id, quantity: 3 },
+        mp: null,
+        fp: null
+      }
+    });
+    const { result } = renderHook(() => useCharacterItems(options(selectedCharacter)));
+
+    await waitFor(() => expect(result.current.itemsById[food.id]).toEqual(food));
+    expect(mockedFetchItems).toHaveBeenCalledWith("token", [food.id]);
+  });
+
+  it("retains item metadata when an item leaves inventory on the same character", async () => {
+    localStorage.setItem("flyffIdleToken", "token");
+    const storedItem = buildItem({ id: "500", name: "Stored Item" });
+    mockedFetchItems.mockResolvedValue([storedItem]);
+    const characterWithItem = buildCharacter({
+      inventory: { size: 50, items: [{ slotIndex: 0, itemId: storedItem.id, quantity: 1 }] }
+    });
+    const hookOptions = options(characterWithItem);
+    const { result, rerender } = renderHook(
+      ({ character }) => useCharacterItems({ ...hookOptions, selectedCharacter: character }),
+      { initialProps: { character: characterWithItem } }
+    );
+
+    await waitFor(() => expect(result.current.itemsById[storedItem.id]).toEqual(storedItem));
+    rerender({ character: buildCharacter({ id: characterWithItem.id }) });
+
+    expect(result.current.itemsById[storedItem.id]).toEqual(storedItem);
+  });
+
   it("ignores stale metadata after the selected character changes", async () => {
     localStorage.setItem("flyffIdleToken", "token");
     let resolveFirstRequest!: (items: ReturnType<typeof buildItem>[]) => void;

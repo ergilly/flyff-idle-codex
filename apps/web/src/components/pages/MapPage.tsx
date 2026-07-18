@@ -9,7 +9,7 @@ import { WorldMapView } from "@/components/organisms/map/WorldMapView";
 import { useMapNavigation } from "@/hooks/map/useMapNavigation";
 import { useMapViewport } from "@/hooks/map/useMapViewport";
 import type { MapMonsterFamily } from "@/lib/api";
-import type { CharacterInventory, ItemMetadata } from "@/lib/api/types";
+import type { Bank, CharacterInventory, ItemMetadata } from "@/lib/api/types";
 import type { MapRegionId } from "@/lib/mapMonsterMarkers";
 import type { TravelMethod } from "@/lib/mapTravel";
 import type { TownMapId } from "@/lib/townMapLocations";
@@ -29,8 +29,12 @@ type MapPageProps = {
     itemId: string,
     quantity: number
   ) => Promise<void>;
+  onLoadBank?: () => Promise<Bank>;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
   onSellShopItem?: (slotIndex: number, quantity: number) => Promise<void>;
+  onTransferAllBankItems?: (direction: "deposit" | "withdraw") => Promise<Bank>;
+  onTransferBankItem?: (direction: "deposit" | "withdraw", slotIndex: number) => Promise<Bank>;
+  onTransferBankPenya?: (direction: "deposit" | "withdraw", amount: number | "all") => Promise<Bank>;
   onTravel?: (destination: MapRegionId, method: TravelMethod) => Promise<void>;
 };
 
@@ -44,8 +48,12 @@ export function MapPage({
   equippedFlyingItemId,
   itemsById,
   onBuyShopItem,
+  onLoadBank,
   onSelectMonster,
   onSellShopItem,
+  onTransferAllBankItems,
+  onTransferBankItem,
+  onTransferBankPenya,
   onTravel
 }: MapPageProps) {
   const navigation = useMapNavigation({ characterLocation, onTravel });
@@ -91,7 +99,11 @@ export function MapPage({
         itemsById={itemsById}
         navigation={navigation}
         onBuyShopItem={onBuyShopItem}
+        onLoadBank={onLoadBank}
         onSellShopItem={onSellShopItem}
+        onTransferAllBankItems={onTransferAllBankItems}
+        onTransferBankItem={onTransferBankItem}
+        onTransferBankPenya={onTransferBankPenya}
       />
       {navigation.pendingTravelDestination ? (
         <MapTravelDialog

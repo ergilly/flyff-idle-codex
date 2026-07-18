@@ -1,9 +1,10 @@
 "use client";
 
 import { GeneralStorePanel } from "@/components/organisms/map/GeneralStorePanel";
+import { BankPanel } from "@/components/organisms/map/BankPanel";
 import { useEffect, useState } from "react";
 import { fetchTownShop } from "@/lib/api";
-import { type CharacterInventory, type ItemMetadata } from "@/lib/api/types";
+import { type Bank, type CharacterInventory, type ItemMetadata } from "@/lib/api/types";
 import { type TownShop } from "@/lib/townShops";
 import { type TownMapId, type TownMapLocation } from "@/lib/townMapLocations";
 
@@ -16,7 +17,11 @@ type TownInteractionPanelProps = {
   itemsById?: Record<string, ItemMetadata>;
   location: TownMapLocation | null;
   onBuyItem?: (townMapId: TownMapId, locationId: string, itemId: string, quantity: number) => Promise<void>;
+  onLoadBank?: () => Promise<Bank>;
   onSellItem?: (slotIndex: number, quantity: number) => Promise<void>;
+  onTransferAllBankItems?: (direction: "deposit" | "withdraw") => Promise<Bank>;
+  onTransferBankItem?: (direction: "deposit" | "withdraw", slotIndex: number) => Promise<Bank>;
+  onTransferBankPenya?: (direction: "deposit" | "withdraw", amount: number | "all") => Promise<Bank>;
   townMapId: TownMapId;
 };
 
@@ -29,7 +34,11 @@ export function TownInteractionPanel({
   itemsById,
   location,
   onBuyItem,
+  onLoadBank,
   onSellItem,
+  onTransferAllBankItems,
+  onTransferBankItem,
+  onTransferBankPenya,
   townMapId
 }: TownInteractionPanelProps) {
   const [shop, setShop] = useState<TownShop | null>(null);
@@ -93,6 +102,30 @@ export function TownInteractionPanel({
         shopName={location.label}
         shopMerchants={shop.merchants}
         townName={getTownName(townMapId)}
+      />
+    );
+  }
+
+  if (
+    location.id === "public-office" &&
+    characterInventory &&
+    characterPenya !== undefined &&
+    itemsById &&
+    onLoadBank &&
+    onTransferAllBankItems &&
+    onTransferBankItem &&
+    onTransferBankPenya
+  ) {
+    return (
+      <BankPanel
+        characterInventory={characterInventory}
+        characterPenya={characterPenya}
+        itemsById={itemsById}
+        key={`${townMapId}-public-office`}
+        onLoad={onLoadBank}
+        onTransferAllItems={onTransferAllBankItems}
+        onTransferItem={onTransferBankItem}
+        onTransferPenya={onTransferBankPenya}
       />
     );
   }

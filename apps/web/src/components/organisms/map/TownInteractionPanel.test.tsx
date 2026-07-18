@@ -61,4 +61,23 @@ describe("TownInteractionPanel", () => {
     );
     expect(screen.getByText("This npc is not available yet.")).toBeInTheDocument();
   });
+
+  it("opens the shared bank at a public office", async () => {
+    render(
+      <TownInteractionPanel
+        characterInventory={{ size: 1, items: [] }}
+        characterPenya={0}
+        itemsById={{}}
+        location={{ ...shopLocation, id: "public-office", kind: "npc", label: "Public Office" }}
+        onLoadBank={jest.fn().mockResolvedValue({ size: 100, penya: 0, items: [] })}
+        onTransferAllBankItems={jest.fn()}
+        onTransferBankItem={jest.fn()}
+        onTransferBankPenya={jest.fn()}
+        townMapId="flarine-town"
+      />
+    );
+    expect(await screen.findByTestId("map_section_bank")).toBeInTheDocument();
+    expect(screen.getByText("Bank Inventory")).toBeInTheDocument();
+    expect(screen.queryByText(/slots/i)).not.toBeInTheDocument();
+  });
 });
