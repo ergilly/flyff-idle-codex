@@ -39,6 +39,10 @@ export function useCharacterItems({
   }, [selectedCharacter]);
 
   useEffect(() => {
+    setItemsById({});
+  }, [selectedCharacter?.id]);
+
+  useEffect(() => {
     if (!selectedCharacter) {
       setItemsById({});
       setSelectedEquipmentSlot(null);
@@ -49,6 +53,9 @@ export function useCharacterItems({
     const token = localStorage.getItem("flyffIdleToken");
     const itemIds = [
       ...getEquippedItemIds(selectedCharacter),
+      ...Object.values(selectedCharacter.consumableLoadout ?? {}).flatMap((item) =>
+        item ? [item.itemId] : []
+      ),
       ...selectedCharacter.inventory.items.map((item) => item.itemId),
       ...(selectedMonsterFamily?.variants?.flatMap(
         (variant) => variant.drops?.map((drop) => String(drop.item)) ?? []
@@ -56,8 +63,14 @@ export function useCharacterItems({
     ];
     let ignoreResult = false;
 
-    if (!token || itemIds.length === 0) {
+    if (!token) {
       setItemsById({});
+      setSelectedEquipmentSlot(null);
+      setSelectedInventorySlotIndex(null);
+      return;
+    }
+
+    if (itemIds.length === 0) {
       setSelectedEquipmentSlot(null);
       setSelectedInventorySlotIndex(null);
       return;
@@ -66,12 +79,15 @@ export function useCharacterItems({
     fetchItems(token, itemIds)
       .then((items) => {
         if (!ignoreResult) {
-          setItemsById(Object.fromEntries(items.map((item) => [item.id, item])));
+          setItemsById((currentItems) => ({
+            ...currentItems,
+            ...Object.fromEntries(items.map((item) => [item.id, item]))
+          }));
         }
       })
       .catch(() => {
         if (!ignoreResult) {
-          setItemsById({});
+          // Retain metadata already loaded for this character when a refresh fails.
         }
       });
 

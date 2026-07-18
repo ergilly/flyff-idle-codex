@@ -4,7 +4,15 @@ import { createPortal } from "react-dom";
 import { ItemDetailsPanel } from "@/components/organisms/main-application/ItemDetailsPanel";
 import type { ShopInventoryItem } from "@/lib/townShops";
 
-export function ShopItemDetailsOverlay({ item, rect }: { item: ShopInventoryItem; rect: DOMRect }) {
+export function ShopItemDetailsOverlay({
+  item,
+  rect,
+  showPrice = true
+}: {
+  item: ShopInventoryItem;
+  rect: DOMRect;
+  showPrice?: boolean;
+}) {
   const gap = 12;
   const viewportPadding = 8;
   const width = Math.min(340, window.innerWidth - viewportPadding * 2);
@@ -22,10 +30,12 @@ export function ShopItemDetailsOverlay({ item, rect }: { item: ShopInventoryItem
         className="!min-h-0 max-h-[calc(100vh-16px)] !max-w-none !bg-[#0b0b09] overflow-y-auto"
         item={item}
       >
-        <div className="flex justify-between gap-3 border-t border-border pt-2 text-sm">
-          <span className="font-extrabold text-text-muted">Shop price</span>
-          <strong className="text-[#f4cf67]">{item.price.toLocaleString()} Penya</strong>
-        </div>
+        {showPrice ? (
+          <div className="flex justify-between gap-3 border-t border-border pt-2 text-sm">
+            <span className="font-extrabold text-text-muted">Shop price</span>
+            <strong className="text-[#f4cf67]">{item.price.toLocaleString()} Penya</strong>
+          </div>
+        ) : null}
       </ItemDetailsPanel>
     </div>,
     document.body

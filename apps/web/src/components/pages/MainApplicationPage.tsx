@@ -6,6 +6,7 @@ import { useCharacterProgression } from "@/hooks/main-application/useCharacterPr
 import { useCharacterItems } from "@/hooks/main-application/useCharacterItems";
 import { useBattleSession } from "@/hooks/main-application/useBattleSession";
 import { useAdminActions } from "@/hooks/main-application/useAdminActions";
+import { useBankActions } from "@/hooks/main-application/useBankActions";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
@@ -193,6 +194,12 @@ export function MainApplicationPage() {
     selectedCharacter,
     updateCharacter
   });
+  const { handleLoadBank, handleTransferAllBankItems, handleTransferBankItem, handleTransferBankPenya } =
+    useBankActions({
+      onAuthenticationRequired: () => router.replace("/"),
+      selectedCharacter,
+      updateCharacter
+    });
 
   const detailStats = useMemo(
     () => (selectedCharacter ? getDetailStats(selectedCharacter, itemsById, activeEquipmentSet) : []),
@@ -397,7 +404,11 @@ export function MainApplicationPage() {
             equippedFlyingItemId={getCharacterEquipmentSet(selectedCharacter, activeEquipmentSet).flying}
             itemsById={itemsById}
             onBuyShopItem={handleBuyShopItem}
+            onLoadBank={handleLoadBank}
             onSellShopItem={handleSellShopItem}
+            onTransferAllBankItems={handleTransferAllBankItems}
+            onTransferBankItem={handleTransferBankItem}
+            onTransferBankPenya={handleTransferBankPenya}
             onSelectMonster={handleSelectMapMonster}
             onTravel={handleTravel}
           />

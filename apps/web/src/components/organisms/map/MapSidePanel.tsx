@@ -4,7 +4,7 @@ import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { TownInteractionPanel } from "@/components/organisms/map/TownInteractionPanel";
 import type { useMapNavigation } from "@/hooks/map/useMapNavigation";
-import type { CharacterInventory, ItemMetadata } from "@/lib/api/types";
+import type { Bank, CharacterInventory, ItemMetadata } from "@/lib/api/types";
 import { cx } from "@/lib/classNames";
 import { mapRegions } from "@/lib/mapRegions";
 import { getTestIdSegment } from "@/lib/testIds";
@@ -24,7 +24,11 @@ type MapSidePanelProps = {
     itemId: string,
     quantity: number
   ) => Promise<void>;
+  onLoadBank?: () => Promise<Bank>;
   onSellShopItem?: (slotIndex: number, quantity: number) => Promise<void>;
+  onTransferAllBankItems?: (direction: "deposit" | "withdraw") => Promise<Bank>;
+  onTransferBankItem?: (direction: "deposit" | "withdraw", slotIndex: number) => Promise<Bank>;
+  onTransferBankPenya?: (direction: "deposit" | "withdraw", amount: number | "all") => Promise<Bank>;
 };
 
 export function MapSidePanel({ navigation, ...props }: MapSidePanelProps) {
@@ -73,7 +77,11 @@ export function MapSidePanel({ navigation, ...props }: MapSidePanelProps) {
           itemsById={props.itemsById}
           location={navigation.selectedTownLocation}
           onBuyItem={props.onBuyShopItem}
+          onLoadBank={props.onLoadBank}
           onSellItem={props.onSellShopItem}
+          onTransferAllBankItems={props.onTransferAllBankItems}
+          onTransferBankItem={props.onTransferBankItem}
+          onTransferBankPenya={props.onTransferBankPenya}
           townMapId={navigation.selectedTown.townMapId}
         />
       ) : (

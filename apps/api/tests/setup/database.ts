@@ -80,6 +80,29 @@ function ensureDatabaseSchema() {
 
     CREATE INDEX IF NOT EXISTS character_inventory_character_idx
       ON character_inventory_items (character_id);
+
+    CREATE TABLE IF NOT EXISTS bank_accounts (
+      player_id TEXT PRIMARY KEY NOT NULL,
+      penya INTEGER NOT NULL DEFAULT 0,
+      inventory_size INTEGER NOT NULL DEFAULT 100,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS bank_inventory_items (
+      id TEXT PRIMARY KEY NOT NULL,
+      player_id TEXT NOT NULL,
+      slot_index INTEGER NOT NULL,
+      item_id TEXT NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (player_id) REFERENCES bank_accounts(player_id) ON DELETE CASCADE
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS bank_inventory_player_slot_idx
+      ON bank_inventory_items (player_id, slot_index);
   `);
 }
 
@@ -121,6 +144,7 @@ function ensureCharacterProgressionColumns() {
 export async function resetTestDatabase() {
   ensureDatabaseSchema();
   ensureCharacterProgressionColumns();
+  db.prepare("DELETE FROM bank_accounts").run();
   db.prepare("DELETE FROM characters").run();
   db.prepare("DELETE FROM users").run();
 
