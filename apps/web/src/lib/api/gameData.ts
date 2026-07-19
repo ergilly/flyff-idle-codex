@@ -93,7 +93,7 @@ export async function fetchMonstersByNames(monsterNames: string[]): Promise<Reco
       const monsters = await fetchDataSet<MonsterMetadata>("monsters", {
         name,
         fields:
-          "id,name,experience,level,rank,area,element,hp,minAttack,maxAttack,defense,magicDefense,sta,str,dex,int,hitRate,parry,noLevelReduction,minDropGold,maxDropGold",
+          "id,name,experience,level,rank,area,element,hp,minAttack,maxAttack,attackSpeed,attackDelay,defense,magicDefense,sta,str,dex,int,hitRate,parry,noLevelReduction,minDropGold,maxDropGold",
         limit: 1
       });
 
@@ -203,7 +203,7 @@ async function hydrateMapMonsterFamilies(monsterFamilies: MapMonsterFamily[]) {
 }
 
 const monsterFamilyFields =
-  "id,name,event,experience,icon,level,rank,area,element,drops,hp,minAttack,maxAttack,defense,magicDefense,sta,str,dex,int,hitRate,parry,noLevelReduction,minDropGold,maxDropGold";
+  "id,name,event,experience,icon,level,rank,area,element,drops,hp,minAttack,maxAttack,attackSpeed,attackDelay,defense,magicDefense,sta,str,dex,int,hitRate,parry,noLevelReduction,minDropGold,maxDropGold";
 
 const monsterVariantOrder: MonsterVariantRank[] = ["small", "normal", "captain", "giant"];
 const monsterVariantRankSet = new Set<string>(monsterVariantOrder);
@@ -327,6 +327,8 @@ function toMonsterFamilyVariant(
   variantRank: MonsterVariantRank
 ): MonsterFamilyVariant {
   return {
+    attackDelay: monster.attackDelay,
+    attackSpeed: monster.attackSpeed,
     defense: monster.defense,
     drops: monster.drops,
     element: monster.element,

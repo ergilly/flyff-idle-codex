@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import {
+  consumeEquippedArrow,
   consumeEquippedConsumableItem,
   lootInventoryItems,
   updateCharacterProgression,
@@ -152,6 +153,33 @@ export function useBattleSession({
     }
   }
 
+  async function handleConsumeEquippedArrow(equipmentSet: number) {
+    if (!selectedCharacter) {
+      return null;
+    }
+
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token) {
+      onAuthenticationRequired();
+      return null;
+    }
+
+    try {
+      const updatedCharacter = await consumeEquippedArrow(token, selectedCharacter.id, equipmentSet);
+      updateCharacter(updatedCharacter);
+      return (
+        updatedCharacter.ammoQuantities?.[equipmentSet] ??
+        (equipmentSet === 0 ? (updatedCharacter.ammoQuantity ?? 0) : 0)
+      );
+    } catch (consumeError) {
+      setItemActionError(
+        consumeError instanceof Error ? consumeError.message : "Unable to consume equipped arrow"
+      );
+      return null;
+    }
+  }
+
   function handleCharacterResourcesChange(resources: CharacterResourceState) {
     if (!selectedCharacter) {
       return;
@@ -204,6 +232,7 @@ export function useBattleSession({
     handleBattleStateChange,
     handleCharacterResourcesChange,
     handleConsumeInventoryItem,
+    handleConsumeEquippedArrow,
     handleLootInventoryItems,
     handleUpdateCharacterProgression
   };

@@ -25,6 +25,8 @@ export type Character = {
   consumableLoadout: CharacterConsumableLoadout;
   equipment: CharacterEquipment;
   equipmentSets: CharacterEquipment[];
+  ammoQuantity: number;
+  ammoQuantities: number[];
   inventory: CharacterInventory;
 };
 

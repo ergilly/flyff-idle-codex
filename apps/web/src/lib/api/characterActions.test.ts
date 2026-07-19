@@ -1,5 +1,6 @@
 import {
   consumeEquippedConsumableItem,
+  consumeEquippedArrow,
   consumeInventoryItem,
   equipConsumableItem,
   lootInventoryItems,
@@ -51,6 +52,16 @@ describe("character API action contracts", () => {
     expect(global.fetch).toHaveBeenLastCalledWith(
       "http://localhost:4000/api/characters/character-1/consumables/mp/consume",
       expect.objectContaining({ method: "POST" })
+    );
+  });
+
+  it("consumes ammo from the active equipment set", async () => {
+    respond({});
+
+    await consumeEquippedArrow("token", "character-1", 2);
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "http://localhost:4000/api/characters/character-1/equipment/ammo/consume",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ equipmentSet: 2 }) })
     );
   });
 

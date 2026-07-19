@@ -39,6 +39,8 @@ export type CharacterRow = {
   mask: string | null;
   cloak: string | null;
   ammo: string | null;
+  ammoQuantity: number;
+  ammoQuantities: string;
   offhand: string | null;
   mainhand: string | null;
   ringR: string | null;

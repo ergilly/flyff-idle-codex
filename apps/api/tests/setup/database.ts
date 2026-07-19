@@ -46,6 +46,8 @@ function ensureDatabaseSchema() {
       mask TEXT,
       cloak TEXT,
       ammo TEXT,
+      ammo_quantity INTEGER NOT NULL DEFAULT 0,
+      ammo_quantities TEXT NOT NULL DEFAULT '[0,0,0]',
       offhand TEXT,
       mainhand TEXT,
       ring_r TEXT,
@@ -138,6 +140,14 @@ function ensureCharacterProgressionColumns() {
 
   if (!characterColumns.has("consumable_loadout")) {
     db.exec("ALTER TABLE characters ADD COLUMN consumable_loadout TEXT NOT NULL DEFAULT '{}'");
+  }
+
+  if (!characterColumns.has("ammo_quantity")) {
+    db.exec("ALTER TABLE characters ADD COLUMN ammo_quantity INTEGER NOT NULL DEFAULT 0");
+  }
+
+  if (!characterColumns.has("ammo_quantities")) {
+    db.exec("ALTER TABLE characters ADD COLUMN ammo_quantities TEXT NOT NULL DEFAULT '[0,0,0]'");
   }
 }
 

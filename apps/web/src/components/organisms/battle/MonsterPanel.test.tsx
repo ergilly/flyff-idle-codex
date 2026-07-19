@@ -18,6 +18,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof MonsterPanel>> = {
     <MonsterPanel
       autoAttackDamage={null}
       battleOutcome="fighting"
+      combatUnavailableReason={null}
       droppedItems={[]}
       isAttackTimelineActive={false}
       isCombatInProgress={false}
@@ -58,4 +59,11 @@ it("starts combat and opens and closes the selected monster's drops", () => {
   expect(screen.getByRole("dialog", { name: /Aibatt/ })).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Close" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("uses the selected monster's attack speed and delay for its attack timeline", () => {
+  const variant = buildMonster({ attackSpeed: 1, attackDelay: 6 });
+  renderPanel({ selectedVariant: variant });
+
+  expect(screen.getByText("Attack 1.0s · Delay 6.0s")).toBeInTheDocument();
 });

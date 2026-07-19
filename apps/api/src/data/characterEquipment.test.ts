@@ -199,4 +199,50 @@ describe("characterEquipment", () => {
       );
     }
   });
+
+  it("equips arrow stacks as ammo and consumes one per bow attack", () => {
+    const user = userRepository.findByEmail("test@flyff-idle.local");
+    const character = characterRepository.create({
+      playerId: user!.id,
+      slotIndex: 21,
+      name: "BowAmmo",
+      gender: "male"
+    });
+    db.prepare("UPDATE characters SET level = ?, job = ? WHERE id = ?").run(85, "Acrobat", character!.id);
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 3,
+      itemId: "10",
+      quantity: 1
+    });
+    characterRepository.setInventoryItemForPlayer(character!.id, user!.id, {
+      slotIndex: 4,
+      itemId: "4586",
+      quantity: 3
+    });
+
+    characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 3);
+    const equipped = characterRepository.equipInventoryItemForPlayer(character!.id, user!.id, 4);
+    expect(equipped.character).toEqual(
+      expect.objectContaining({
+        ammoQuantity: 3,
+        equipment: expect.objectContaining({ ammo: "4586", mainhand: "10" })
+      })
+    );
+
+    expect(characterRepository.consumeEquippedArrowForPlayer(character!.id, user!.id).character).toEqual(
+      expect.objectContaining({ ammoQuantity: 2 })
+    );
+    characterRepository.consumeEquippedArrowForPlayer(character!.id, user!.id);
+    const finalArrow = characterRepository.consumeEquippedArrowForPlayer(character!.id, user!.id);
+    expect(finalArrow.character).toEqual(
+      expect.objectContaining({
+        ammoQuantity: 0,
+        equipment: expect.objectContaining({ ammo: null })
+      })
+    );
+    expect(characterRepository.consumeEquippedArrowForPlayer(character!.id, user!.id)).toEqual({
+      character: null,
+      error: "Arrows must be equipped to attack with a bow"
+    });
+  });
 });

@@ -23,6 +23,7 @@ type MapPageProps = {
   characterSex?: "female" | "male";
   equippedFlyingItemId?: string | null;
   itemsById?: Record<string, ItemMetadata>;
+  initialTownMapId?: TownMapId;
   onBuyShopItem?: (
     townMapId: TownMapId,
     locationId: string,
@@ -30,6 +31,7 @@ type MapPageProps = {
     quantity: number
   ) => Promise<void>;
   onLoadBank?: () => Promise<Bank>;
+  onEnterTown?: () => void;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
   onSellShopItem?: (slotIndex: number, quantity: number) => Promise<void>;
   onTransferAllBankItems?: (direction: "deposit" | "withdraw") => Promise<Bank>;
@@ -47,8 +49,10 @@ export function MapPage({
   characterSex,
   equippedFlyingItemId,
   itemsById,
+  initialTownMapId,
   onBuyShopItem,
   onLoadBank,
+  onEnterTown,
   onSelectMonster,
   onSellShopItem,
   onTransferAllBankItems,
@@ -56,7 +60,7 @@ export function MapPage({
   onTransferBankPenya,
   onTravel
 }: MapPageProps) {
-  const navigation = useMapNavigation({ characterLocation, onTravel });
+  const navigation = useMapNavigation({ characterLocation, initialTownMapId, onEnterTown, onTravel });
   const viewport = useMapViewport(navigation.resetKey);
 
   return (

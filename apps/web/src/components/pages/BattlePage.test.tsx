@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { BattlePage } from "./BattlePage";
 import type { Character, ItemMetadata, MapMonsterFamily } from "@/lib/api";
-import { getExpRequiredForNextLevel } from "@/lib/characterProgression";
+import { applyDeathExpPenalty, getExpRequiredForNextLevel } from "@/lib/characterProgression";
 import { getAutoAttackTiming, getCombatStats } from "@/lib/combatStats";
 import type { SkillDefinition, SkillTreeTab } from "@/lib/skillTrees";
 
@@ -157,6 +157,25 @@ const woodenSword: ItemMetadata = {
     { parameter: "criticalchance", add: 10, rate: true },
     { parameter: "criticaldamage", add: 20, rate: true }
   ]
+};
+
+const trainingBow: ItemMetadata = {
+  ...woodenSword,
+  id: "bow-1",
+  name: "Training Bow",
+  subcategory: "bow",
+  twoHanded: true
+};
+
+const trainingArrows: ItemMetadata = {
+  ...woodenSword,
+  id: "arrows-1",
+  name: "Training Arrows",
+  category: "arrow",
+  subcategory: null,
+  minAttack: null,
+  maxAttack: null,
+  twoHanded: null
 };
 
 const rareGem: ItemMetadata = {
@@ -418,6 +437,190 @@ describe("BattlePage", () => {
 
     expect(screen.getByTestId("battle_div_timeline_speed_player_attack")).toHaveTextContent(
       `Attack every ${timing.secondsPerAttack.toFixed(1)}s`
+    );
+  });
+
+  it("blocks bow combat until arrows are equipped in the ammo slot", () => {
+    const bowCharacter = {
+      ...character,
+      equipment: { ...character.equipment, mainhand: trainingBow.id }
+    };
+
+    render(
+      <BattlePage
+        character={bowCharacter}
+        itemsById={{ [trainingBow.id]: trainingBow }}
+        selectedMonsterFamily={monsterFamily}
+        skillTabs={skillTabs}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Start combat" })).toBeDisabled();
+    expect(screen.getByText("Equip arrows in the Ammo slot to attack with a bow.")).toBeInTheDocument();
+  });
+
+  it("consumes an equipped arrow for every attempted bow attack", async () => {
+    jest.useFakeTimers();
+    jest.spyOn(Math, "random").mockReturnValue(0.9999);
+    const bowCharacter = {
+      ...character,
+      ammoQuantity: 2,
+      ammoQuantities: [2, 0, 0],
+      equipment: { ...character.equipment, ammo: trainingArrows.id, mainhand: trainingBow.id }
+    };
+    const items = { [trainingBow.id]: trainingBow, [trainingArrows.id]: trainingArrows };
+    const onConsumeEquippedArrow = jest.fn().mockResolvedValueOnce(1).mockResolvedValueOnce(0);
+    const durableMonsterFamily: MapMonsterFamily = {
+      ...monsterFamily,
+      variants: [{ ...monsterFamily.variants[0], hp: 10000 }]
+    };
+
+    const { rerender } = render(
+      <BattlePage
+        character={bowCharacter}
+        itemsById={items}
+        onConsumeEquippedArrow={onConsumeEquippedArrow}
+        selectedMonsterFamily={durableMonsterFamily}
+        skillTabs={skillTabs}
+      />
+    );
+    const timing = getAutoAttackTiming(bowCharacter, getCombatStats(bowCharacter, items), items);
+
+    fireEvent.click(screen.getByRole("button", { name: "Start combat" }));
+    await act(async () => jest.advanceTimersByTime(Math.ceil(timing.secondsPerAttack * 1000)));
+
+    expect(onConsumeEquippedArrow).toHaveBeenCalledTimes(1);
+    expect(onConsumeEquippedArrow).toHaveBeenCalledWith(0);
+    expect(screen.getByTestId("battle_list_combat_log")).toHaveTextContent("misses");
+
+    await act(async () => jest.advanceTimersByTime(Math.ceil(timing.secondsPerAttack * 1000)));
+    expect(onConsumeEquippedArrow).toHaveBeenCalledTimes(2);
+
+    rerender(
+      <BattlePage
+        character={{
+          ...bowCharacter,
+          ammoQuantity: 0,
+          ammoQuantities: [0, 0, 0],
+          equipment: { ...bowCharacter.equipment, ammo: null }
+        }}
+        itemsById={items}
+        onConsumeEquippedArrow={onConsumeEquippedArrow}
+        selectedMonsterFamily={durableMonsterFamily}
+        skillTabs={skillTabs}
+      />
+    );
+    expect(screen.getByTestId("battle_div_timeline_fill_player_attack")).toHaveStyle({
+      transform: "scaleX(0)"
+    });
+    expect(screen.getByTestId("battle_div_timeline_fill_monster_attack")).not.toHaveStyle({
+      transform: "scaleX(0)"
+    });
+    expect(screen.getByRole("button", { name: "Run away" })).toBeInTheDocument();
+  });
+
+  it("applies monster attacks when its attack-delay bar completes", () => {
+    jest.useFakeTimers();
+    jest.spyOn(Math, "random").mockReturnValue(0);
+    const delayedMonsterFamily: MapMonsterFamily = {
+      ...monsterFamily,
+      variants: [
+        {
+          ...monsterFamily.variants[0],
+          attackSpeed: 1,
+          attackDelay: 6,
+          hp: 10000,
+          minAttack: 100,
+          maxAttack: 100
+        }
+      ]
+    };
+
+    render(
+      <BattlePage
+        character={character}
+        itemsById={{}}
+        selectedMonsterFamily={delayedMonsterFamily}
+        skillTabs={skillTabs}
+      />
+    );
+
+    const hpTestId = "battle_character_header_hp_span_status_value";
+    const fullHp = getStatusCurrentValue(hpTestId);
+    fireEvent.click(screen.getByRole("button", { name: "Start combat" }));
+
+    act(() => jest.advanceTimersByTime(999));
+    expect(getStatusCurrentValue(hpTestId)).toBe(fullHp);
+
+    act(() => jest.advanceTimersByTime(1));
+    const hpAfterFirstAttack = getStatusCurrentValue(hpTestId);
+    expect(hpAfterFirstAttack).toBeLessThan(fullHp);
+
+    act(() => jest.advanceTimersByTime(6999));
+    expect(getStatusCurrentValue(hpTestId)).toBe(hpAfterFirstAttack);
+
+    act(() => jest.advanceTimersByTime(1));
+    expect(getStatusCurrentValue(hpTestId)).toBeLessThan(hpAfterFirstAttack);
+    expect(screen.getByTestId("battle_div_timeline_speed_monster_attack")).toHaveTextContent(
+      "Attack 1.0s · Delay 6.0s"
+    );
+  });
+
+  it("waits for respawn confirmation before applying the death penalty", async () => {
+    jest.useFakeTimers();
+    jest.spyOn(Math, "random").mockReturnValue(0);
+    const doomedCharacter = { ...character, exp: 10000 };
+    const lethalMonsterFamily: MapMonsterFamily = {
+      ...monsterFamily,
+      location: { ...monsterFamily.location, region: "flaris" },
+      variants: [
+        {
+          ...monsterFamily.variants[0],
+          attackSpeed: 1,
+          hp: 10000,
+          minAttack: 1000000,
+          maxAttack: 1000000
+        }
+      ]
+    };
+    const onUpdateCharacterProgression = jest.fn();
+    const onRespawnAtTown = jest.fn();
+    const onCharacterResourcesChange = jest.fn();
+
+    render(
+      <BattlePage
+        character={doomedCharacter}
+        itemsById={{}}
+        onCharacterResourcesChange={onCharacterResourcesChange}
+        onRespawnAtTown={onRespawnAtTown}
+        onUpdateCharacterProgression={onUpdateCharacterProgression}
+        selectedMonsterFamily={lethalMonsterFamily}
+        skillTabs={skillTabs}
+      />
+    );
+
+    const maxHp = getStatusCurrentValue("battle_character_header_hp_span_status_value");
+    fireEvent.click(screen.getByRole("button", { name: "Start combat" }));
+    act(() => jest.advanceTimersByTime(1000));
+
+    expect(screen.getByRole("dialog", { name: "You died" })).toBeInTheDocument();
+    expect(onUpdateCharacterProgression).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Respawn at town" }));
+    const penalty = applyDeathExpPenalty(doomedCharacter);
+    await waitFor(() =>
+      expect(onUpdateCharacterProgression).toHaveBeenCalledWith({
+        exp: penalty.exp,
+        level: penalty.level
+      })
+    );
+    expect(onRespawnAtTown).toHaveBeenCalledWith({
+      regionId: "flaris",
+      townMapId: "flarine-town",
+      townName: "Flarine"
+    });
+    expect(onCharacterResourcesChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ hp: Math.ceil(maxHp * 0.5) })
     );
   });
 
@@ -839,7 +1042,7 @@ describe("BattlePage", () => {
       animation: `battle-attack-fill ${Math.max(0.1, timing.secondsPerAttack)}s linear infinite`
     });
     expect(screen.getByTestId("battle_div_timeline_fill_monster_attack")).toHaveStyle({
-      animation: "battle-attack-fill 2.4s linear infinite"
+      animation: "battle-attack-fill 1s linear forwards"
     });
   });
 

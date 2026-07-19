@@ -43,6 +43,8 @@ db.exec(`
     mask TEXT,
     cloak TEXT,
     ammo TEXT,
+    ammo_quantity INTEGER NOT NULL DEFAULT 0,
+    ammo_quantities TEXT NOT NULL DEFAULT '[0,0,0]',
     offhand TEXT,
     mainhand TEXT,
     ring_r TEXT,
@@ -150,6 +152,8 @@ addCharacterColumn("cs_helm", "TEXT");
 addCharacterColumn("mask", "TEXT");
 addCharacterColumn("cloak", "TEXT");
 addCharacterColumn("ammo", "TEXT");
+addCharacterColumn("ammo_quantity", "INTEGER NOT NULL DEFAULT 0");
+addCharacterColumn("ammo_quantities", "TEXT NOT NULL DEFAULT '[0,0,0]'");
 addCharacterColumn("offhand", "TEXT");
 addCharacterColumn("mainhand", "TEXT");
 addCharacterColumn("ring_r", "TEXT");

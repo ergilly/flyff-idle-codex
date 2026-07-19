@@ -11,6 +11,7 @@ import {
   refundCharacterSkills,
   refundCharacterStats,
   sortInventory,
+  travelCharacter,
   unequipItem,
   updateCharacterProgression,
   type Character
@@ -27,6 +28,7 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/lib/api", () => ({
   addCharacterInventoryItem: jest.fn(),
+  consumeEquippedArrow: jest.fn(),
   consumeEquippedConsumableItem: jest.fn(),
   equipInventoryItem: jest.fn(),
   fetchCharacters: jest.fn(),
@@ -263,6 +265,7 @@ jest.mock("./BattlePage", () => ({
     onBattleStateChange,
     onCharacterResourcesChange,
     onConsumeInventoryItem,
+    onRespawnAtTown,
     onUpdateCharacterProgression,
     selectedMonsterFamily
   }: {
@@ -278,6 +281,11 @@ jest.mock("./BattlePage", () => ({
     }) => void;
     onCharacterResourcesChange: (resources: { fp: number; hp: number; mp: number }) => void;
     onConsumeInventoryItem: (resource: "hp") => void;
+    onRespawnAtTown: (destination: {
+      regionId: "darkon12";
+      townMapId: "darken-city";
+      townName: "Darken City";
+    }) => void;
     onUpdateCharacterProgression: (progression: { exp?: number; level?: number; penya?: number }) => void;
     selectedMonsterFamily: { name: string } | null;
   }) => (
@@ -325,25 +333,44 @@ jest.mock("./BattlePage", () => ({
       <button type="button" onClick={() => onUpdateCharacterProgression({ penya: 999 })}>
         Save Progression
       </button>
+      <button
+        type="button"
+        onClick={() =>
+          onRespawnAtTown({
+            regionId: "darkon12",
+            townMapId: "darken-city",
+            townName: "Darken City"
+          })
+        }
+      >
+        Mock Respawn
+      </button>
     </section>
   )
 }));
 
 jest.mock("./MapPage", () => ({
   MapPage: ({
+    initialTownMapId,
     onBuyShopItem,
-    onSelectMonster
+    onSelectMonster,
+    onTravel
   }: {
+    initialTownMapId?: string;
     onBuyShopItem: (townMapId: string, locationId: string, itemId: string, quantity: number) => void;
     onSelectMonster: (monsterFamily: { name: string }) => void;
+    onTravel: (destination: "saint", method: "flying") => Promise<void>;
   }) => (
     <section aria-label="mock map">
-      Map page
+      Map page {initialTownMapId ?? "world"}
       <button type="button" onClick={() => onSelectMonster({ name: "Aibatt" })}>
         Fight Aibatt
       </button>
       <button type="button" onClick={() => onBuyShopItem("flarine-town", "general-store", "5869", 3)}>
         Buy Skill Poster
+      </button>
+      <button type="button" onClick={() => void onTravel("saint", "flying")}>
+        Move Region
       </button>
     </section>
   )
@@ -688,6 +715,35 @@ describe("MainApplicationPage", () => {
     expect(screen.getByText("Battle target Aibatt")).toBeInTheDocument();
     await waitFor(() => expect(fetchItems).toHaveBeenCalledTimes(2));
     await act(async () => resolveMonsterItems());
+  });
+
+  it("opens the respawn town on the map after battle", async () => {
+    arrangeSession();
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mock Respawn" }));
+
+    expect(screen.getByText("Map page darken-city")).toBeInTheDocument();
+  });
+
+  it("clears the combat target after moving regions", async () => {
+    arrangeSession();
+    (travelCharacter as jest.Mock).mockResolvedValue({ ...baseCharacter, location: "Saint Morning" });
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fight Aibatt" }));
+    expect(screen.getByText("Battle target Aibatt")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Move Region" }));
+    await waitFor(() => expect(travelCharacter).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Combat" }));
+
+    expect(screen.getByText("Battle target none")).toBeInTheDocument();
   });
 
   it("purchases General Store items for the selected character", async () => {

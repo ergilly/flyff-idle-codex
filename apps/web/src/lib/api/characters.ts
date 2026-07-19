@@ -362,6 +362,29 @@ export async function consumeEquippedConsumableItem(
   return data.character;
 }
 
+export async function consumeEquippedArrow(
+  token: string,
+  characterId: string,
+  equipmentSet = 0
+): Promise<Character> {
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/equipment/ammo/consume`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ equipmentSet })
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Unable to consume equipped arrow");
+  }
+
+  const data = (await response.json()) as { character: Character };
+  return data.character;
+}
+
 export async function lootInventoryItems(
   token: string,
   characterId: string,

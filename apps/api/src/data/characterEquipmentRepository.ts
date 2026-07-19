@@ -144,6 +144,27 @@ export function createEquipmentSets(firstSet: Character["equipment"]) {
   return [firstSet, createEmptyEquipment(), createEmptyEquipment()];
 }
 
+export function parseAmmoQuantities(value: string, firstSetQuantity: number) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+
+    if (!Array.isArray(parsed)) {
+      return [firstSetQuantity, 0, 0];
+    }
+
+    return equipmentSetIndexes.map((setIndex) => {
+      const quantity = setIndex === 0 ? firstSetQuantity : parsed[setIndex];
+      return Number.isInteger(quantity) && Number(quantity) > 0 ? Number(quantity) : 0;
+    });
+  } catch {
+    return [firstSetQuantity, 0, 0];
+  }
+}
+
+export function getAmmoQuantityForSet(character: Character, equipmentSet: EquipmentSetIndex) {
+  return character.ammoQuantities[equipmentSet] ?? (equipmentSet === 0 ? character.ammoQuantity : 0);
+}
+
 export function parseEquipmentSets(equipmentSets: string, firstSet: Character["equipment"]) {
   try {
     const parsed = JSON.parse(equipmentSets) as unknown;
@@ -172,16 +193,22 @@ export function persistEquipmentSet(
   character: Character,
   equipmentSet: EquipmentSetIndex,
   equipment: Character["equipment"],
-  now: string
+  now: string,
+  ammoQuantity = getAmmoQuantityForSet(character, equipmentSet)
 ) {
   const equipmentSets = equipmentSetIndexes.map((setIndex) =>
     setIndex === equipmentSet ? equipment : getEquipmentForSet(character, setIndex)
+  );
+  const ammoQuantities = equipmentSetIndexes.map((setIndex) =>
+    setIndex === equipmentSet ? ammoQuantity : getAmmoQuantityForSet(character, setIndex)
   );
 
   if (equipmentSet === 0) {
     db.prepare(
       `UPDATE characters
         SET equipment_sets = ?,
+            ammo_quantities = ?,
+            ammo_quantity = ?,
             helmet = ?,
             suit = ?,
             gloves = ?,
@@ -205,6 +232,8 @@ export function persistEquipmentSet(
         WHERE id = ?`
     ).run(
       JSON.stringify(equipmentSets),
+      JSON.stringify(ammoQuantities),
+      ammoQuantity,
       equipment.helmet,
       equipment.suit,
       equipment.gloves,
@@ -230,11 +259,9 @@ export function persistEquipmentSet(
     return;
   }
 
-  db.prepare("UPDATE characters SET equipment_sets = ?, updated_at = ? WHERE id = ?").run(
-    JSON.stringify(equipmentSets),
-    now,
-    characterId
-  );
+  db.prepare(
+    "UPDATE characters SET equipment_sets = ?, ammo_quantities = ?, updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(equipmentSets), JSON.stringify(ammoQuantities), now, characterId);
 }
 
 export function canEquipRequiredJob(character: Character, requiredJob: string | null) {

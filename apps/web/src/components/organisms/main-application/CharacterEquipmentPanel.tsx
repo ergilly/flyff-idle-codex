@@ -81,11 +81,17 @@ export function CharacterEquipmentPanel({
             const selectableSlot = isOffhandBlockedByTwoHander ? "mainhand" : slot;
             const item = itemId ? itemsById[itemId] : null;
             const value = item?.name ?? getEquipmentValue(equipment, slot);
+            const ammoQuantity =
+              slot === "ammo"
+                ? (character.ammoQuantities?.[activeEquipmentSet] ??
+                  (activeEquipmentSet === 0 ? character.ammoQuantity : 0) ??
+                  0)
+                : 0;
             const iconUrl = item?.icon ? getItemIconUrl(item.icon) : null;
             const isSelected = itemId !== null && selectableSlot === selectedEquipmentSlot;
             const slotLabel = isOffhandBlockedByTwoHander
               ? `${label}: ${value} occupies this slot`
-              : `${label}: ${value}`;
+              : `${label}: ${value}${slot === "ammo" && itemId ? ` x${ammoQuantity}` : ""}`;
 
             return (
               <EquipmentSlot
@@ -106,7 +112,17 @@ export function CharacterEquipmentPanel({
                   {label}
                 </EquipmentSlotLabel>
                 {iconUrl ? (
-                  <EquipmentSlotIcon src={iconUrl} alt={value} loading="lazy" />
+                  <>
+                    <EquipmentSlotIcon src={iconUrl} alt={value} loading="lazy" />
+                    {slot === "ammo" ? (
+                      <span
+                        className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-[0.65rem] font-black text-white"
+                        data-testid="equipment_span_ammo_quantity"
+                      >
+                        {ammoQuantity}
+                      </span>
+                    ) : null}
+                  </>
                 ) : (
                   <EquipmentSlotValue
                     $empty={!itemId}

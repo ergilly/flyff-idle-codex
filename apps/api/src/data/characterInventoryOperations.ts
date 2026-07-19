@@ -4,6 +4,7 @@ import type { CharacterConsumableResource } from "../types.js";
 import { findItemsByIds } from "../items/itemIconRepository.js";
 import {
   getEquipmentForSet,
+  getAmmoQuantityForSet,
   getEquipmentRequirementError,
   getRecoveryAbility,
   isRecoveryCategory,
@@ -343,6 +344,11 @@ export const characterInventoryOperations = {
       targetEquipment[equipmentSlot],
       equipmentSlot === "mainhand" && item.twoHanded ? targetEquipment.offhand : null
     ].filter((itemId): itemId is string => Boolean(itemId));
+    const returnedItemQuantities = returnedItemIds.map((returnedItemId) =>
+      equipmentSlot === "ammo" && returnedItemId === targetEquipment.ammo
+        ? getAmmoQuantityForSet(character, equipmentSet)
+        : 1
+    );
     const inventorySlotsToUse = getOpenInventorySlots(character, [slotIndex]);
 
     if (inventorySlotsToUse.length < returnedItemIds.length) {
@@ -359,9 +365,16 @@ export const characterInventoryOperations = {
       ...(equipmentSlot === "mainhand" && item.twoHanded ? { offhand: null } : {})
     };
 
-    persistEquipmentSet(id, character, equipmentSet, nextEquipment, now);
+    persistEquipmentSet(
+      id,
+      character,
+      equipmentSet,
+      nextEquipment,
+      now,
+      equipmentSlot === "ammo" ? inventoryItem.quantity : getAmmoQuantityForSet(character, equipmentSet)
+    );
 
-    insertInventoryItems(id, returnedItemIds, inventorySlotsToUse, now);
+    insertInventoryItems(id, returnedItemIds, inventorySlotsToUse, now, returnedItemQuantities);
 
     return { character: characterCoreRepository.findById(id), error: null };
   },
@@ -392,8 +405,51 @@ export const characterInventoryOperations = {
 
     const now = new Date().toISOString();
 
-    persistEquipmentSet(id, character, equipmentSet, { ...targetEquipment, [equipmentSlot]: null }, now);
-    insertInventoryItems(id, [itemId], [slotIndex], now);
+    const quantity = equipmentSlot === "ammo" ? getAmmoQuantityForSet(character, equipmentSet) : 1;
+    persistEquipmentSet(
+      id,
+      character,
+      equipmentSet,
+      { ...targetEquipment, [equipmentSlot]: null },
+      now,
+      equipmentSlot === "ammo" ? 0 : getAmmoQuantityForSet(character, equipmentSet)
+    );
+    insertInventoryItems(id, [itemId], [slotIndex], now, [quantity]);
+
+    return { character: characterCoreRepository.findById(id), error: null };
+  },
+  consumeEquippedArrowForPlayer(id: string, playerId: string, equipmentSet: EquipmentSetIndex = 0) {
+    const character = characterCoreRepository.findById(id);
+
+    if (!character || character.playerId !== playerId) {
+      return { character: null, error: "Character not found" };
+    }
+
+    const equipment = getEquipmentForSet(character, equipmentSet);
+    const equippedItemIds = [equipment.mainhand, equipment.ammo].filter(
+      (itemId): itemId is string => itemId !== null
+    );
+    const equippedItems = findItemsByIds(equippedItemIds);
+    const mainhand = equippedItems.find((item) => item.id === equipment.mainhand);
+    const ammo = equippedItems.find((item) => item.id === equipment.ammo);
+
+    if (mainhand?.subcategory !== "bow") {
+      return { character: null, error: "Equipped weapon is not a bow" };
+    }
+
+    if (!equipment.ammo || ammo?.category !== "arrow") {
+      return { character: null, error: "Arrows must be equipped to attack with a bow" };
+    }
+
+    const currentQuantity = getAmmoQuantityForSet(character, equipmentSet);
+
+    if (currentQuantity <= 0) {
+      return { character: null, error: "No equipped arrows remain" };
+    }
+
+    const nextQuantity = currentQuantity - 1;
+    const nextEquipment = nextQuantity > 0 ? equipment : { ...equipment, ammo: null };
+    persistEquipmentSet(id, character, equipmentSet, nextEquipment, new Date().toISOString(), nextQuantity);
 
     return { character: characterCoreRepository.findById(id), error: null };
   },

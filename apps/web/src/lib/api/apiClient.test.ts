@@ -339,7 +339,7 @@ describe("api client", () => {
       Aibatt: { id: 1, name: "Aibatt", level: 1, rank: "normal", element: "wind" }
     });
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:4000/api/data/monsters?name=Aibatt&fields=id%2Cname%2Cexperience%2Clevel%2Crank%2Carea%2Celement%2Chp%2CminAttack%2CmaxAttack%2Cdefense%2CmagicDefense%2Csta%2Cstr%2Cdex%2Cint%2ChitRate%2Cparry%2CnoLevelReduction%2CminDropGold%2CmaxDropGold&limit=1"
+      "http://localhost:4000/api/data/monsters?name=Aibatt&fields=id%2Cname%2Cexperience%2Clevel%2Crank%2Carea%2Celement%2Chp%2CminAttack%2CmaxAttack%2CattackSpeed%2CattackDelay%2Cdefense%2CmagicDefense%2Csta%2Cstr%2Cdex%2Cint%2ChitRate%2Cparry%2CnoLevelReduction%2CminDropGold%2CmaxDropGold&limit=1"
     );
   });
 

@@ -5,6 +5,7 @@ import {
   type MapMonsterFamily
 } from "@/lib/api";
 import { type SkillDefinition, type SkillTreeTab } from "@/lib/skillTrees";
+import { type RespawnDestination } from "@/lib/battle/respawn";
 
 export type ActionSlot = SkillDefinition | null;
 export type ConsumableResource = CharacterConsumableResource;
@@ -63,8 +64,10 @@ export type BattlePageProps = {
   onClearMonsterTarget?: () => void;
   onCharacterResourcesChange?: (resources: CharacterResourceState) => void;
   onConsumeInventoryItem?: (resource: ConsumableResource) => Promise<void> | void;
+  onConsumeEquippedArrow?: (equipmentSet: number) => Promise<number | null>;
   onEquipConsumableItem?: (resource: ConsumableResource, slotIndex: number | null) => void;
   onLootInventoryItems?: (items: BattleDroppedItem[]) => Promise<void> | void;
+  onRespawnAtTown?: (destination: RespawnDestination) => void;
   onUpdateCharacterProgression?: (progression: {
     exp?: number;
     level?: number;
