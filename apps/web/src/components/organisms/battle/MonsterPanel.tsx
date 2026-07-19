@@ -18,12 +18,14 @@ import {
   type MonsterFamilyVariant
 } from "@/lib/api";
 import { formatBattleValue } from "@/lib/battle/loot";
+import { getMonsterAttackTiming } from "@/lib/battle/monsterAttackTiming";
 import { type BattleDroppedItem, type BattleOutcome } from "@/lib/battle/types";
 import { type AutoAttackDamage } from "@/lib/combatStats";
 
 export function MonsterPanel({
   autoAttackDamage,
   battleOutcome,
+  combatUnavailableReason,
   droppedItems,
   isAttackTimelineActive,
   isCombatInProgress,
@@ -48,6 +50,7 @@ export function MonsterPanel({
 }: {
   autoAttackDamage: AutoAttackDamage | null;
   battleOutcome: BattleOutcome;
+  combatUnavailableReason: string | null;
   droppedItems: BattleDroppedItem[];
   isAttackTimelineActive: boolean;
   isCombatInProgress: boolean;
@@ -82,11 +85,13 @@ export function MonsterPanel({
         isCombatInProgress={isAttackTimelineActive}
         monsterHp={monsterHp}
         monsterMaxHp={monsterMaxHp}
+        selectedVariant={selectedVariant}
       />
       <MonsterBasicPanel monsterFamily={monsterFamily} selectedVariant={selectedVariant} />
       <MonsterStatsAndOptionsPanel
         autoAttackDamage={autoAttackDamage}
         battleOutcome={battleOutcome}
+        combatUnavailableReason={combatUnavailableReason}
         isCombatInProgress={isCombatInProgress}
         isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
         monsterAttack={monsterAttack}
@@ -123,19 +128,24 @@ export function MonsterPanel({
 function MonsterCombatHeader({
   isCombatInProgress,
   monsterHp,
-  monsterMaxHp
+  monsterMaxHp,
+  selectedVariant
 }: {
   isCombatInProgress: boolean;
   monsterHp: number | null;
   monsterMaxHp: number | null;
+  selectedVariant: MonsterFamilyVariant | null;
 }) {
+  const monsterAttackTiming = getMonsterAttackTiming(selectedVariant);
+
   return (
     <div
       className="grid min-h-[98px] gap-4 rounded-control border border-border bg-black/35 p-3 min-[560px]:grid-cols-2 min-[560px]:items-center"
       data-testid="battle_div_monster_combat_header"
     >
       <AttackTimeline
-        attackIntervalSeconds={2.4}
+        attackDelaySeconds={monsterAttackTiming.attackDelaySeconds}
+        attackIntervalSeconds={monsterAttackTiming.attackSpeedSeconds}
         isActive={isCombatInProgress}
         label="Monster attack"
         tone="danger"
@@ -213,6 +223,7 @@ function MonsterBasicPanel({
 function MonsterStatsAndOptionsPanel({
   autoAttackDamage,
   battleOutcome,
+  combatUnavailableReason,
   isCombatInProgress,
   isPauseAfterCurrentMonster,
   monsterAttack,
@@ -225,6 +236,7 @@ function MonsterStatsAndOptionsPanel({
 }: {
   autoAttackDamage: AutoAttackDamage | null;
   battleOutcome: BattleOutcome;
+  combatUnavailableReason: string | null;
   isCombatInProgress: boolean;
   isPauseAfterCurrentMonster: boolean;
   monsterAttack: number | null;
@@ -293,6 +305,7 @@ function MonsterStatsAndOptionsPanel({
           </div>
           <MonsterCombatOptions
             battleOutcome={battleOutcome}
+            combatUnavailableReason={combatUnavailableReason}
             isCombatInProgress={isCombatInProgress}
             isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
             onPauseCombat={onPauseCombat}
@@ -313,6 +326,7 @@ function MonsterStatsAndOptionsPanel({
 
 function MonsterCombatOptions({
   battleOutcome,
+  combatUnavailableReason,
   isCombatInProgress,
   isPauseAfterCurrentMonster,
   onPauseCombat,
@@ -322,6 +336,7 @@ function MonsterCombatOptions({
   selectedVariant
 }: {
   battleOutcome: BattleOutcome;
+  combatUnavailableReason: string | null;
   isCombatInProgress: boolean;
   isPauseAfterCurrentMonster: boolean;
   onPauseCombat: () => void;
@@ -347,6 +362,9 @@ function MonsterCombatOptions({
         Combat Options
       </h3>
       <div className="grid gap-2" data-testid="battle_div_monster_combat_buttons">
+        {combatUnavailableReason ? (
+          <MutedText data-testid="battle_p_combat_unavailable">{combatUnavailableReason}</MutedText>
+        ) : null}
         {isCombatInProgress ? (
           <Button
             data-testid="battle_button_pause_combat"
@@ -359,7 +377,7 @@ function MonsterCombatOptions({
         ) : (
           <Button
             data-testid="battle_button_start_combat"
-            disabled={!selectedVariant}
+            disabled={!selectedVariant || Boolean(combatUnavailableReason)}
             onClick={onStartCombat}
             type="button"
           >

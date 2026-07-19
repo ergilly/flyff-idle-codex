@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CharacterCombatPanel } from "@/components/organisms/battle/CharacterCombatPanel";
+import { DeathOverlay } from "@/components/organisms/battle/DeathOverlay";
 import { MonsterPanel } from "@/components/organisms/battle/MonsterPanel";
 import { useActionSlots } from "@/hooks/battle/useActionSlots";
 import { useBattleLoot } from "@/hooks/battle/useBattleLoot";
@@ -18,6 +19,9 @@ import {
 import { getUnlockedSkills } from "@/lib/skillTrees";
 import { getVariantPower, withEffectiveHitRate } from "@/lib/battle/combatDisplay";
 import { clampResourceValue, getRecoveryInventoryItems } from "@/lib/battle/recovery";
+import { getRespawnDestination, getRespawnHp } from "@/lib/battle/respawn";
+import { canPerformAutoAttack, isBowEquipped } from "@/lib/battle/bowAmmo";
+import { applyDeathExpPenalty } from "@/lib/characterProgression";
 import {
   type BattleLogEntry,
   type BattlePageProps,
@@ -36,8 +40,10 @@ export function BattlePage({
   onClearMonsterTarget,
   onCharacterResourcesChange,
   onConsumeInventoryItem,
+  onConsumeEquippedArrow,
   onEquipConsumableItem,
   onLootInventoryItems,
+  onRespawnAtTown,
   onUpdateCharacterProgression,
   selectedMonsterFamily,
   skillTabs
@@ -59,6 +65,8 @@ export function BattlePage({
   const [selectedEquipmentSlot, setSelectedEquipmentSlot] = useState<CharacterEquipmentSlot | null>(null);
   const [isCombatInProgress, setIsCombatInProgress] = useState(false);
   const [isPauseAfterCurrentMonster, setIsPauseAfterCurrentMonster] = useState(false);
+  const [isRespawning, setIsRespawning] = useState(false);
+  const [respawnError, setRespawnError] = useState("");
   const selectedVariant =
     selectedMonsterFamily?.variants.find((variant) => variant.variantRank === "normal") ??
     selectedMonsterFamily?.variants[0] ??
@@ -122,6 +130,8 @@ export function BattlePage({
     selectedVariant && battleState.monsterHp !== null
       ? Math.min(battleState.monsterHp, monsterHp ?? 0)
       : null;
+  const canPlayerAutoAttack = canPerformAutoAttack(character, itemsById, activeEquipmentSet);
+  const missingBowAmmo = isBowEquipped(character, itemsById, activeEquipmentSet) && !canPlayerAutoAttack;
   const canResolveCombat =
     isCombatInProgress &&
     selectedVariant !== null &&
@@ -129,6 +139,7 @@ export function BattlePage({
     currentMonsterHp !== null &&
     currentMonsterHp > 0 &&
     currentCharacterHp > 0;
+  const canResolvePlayerAttack = canResolveCombat && canPlayerAutoAttack;
 
   function createBattleLogEntry(message: string, tone: BattleLogEntry["tone"]): BattleLogEntry {
     battleLogIdRef.current += 1;
@@ -200,6 +211,7 @@ export function BattlePage({
     activeEquipmentSet,
     battleState,
     canResolveCombat,
+    canResolvePlayerAttack,
     character,
     characterAttackTiming,
     characterFp,
@@ -215,6 +227,7 @@ export function BattlePage({
     monsterHp,
     onBattleStateChange,
     onCharacterResourcesChange,
+    onConsumeEquippedArrow,
     onUpdateCharacterProgression,
     pushBattleLogEntry,
     selectedVariant,
@@ -230,6 +243,10 @@ export function BattlePage({
   }
 
   function handleStartCombat() {
+    if (!canPlayerAutoAttack) {
+      return;
+    }
+
     setIsPauseAfterCurrentMonster(false);
     setBattleState((current) => ({
       characterFp: clampResourceValue(current.characterFp, characterFp),
@@ -263,6 +280,51 @@ export function BattlePage({
     }));
   }
 
+  async function handleRespawnAtTown() {
+    const destination = selectedMonsterFamily
+      ? getRespawnDestination(selectedMonsterFamily.location.region)
+      : null;
+
+    if (!destination) {
+      setRespawnError("Unable to determine the nearest respawn town.");
+      return;
+    }
+
+    setIsRespawning(true);
+    setRespawnError("");
+    const nextProgression = applyDeathExpPenalty(character);
+
+    try {
+      await onUpdateCharacterProgression?.({
+        exp: nextProgression.exp,
+        level: nextProgression.level
+      });
+      const respawnHp = getRespawnHp(characterHp);
+      const restoredResources = { fp: characterFp, hp: respawnHp, mp: characterMp };
+      onCharacterResourcesChange?.(restoredResources);
+      setBattleState((current) => ({
+        ...current,
+        characterFp,
+        characterHp: respawnHp,
+        characterMp,
+        log:
+          nextProgression.expLoss > 0
+            ? pushBattleLogEntry(
+                current.log,
+                `${character.name} loses ${nextProgression.expLoss.toLocaleString()} EXP.`,
+                "danger"
+              )
+            : current.log,
+        outcome: "fighting"
+      }));
+      onClearMonsterTarget?.();
+      onRespawnAtTown?.(destination);
+    } catch {
+      setRespawnError("Unable to apply the death penalty. Please try again.");
+      setIsRespawning(false);
+    }
+  }
+
   return (
     <section
       className="grid h-full min-h-0 items-stretch gap-4 xl:grid-cols-2"
@@ -283,7 +345,7 @@ export function BattlePage({
         combatStats={displayedCombatStats}
         cooldownRemainingByResource={consumableCooldownRemainingByResource}
         battleLog={battleState.log}
-        isCombatInProgress={canResolveCombat}
+        isCombatInProgress={canResolvePlayerAttack}
         itemsById={itemsById}
         onAddSkillToActionSlot={addSkillToFirstAvailableSlot}
         onInsertSkillAtActionSlot={insertSkillAtActionSlot}
@@ -307,6 +369,9 @@ export function BattlePage({
         itemsById={itemsById}
         autoAttackDamage={autoAttackDamage}
         battleOutcome={battleState.outcome}
+        combatUnavailableReason={
+          missingBowAmmo ? "Equip arrows in the Ammo slot to attack with a bow." : null
+        }
         droppedItems={battleState.droppedItems}
         isLootPending={isLootPending}
         isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
@@ -328,6 +393,18 @@ export function BattlePage({
         selectedDroppedItemId={selectedDroppedItemId}
         selectedVariant={selectedVariant}
       />
+      {battleState.outcome === "playerDefeated" ? (
+        <DeathOverlay
+          error={respawnError}
+          isRespawning={isRespawning}
+          onRespawn={() => void handleRespawnAtTown()}
+          townName={
+            (selectedMonsterFamily &&
+              getRespawnDestination(selectedMonsterFamily.location.region)?.townName) ??
+            "town"
+          }
+        />
+      ) : null}
     </section>
   );
 }

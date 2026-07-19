@@ -164,4 +164,26 @@ describe("character progression", () => {
       level: 21
     });
   });
+
+  it("carries death EXP loss into 99.99 percent of the previous level", () => {
+    const result = applyDeathExpPenalty(character({ level: 21, exp: 100 }));
+    const previousLevelRequirement = getExpRequiredForNextLevel(
+      character({ level: 20, progressionRank: "normal" })
+    );
+    const previousLevelExp = Math.floor((previousLevelRequirement ?? 0) * 0.9999);
+
+    expect(result).toEqual({
+      exp: previousLevelExp - (result.expLoss - 100),
+      expLoss: 412,
+      level: 20
+    });
+  });
+
+  it("does not lose a level when the penalty lands exactly at zero EXP", () => {
+    expect(applyDeathExpPenalty(character({ level: 21, exp: 412 }))).toEqual({
+      exp: 0,
+      expLoss: 412,
+      level: 21
+    });
+  });
 });

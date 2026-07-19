@@ -24,6 +24,8 @@ export type Character = {
   consumableLoadout?: CharacterConsumableLoadout;
   equipment: CharacterEquipment;
   equipmentSets?: CharacterEquipment[];
+  ammoQuantity?: number;
+  ammoQuantities?: number[];
   inventory: CharacterInventory;
 };
 
@@ -140,6 +142,8 @@ export type MonsterMetadata = {
   hp: number | null;
   minAttack: number | null;
   maxAttack: number | null;
+  attackSpeed?: number;
+  attackDelay?: number;
   defense: number | null;
   magicDefense: number | null;
   sta?: number | null;
@@ -181,6 +185,8 @@ export type MonsterFamilyVariant = Pick<
   | "hp"
   | "minAttack"
   | "maxAttack"
+  | "attackSpeed"
+  | "attackDelay"
   | "defense"
   | "magicDefense"
   | "sta"

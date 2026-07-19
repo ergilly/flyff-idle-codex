@@ -57,7 +57,7 @@ export function RegionMapView({
             markers={navigation.selectedRegionMarkers}
             monsterFamiliesByMarkerId={navigation.monsterFamiliesByMarkerId}
             onSelectMonster={onSelectMonster}
-            onSelectTown={navigation.setSelectedTown}
+            onSelectTown={navigation.selectTown}
           />
         )}
       </div>

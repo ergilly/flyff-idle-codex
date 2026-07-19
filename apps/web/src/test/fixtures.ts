@@ -43,6 +43,8 @@ export function buildCharacter(overrides: Partial<Character> = {}): Character {
     penya: 0,
     stats: { str: 15, sta: 15, dex: 15, int: 15 },
     skillLevels: {},
+    ammoQuantity: 0,
+    ammoQuantities: [0, 0, 0],
     equipment: { ...emptyEquipment },
     inventory: { size: 50, items: [] },
     ...overrides
@@ -83,6 +85,8 @@ export function buildMonster(overrides: Partial<MonsterFamilyVariant> = {}): Mon
     hp: 1_000,
     minAttack: 50,
     maxAttack: 60,
+    attackSpeed: 1,
+    attackDelay: 3,
     defense: 20,
     magicDefense: 10,
     minDropGold: 0,

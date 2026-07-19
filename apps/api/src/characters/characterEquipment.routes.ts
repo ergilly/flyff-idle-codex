@@ -64,6 +64,31 @@ characterEquipmentRouter.post(
 );
 
 characterEquipmentRouter.post(
+  "/:characterId/equipment/ammo/consume",
+  requireAuth,
+  async (request, response) => {
+    const characterId = z.string().safeParse(request.params.characterId);
+    const equipmentSet = equipmentSetSchema.safeParse(request.body);
+    if (!characterId.success || !equipmentSet.success) {
+      response.status(400).json({ error: "A valid equipment set is required" });
+      return;
+    }
+    const result = await characterRepository.consumeEquippedArrowForPlayer(
+      characterId.data,
+      (response.locals.auth as AuthTokenPayload).sub,
+      (equipmentSet.data?.equipmentSet ?? 0) as 0 | 1 | 2
+    );
+    if (!result.character) {
+      response
+        .status(result.error === "Character not found" ? 404 : 400)
+        .json({ error: result.error ?? "Unable to consume equipped arrow" });
+      return;
+    }
+    response.json({ character: toPublicCharacter(result.character) });
+  }
+);
+
+characterEquipmentRouter.post(
   "/:characterId/equipment/:equipmentSlot/unequip",
   requireAuth,
   async (request, response) => {

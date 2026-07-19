@@ -1,16 +1,19 @@
 import { type MapMonsterFamily } from "@/lib/api";
 import { type TownMapId } from "@/lib/townMapLocations";
 
-export type MapRegionId =
-  | "bahara"
-  | "darkon12"
-  | "darkon3"
-  | "flaris"
-  | "kaillun"
-  | "rhisis"
-  | "saint"
-  | "shaduwar"
-  | "valley";
+export const mapRegionIds = [
+  "bahara",
+  "darkon12",
+  "darkon3",
+  "flaris",
+  "kaillun",
+  "rhisis",
+  "saint",
+  "shaduwar",
+  "valley"
+] as const;
+
+export type MapRegionId = (typeof mapRegionIds)[number];
 
 export type MapMonsterMarker = {
   description: string;

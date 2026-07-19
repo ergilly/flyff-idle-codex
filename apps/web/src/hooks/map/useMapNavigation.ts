@@ -6,26 +6,40 @@ import {
   createMapMonsterMarkers,
   getMonsterFamiliesByMarkerId,
   mapLocationMarkers,
+  mapRegionIds,
   type MapMonsterMarker,
   type MapRegionId
 } from "@/lib/mapMonsterMarkers";
 import { mapRegions } from "@/lib/mapRegions";
 import { getRegionIdForLocation, mapTravelDestinations, type TravelMethod } from "@/lib/mapTravel";
 import { townMapLocations, type TownMapLocation } from "@/lib/townMapLocations";
+import { type TownMapId } from "@/lib/townMapLocations";
 
 const emptyMonsterFamilies: MapMonsterFamily[] = [];
 const emptyMonsterFamilyIndex: Record<string, MapMonsterFamily[]> = {};
 
 export function useMapNavigation({
   characterLocation,
+  initialTownMapId,
+  onEnterTown,
   onTravel
 }: {
   characterLocation: string;
+  initialTownMapId?: TownMapId;
+  onEnterTown?: () => void;
   onTravel?: (destination: MapRegionId, method: TravelMethod) => Promise<void>;
 }) {
+  const initialRegionId = initialTownMapId
+    ? mapRegionIds.find((regionId) =>
+        mapLocationMarkers[regionId].some((marker) => marker.townMapId === initialTownMapId)
+      )
+    : undefined;
+  const initialTown = initialRegionId
+    ? (mapLocationMarkers[initialRegionId].find((marker) => marker.townMapId === initialTownMapId) ?? null)
+    : null;
   const [activeRegionId, setActiveRegionId] = useState<MapRegionId | null>(null);
-  const [selectedRegionId, setSelectedRegionId] = useState<MapRegionId | null>(null);
-  const [selectedTown, setSelectedTown] = useState<MapMonsterMarker | null>(null);
+  const [selectedRegionId, setSelectedRegionId] = useState<MapRegionId | null>(initialRegionId ?? null);
+  const [selectedTown, setSelectedTown] = useState<MapMonsterMarker | null>(initialTown);
   const [selectedTownLocation, setSelectedTownLocation] = useState<TownMapLocation | null>(null);
   const [monsterFamilyIndex, setMonsterFamilyIndex] = useState(emptyMonsterFamilyIndex);
   const [pendingTravelRegionId, setPendingTravelRegionId] = useState<MapRegionId | null>(null);
@@ -78,6 +92,11 @@ export function useMapNavigation({
     setSelectedRegionId(destinationId);
   }
 
+  function selectTown(town: MapMonsterMarker) {
+    onEnterTown?.();
+    setSelectedTown(town);
+  }
+
   return {
     activeRegion,
     backToWorld: () => {
@@ -91,6 +110,7 @@ export function useMapNavigation({
     pendingTravelDestination: pendingTravelRegionId ? mapTravelDestinations[pendingTravelRegionId] : null,
     resetKey: `${selectedRegionId ?? "world"}:${selectedTown?.id ?? "region"}`,
     selectRegion,
+    selectTown,
     selectedRegion,
     selectedRegionMarkers,
     selectedTown,

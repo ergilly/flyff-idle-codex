@@ -388,7 +388,8 @@ export function insertInventoryItems(
   characterId: string,
   itemIds: string[],
   slotIndexes: number[],
-  now: string
+  now: string,
+  quantities: number[] = itemIds.map(() => 1)
 ) {
   const maximumSlotIndex = Math.max(...slotIndexes, -1);
 
@@ -403,6 +404,14 @@ export function insertInventoryItems(
   );
 
   itemIds.forEach((itemId, index) => {
-    insertInventoryItem.run(randomUUID(), characterId, slotIndexes[index], itemId, 1, now, now);
+    insertInventoryItem.run(
+      randomUUID(),
+      characterId,
+      slotIndexes[index],
+      itemId,
+      quantities[index] ?? 1,
+      now,
+      now
+    );
   });
 }

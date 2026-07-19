@@ -5,6 +5,7 @@ import type { Character } from "../types.js";
 import {
   createEmptyEquipment,
   createEquipmentSets,
+  parseAmmoQuantities,
   parseConsumableLoadout,
   parseEquipmentSets,
   parseSkillLevels
@@ -215,6 +216,8 @@ export const characterCoreRepository = {
           skill_levels AS skillLevels,
           consumable_loadout AS consumableLoadout,
           equipment_sets AS equipmentSets,
+          ammo_quantity AS ammoQuantity,
+          ammo_quantities AS ammoQuantities,
           helmet,
           suit,
           gloves,
@@ -268,6 +271,8 @@ export const characterCoreRepository = {
           skill_levels AS skillLevels,
           consumable_loadout AS consumableLoadout,
           equipment_sets AS equipmentSets,
+          ammo_quantity AS ammoQuantity,
+          ammo_quantities AS ammoQuantities,
           helmet,
           suit,
           gloves,
@@ -332,6 +337,8 @@ export const characterCoreRepository = {
         skillLevels,
         consumableLoadout,
         equipmentSets,
+        ammoQuantity,
+        ammoQuantities,
         helmet,
         suit,
         gloves,
@@ -354,6 +361,7 @@ export const characterCoreRepository = {
         inventorySize,
         ...character
       }): Character => {
+        const normalizedAmmoQuantity = ammo ? Math.max(1, ammoQuantity) : 0;
         const equipment = {
           helmet,
           suit,
@@ -389,6 +397,8 @@ export const characterCoreRepository = {
           consumableLoadout: parseConsumableLoadout(consumableLoadout),
           equipment,
           equipmentSets: parseEquipmentSets(equipmentSets, equipment),
+          ammoQuantity: normalizedAmmoQuantity,
+          ammoQuantities: parseAmmoQuantities(ammoQuantities, normalizedAmmoQuantity),
           inventory: {
             size: inventorySize,
             items: (inventoryItemsByCharacterId.get(id) ?? []).map(

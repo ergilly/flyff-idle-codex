@@ -43,6 +43,8 @@ import { getCombatStats } from "@/lib/combatStats";
 import { getCharacterEquipmentSet } from "@/lib/characterEquipment";
 import type { MapRegionId } from "@/lib/mapMonsterMarkers";
 import type { TravelMethod } from "@/lib/mapTravel";
+import type { TownMapId } from "@/lib/townMapLocations";
+import type { RespawnDestination } from "@/lib/battle/respawn";
 
 const storageKey = "flyffIdleTheme";
 
@@ -76,6 +78,7 @@ export function MainApplicationPage() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [theme, setTheme] = useState<MainApplicationTheme>("dark");
   const [selectedMonsterFamily, setSelectedMonsterFamily] = useState<MapMonsterFamily | null>(null);
+  const [respawnTownMapId, setRespawnTownMapId] = useState<TownMapId>();
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -164,6 +167,7 @@ export function MainApplicationPage() {
     characterResourcesById,
     handleBattleStateChange,
     handleCharacterResourcesChange,
+    handleConsumeEquippedArrow,
     handleConsumeInventoryItem,
     handleLootInventoryItems,
     handleUpdateCharacterProgression
@@ -261,6 +265,7 @@ export function MainApplicationPage() {
     updateCharacter(
       await travelCharacter(token, selectedCharacter.id, destination, method, activeEquipmentSet)
     );
+    setSelectedMonsterFamily(null);
   }
 
   function updateCharacter(updatedCharacter: Character) {
@@ -276,6 +281,12 @@ export function MainApplicationPage() {
     setTheme(nextTheme);
     applyTheme(nextTheme);
     setIsMobileNavOpen(false);
+  }
+
+  function handleRespawnAtTown(destination: RespawnDestination) {
+    setRespawnTownMapId(destination.townMapId);
+    setSelectedMonsterFamily(null);
+    setActiveNavItem("Map");
   }
 
   function handleChangeCharacter() {
@@ -403,8 +414,10 @@ export function MainApplicationPage() {
             characterSex={selectedCharacter.gender}
             equippedFlyingItemId={getCharacterEquipmentSet(selectedCharacter, activeEquipmentSet).flying}
             itemsById={itemsById}
+            initialTownMapId={respawnTownMapId}
             onBuyShopItem={handleBuyShopItem}
             onLoadBank={handleLoadBank}
+            onEnterTown={() => setSelectedMonsterFamily(null)}
             onSellShopItem={handleSellShopItem}
             onTransferAllBankItems={handleTransferAllBankItems}
             onTransferBankItem={handleTransferBankItem}
@@ -422,8 +435,10 @@ export function MainApplicationPage() {
             onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
             onCharacterResourcesChange={handleCharacterResourcesChange}
             onConsumeInventoryItem={handleConsumeInventoryItem}
+            onConsumeEquippedArrow={handleConsumeEquippedArrow}
             onEquipConsumableItem={handleEquipConsumableItem}
             onLootInventoryItems={handleLootInventoryItems}
+            onRespawnAtTown={handleRespawnAtTown}
             onUpdateCharacterProgression={handleUpdateCharacterProgression}
             selectedMonsterFamily={selectedMonsterFamily}
             skillTabs={skillTabs}

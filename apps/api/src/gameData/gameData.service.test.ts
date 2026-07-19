@@ -1,3 +1,6 @@
+import path from "node:path";
+import { DatabaseSync } from "node:sqlite";
+
 import { findDataRecord, isDataSetName, listDataSets, queryDataSet } from "./gameData.service.js";
 
 describe("game data service", () => {
@@ -118,6 +121,35 @@ describe("game data service", () => {
         })
       ])
     });
+  });
+
+  it("stores attack timing for every mapped monster in every populated region", () => {
+    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
+      readOnly: true
+    });
+
+    try {
+      const records = database
+        .prepare("SELECT payload FROM game_data_records WHERE data_set = 'mapMonsters'")
+        .all()
+        .map(({ payload }) => JSON.parse(String(payload)) as Record<string, unknown>);
+
+      expect(records).toHaveLength(264);
+      expect(new Set(records.map((record) => (record.location as { region: string }).region))).toEqual(
+        new Set(["flaris", "saint", "rhisis", "darkon12", "darkon3"])
+      );
+      expect(
+        records.every(
+          (monster) =>
+            typeof monster.attackSpeed === "number" &&
+            monster.attackSpeed > 0 &&
+            typeof monster.attackDelay === "number" &&
+            monster.attackDelay > 0
+        )
+      ).toBe(true);
+    } finally {
+      database.close();
+    }
   });
 
   it("falls back to default limits and omits unmatched filters", () => {

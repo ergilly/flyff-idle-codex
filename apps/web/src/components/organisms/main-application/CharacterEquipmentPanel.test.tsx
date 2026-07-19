@@ -3,6 +3,7 @@ import { CharacterEquipmentPanel, getEquippedItemIds } from "./CharacterEquipmen
 import { buildCharacter, buildItem, emptyEquipment } from "@/test/fixtures";
 
 const sword = buildItem({ id: "3497", name: "Wooden Sword", icon: "sword.png" });
+const arrows = buildItem({ id: "4586", name: "Arrows", category: "arrow", icon: "arrows.png" });
 
 describe("CharacterEquipmentPanel", () => {
   it("selects and unequips an equipped slot", () => {
@@ -49,5 +50,23 @@ describe("CharacterEquipmentPanel", () => {
       "aria-pressed",
       "true"
     );
+  });
+
+  it("shows the equipped arrow quantity in the ammo slot", () => {
+    render(
+      <CharacterEquipmentPanel
+        character={buildCharacter({
+          ammoQuantity: 25,
+          ammoQuantities: [25, 0, 0],
+          equipment: { ...emptyEquipment, ammo: arrows.id }
+        })}
+        itemsById={{ [arrows.id]: arrows }}
+        onSelectEquipmentSlot={jest.fn()}
+        selectedEquipmentSlot={null}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Ammo: Arrows x25" })).toBeInTheDocument();
+    expect(screen.getByTestId("equipment_span_ammo_quantity")).toHaveTextContent("25");
   });
 });

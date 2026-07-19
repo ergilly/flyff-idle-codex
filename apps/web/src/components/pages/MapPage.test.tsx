@@ -3,6 +3,15 @@ import { MapPage } from "./MapPage";
 import { flarineGeneralStoreTabs } from "@/lib/townShops";
 
 describe("MapPage", () => {
+  it("opens directly to a requested respawn town", async () => {
+    render(<MapPage initialTownMapId="darken-city" />);
+
+    expect(await screen.findByRole("img", { name: "Darken City map" })).toHaveAttribute(
+      "src",
+      "/images/maps/towns/Town_Darken_Clean.png"
+    );
+  });
+
   beforeEach(() => {
     global.fetch = jest.fn().mockImplementation((url: string) => {
       const requestUrl = new URL(url);
@@ -28,6 +37,8 @@ describe("MapPage", () => {
         hp: 100,
         minAttack: 1,
         maxAttack: 2,
+        attackSpeed: 1,
+        attackDelay: 6,
         defense: 1,
         magicDefense: 1,
         minDropGold: 1,
@@ -319,6 +330,16 @@ describe("MapPage", () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
+  });
+
+  it("treats entering a town as leaving combat", () => {
+    const onEnterTown = jest.fn();
+    render(<MapPage onEnterTown={onEnterTown} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
+    fireEvent.click(screen.getByRole("button", { name: "Flarine Town" }));
+
+    expect(onEnterTown).toHaveBeenCalledTimes(1);
   });
 
   it("turns town shops and NPCs into selectable map buttons", async () => {

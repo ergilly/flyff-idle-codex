@@ -344,15 +344,29 @@ export function getDeathExpPenaltyRate(level: number) {
 }
 
 export function applyDeathExpPenalty(character: Pick<Character, "exp" | "level" | "progressionRank">) {
+  const progressionRank = getProgressionRank(character);
   const penaltyRate = getDeathExpPenaltyRate(character.level);
   const nextLevelExp =
     getExpRequiredForNextLevel(character) ?? getExpRequiredForLevel(character.level) ?? character.exp;
   const expLoss = Math.floor(nextLevelExp * penaltyRate);
+  let remainingLoss = expLoss;
+  let nextExp = Math.max(0, Math.floor(character.exp));
+  let nextLevel = character.level;
+
+  while (remainingLoss > nextExp && nextLevel > 1) {
+    remainingLoss -= nextExp;
+    nextLevel -= 1;
+    const previousLevelRequirement = getExpRequiredForNextLevel({
+      level: nextLevel,
+      progressionRank
+    });
+    nextExp = previousLevelRequirement ? Math.floor(previousLevelRequirement * 0.9999) : 0;
+  }
 
   return {
-    exp: Math.max(0, character.exp - expLoss),
+    exp: Math.max(0, nextExp - remainingLoss),
     expLoss,
-    level: character.level
+    level: nextLevel
   };
 }
 

@@ -2,6 +2,8 @@ import { useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { type Character, type ItemMetadata, type MonsterFamilyVariant } from "@/lib/api";
 import { getMaxCharacterResources } from "@/lib/battle/combatDisplay";
 import { addDroppedItems, rollMonsterDrops, rollMonsterPenya } from "@/lib/battle/loot";
+import { getMonsterAttackTiming } from "@/lib/battle/monsterAttackTiming";
+import { isBowEquipped } from "@/lib/battle/bowAmmo";
 import { type BattleLogEntry, type BattlePageProps, type BattleState } from "@/lib/battle/types";
 import {
   rollMonsterAutoAttack,
@@ -9,7 +11,7 @@ import {
   type AttackTiming,
   type CombatStat
 } from "@/lib/combatStats";
-import { applyDeathExpPenalty, applyExpGain, getMonsterExpReward } from "@/lib/characterProgression";
+import { applyExpGain, getMonsterExpReward } from "@/lib/characterProgression";
 
 const maxBattleLogEntries = 50;
 const passiveHpRegenIntervalMs = 5000;
@@ -19,6 +21,7 @@ type UseBattleSimulationOptions = {
   activeEquipmentSet: number;
   battleState: BattleState;
   canResolveCombat: boolean;
+  canResolvePlayerAttack: boolean;
   character: Character;
   characterAttackTiming: AttackTiming;
   characterFp: number;
@@ -34,6 +37,7 @@ type UseBattleSimulationOptions = {
   monsterHp: number | null;
   onBattleStateChange: BattlePageProps["onBattleStateChange"];
   onCharacterResourcesChange: BattlePageProps["onCharacterResourcesChange"];
+  onConsumeEquippedArrow: BattlePageProps["onConsumeEquippedArrow"];
   onUpdateCharacterProgression: BattlePageProps["onUpdateCharacterProgression"];
   pushBattleLogEntry: (
     currentLog: BattleLogEntry[],
@@ -50,6 +54,7 @@ export function useBattleSimulation({
   activeEquipmentSet,
   battleState,
   canResolveCombat,
+  canResolvePlayerAttack,
   character,
   characterAttackTiming,
   characterFp,
@@ -65,6 +70,7 @@ export function useBattleSimulation({
   monsterHp,
   onBattleStateChange,
   onCharacterResourcesChange,
+  onConsumeEquippedArrow,
   onUpdateCharacterProgression,
   pushBattleLogEntry,
   selectedVariant,
@@ -73,7 +79,6 @@ export function useBattleSimulation({
   setIsPauseAfterCurrentMonster
 }: UseBattleSimulationOptions) {
   const handledMonsterDefeatCountRef = useRef(0);
-  const handledPlayerDefeatCountRef = useRef(0);
   const pendingLevelUpRestoreLevelRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -138,12 +143,15 @@ export function useBattleSimulation({
   }, [characterHp, isCombatInProgress]);
 
   useEffect(() => {
-    if (!canResolveCombat || !selectedVariant) {
+    if (!canResolvePlayerAttack || !selectedVariant) {
       return undefined;
     }
 
     const intervalMs = Math.max(100, characterAttackTiming.secondsPerAttack * 1000);
-    const playerAttackInterval = window.setInterval(() => {
+    const requiresArrows = isBowEquipped(character, itemsById, activeEquipmentSet);
+    let isCurrent = true;
+    let attackQueue = Promise.resolve();
+    const applyPlayerAttack = () => {
       setBattleState((current) => {
         if (current.outcome !== "fighting" || current.monsterHp === null || current.monsterHp <= 0) {
           return current;
@@ -173,15 +181,40 @@ export function useBattleSimulation({
           outcome: nextMonsterHp <= 0 ? "monsterDefeated" : "fighting"
         };
       });
+    };
+    const resolveBowAttack = async () => {
+      const remainingArrowQuantity = await onConsumeEquippedArrow?.(activeEquipmentSet);
+
+      if (remainingArrowQuantity === null || remainingArrowQuantity === undefined) {
+        setBattleState((current) => ({
+          ...current,
+          log: pushBattleLogEntry(current.log, "Arrows must be equipped to attack with a bow.", "danger")
+        }));
+        return;
+      }
+
+      applyPlayerAttack();
+    };
+    const playerAttackInterval = window.setInterval(() => {
+      if (!requiresArrows) {
+        applyPlayerAttack();
+        return;
+      }
+
+      attackQueue = attackQueue.then(() => (isCurrent ? resolveBowAttack() : undefined));
     }, intervalMs);
 
-    return () => window.clearInterval(playerAttackInterval);
+    return () => {
+      isCurrent = false;
+      window.clearInterval(playerAttackInterval);
+    };
   }, [
     activeEquipmentSet,
-    canResolveCombat,
+    canResolvePlayerAttack,
     character,
     characterAttackTiming.secondsPerAttack,
     itemsById,
+    onConsumeEquippedArrow,
     selectedVariant
   ]);
 
@@ -190,7 +223,10 @@ export function useBattleSimulation({
       return undefined;
     }
 
-    const monsterAttackInterval = window.setInterval(() => {
+    const timing = getMonsterAttackTiming(selectedVariant);
+    const attackSpeedMs = Math.max(100, timing.attackSpeedSeconds * 1000);
+    const attackCycleMs = Math.max(100, (timing.attackSpeedSeconds + timing.attackDelaySeconds) * 1000);
+    const resolveMonsterAttack = () => {
       setBattleState((current) => {
         if (current.outcome !== "fighting" || current.characterHp <= 0) {
           return current;
@@ -222,9 +258,19 @@ export function useBattleSimulation({
           playerDefeatCount: nextCharacterHp <= 0 ? current.playerDefeatCount + 1 : current.playerDefeatCount
         };
       });
-    }, 2400);
+    };
+    let monsterAttackInterval: number | undefined;
+    const firstMonsterAttack = window.setTimeout(() => {
+      resolveMonsterAttack();
+      monsterAttackInterval = window.setInterval(resolveMonsterAttack, attackCycleMs);
+    }, attackSpeedMs);
 
-    return () => window.clearInterval(monsterAttackInterval);
+    return () => {
+      window.clearTimeout(firstMonsterAttack);
+      if (monsterAttackInterval !== undefined) {
+        window.clearInterval(monsterAttackInterval);
+      }
+    };
   }, [activeEquipmentSet, canResolveCombat, character, combatStats, itemsById, selectedVariant]);
 
   useEffect(() => {
@@ -337,41 +383,6 @@ export function useBattleSimulation({
     onUpdateCharacterProgression,
     selectedVariant
   ]);
-
-  useEffect(() => {
-    if (
-      battleState.playerDefeatCount === 0 ||
-      battleState.playerDefeatCount === handledPlayerDefeatCountRef.current
-    ) {
-      return;
-    }
-
-    handledPlayerDefeatCountRef.current = battleState.playerDefeatCount;
-    const nextProgression = applyDeathExpPenalty(character);
-
-    if (nextProgression.expLoss > 0) {
-      setBattleState((current) => ({
-        ...current,
-        log: pushBattleLogEntry(
-          current.log,
-          `${character.name} loses ${nextProgression.expLoss.toLocaleString()} EXP.`,
-          "danger"
-        )
-      }));
-    }
-
-    void Promise.resolve(
-      onUpdateCharacterProgression?.({
-        exp: nextProgression.exp,
-        level: nextProgression.level
-      })
-    ).catch(() => {
-      setBattleState((current) => ({
-        ...current,
-        log: pushBattleLogEntry(current.log, "Unable to save EXP penalty.", "danger")
-      }));
-    });
-  }, [battleState.playerDefeatCount, character, onUpdateCharacterProgression]);
 
   useEffect(() => {
     if (!isCombatInProgress || battleState.outcome !== "monsterDefeated" || !selectedVariant) {
