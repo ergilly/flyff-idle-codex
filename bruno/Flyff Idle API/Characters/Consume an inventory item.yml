@@ -1,0 +1,35 @@
+info:
+  name: Consume an inventory item
+  type: http
+  seq: 12
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/consume"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+    - name: slotIndex
+      value: "0"
+      type: path
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("consumes the item and returns authoritative inventory", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.inventory.items).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -45,6 +45,11 @@ jobs:
         env:
           CI: true
 
+      - name: Run API integration tests
+        run: npm run test:api
+        env:
+          CI: true
+
       - name: Build production application
         run: npm run build
 

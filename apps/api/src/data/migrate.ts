@@ -80,6 +80,19 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS character_inventory_character_idx
     ON character_inventory_items (character_id);
 
+  CREATE TABLE IF NOT EXISTS character_quests (
+    character_id TEXT NOT NULL,
+    quest_id INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    accepted_at TEXT NOT NULL,
+    completed_at TEXT,
+    PRIMARY KEY (character_id, quest_id),
+    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS character_quests_character_status_idx
+    ON character_quests (character_id, status);
+
   CREATE TABLE IF NOT EXISTS bank_accounts (
     player_id TEXT PRIMARY KEY NOT NULL,
     penya INTEGER NOT NULL DEFAULT 0,

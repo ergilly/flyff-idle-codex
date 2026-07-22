@@ -22,6 +22,11 @@ it("groups drops, toggles a category, and closes", () => {
   expect(screen.getByTestId("battle_strong_info_value_penya")).toHaveTextContent("2 - 5");
   const heading = screen.getByRole("button", { name: "Upgrade Materials" });
   expect(screen.getByText("Iron Ore")).toBeInTheDocument();
+  const drop = screen.getByRole("button", { name: "Iron Ore" });
+  fireEvent.focus(drop);
+  expect(screen.getByRole("complementary", { name: "Iron Ore details" })).toBeInTheDocument();
+  fireEvent.blur(drop);
+  expect(screen.queryByRole("complementary", { name: "Iron Ore details" })).not.toBeInTheDocument();
   fireEvent.click(heading);
   expect(screen.queryByText("Iron Ore")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Close" }));

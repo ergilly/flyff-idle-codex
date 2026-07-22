@@ -3,14 +3,16 @@ import { MonsterMarkerLayer } from "@/components/organisms/map/MonsterMarkerLaye
 import { TownLocationLayer } from "@/components/organisms/map/TownLocationLayer";
 import type { useMapNavigation } from "@/hooks/map/useMapNavigation";
 import type { useMapViewport } from "@/hooks/map/useMapViewport";
-import type { MapMonsterFamily } from "@/lib/api";
+import type { ItemMetadata, MapMonsterFamily } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 
 export function RegionMapView({
+  itemsById,
   navigation,
   onSelectMonster,
   viewport
 }: {
+  itemsById?: Record<string, ItemMetadata>;
   navigation: ReturnType<typeof useMapNavigation>;
   onSelectMonster?: (monster: MapMonsterFamily) => void;
   viewport: ReturnType<typeof useMapViewport>;
@@ -54,6 +56,7 @@ export function RegionMapView({
           />
         ) : (
           <MonsterMarkerLayer
+            itemsById={itemsById}
             markers={navigation.selectedRegionMarkers}
             monsterFamiliesByMarkerId={navigation.monsterFamiliesByMarkerId}
             onSelectMonster={onSelectMonster}

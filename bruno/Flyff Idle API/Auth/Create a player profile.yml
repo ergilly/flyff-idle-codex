@@ -13,6 +13,16 @@ http:
     data: "{}"
   auth: inherit
 
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("creates a player session", function() {
+          expect(res.status).to.equal(201);
+          expect(res.body.token).to.be.a("string").and.not.empty;
+          expect(res.body.user).to.be.an("object");
+        });
+
 settings:
   encodeUrl: true
   timeout: 0

@@ -1,133 +1,34 @@
 info:
   name: Delete a character after name confirmation
   type: http
-  seq: 3
+  seq: 4
   tags:
     - Characters
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/api/characters/:characterId"
+  url: "{{baseUrl}}/api/characters/:characterId?confirmationName={{characterName}}"
   params:
     - name: characterId
-      value: ""
+      value: "{{characterId}}"
       type: path
-  body:
-    type: json
-    data: |-
-      {
-        "name": "FlarisHero"
-      }
+    - name: confirmationName
+      value: "{{characterName}}"
+      type: query
   auth:
     type: bearer
     token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("deletes the character without a response body", function() {
+          expect(res.status).to.equal(204);
+        });
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-
-examples:
-  - name: 204 Response
-    description: Character deleted
-    request:
-      url: "{{baseUrl}}/api/characters/:characterId"
-      method: DELETE
-      params:
-        - name: characterId
-          value: ""
-          type: path
-      body:
-        type: json
-        data: |-
-          {
-            "name": "FlarisHero"
-          }
-    response:
-      status: 204
-      statusText: No Content
-      body:
-        type: text
-        data: ""
-  - name: 400 Response
-    description: Invalid request body or parameters
-    request:
-      url: "{{baseUrl}}/api/characters/:characterId"
-      method: DELETE
-      params:
-        - name: characterId
-          value: ""
-          type: path
-      body:
-        type: json
-        data: |-
-          {
-            "name": "FlarisHero"
-          }
-    response:
-      status: 400
-      statusText: Bad Request
-      headers:
-        - name: Content-Type
-          value: application/json
-      body:
-        type: json
-        data: |-
-          {
-            "error": ""
-          }
-  - name: 401 Response
-    description: Missing or invalid bearer token, or invalid credentials
-    request:
-      url: "{{baseUrl}}/api/characters/:characterId"
-      method: DELETE
-      params:
-        - name: characterId
-          value: ""
-          type: path
-      body:
-        type: json
-        data: |-
-          {
-            "name": "FlarisHero"
-          }
-    response:
-      status: 401
-      statusText: Unauthorized
-      headers:
-        - name: Content-Type
-          value: application/json
-      body:
-        type: json
-        data: |-
-          {
-            "error": ""
-          }
-  - name: 404 Response
-    description: Requested resource was not found
-    request:
-      url: "{{baseUrl}}/api/characters/:characterId"
-      method: DELETE
-      params:
-        - name: characterId
-          value: ""
-          type: path
-      body:
-        type: json
-        data: |-
-          {
-            "name": "FlarisHero"
-          }
-    response:
-      status: 404
-      statusText: Not Found
-      headers:
-        - name: Content-Type
-          value: application/json
-      body:
-        type: json
-        data: |-
-          {
-            "error": ""
-          }

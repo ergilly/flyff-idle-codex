@@ -24,9 +24,11 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof MainApplic
 describe("MainApplicationSidebar", () => {
   it("routes admin and theme actions", () => {
     const props = renderSidebar();
+    fireEvent.click(screen.getByRole("button", { name: "Quests" }));
     fireEvent.click(screen.getByRole("button", { name: "Admin" }));
     fireEvent.click(screen.getByRole("button", { name: "Light mode" }));
 
+    expect(props.onSelectNavItem).toHaveBeenCalledWith("Quests");
     expect(props.onSelectNavItem).toHaveBeenCalledWith("Admin");
     expect(props.onThemeToggle).toHaveBeenCalled();
   });

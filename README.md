@@ -181,7 +181,7 @@ npm run test:ui
 Test coverage currently includes:
 
 - API auth unit tests
-- API functional tests with Playwright request testing
+- API route and database integration tests with Jest and Supertest
 - Frontend component tests with Jest and Testing Library
 - Frontend login/register UI tests with Playwright
 

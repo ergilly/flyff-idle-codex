@@ -1,7 +1,7 @@
 info:
   name: Equip an inventory item into an equipment set
   type: http
-  seq: 5
+  seq: 8
   tags:
     - Characters
 
@@ -10,7 +10,7 @@ http:
   url: "{{baseUrl}}/api/characters/:characterId/inventory/:slotIndex/equip"
   params:
     - name: characterId
-      value: ""
+      value: "{{characterId}}"
       type: path
     - name: slotIndex
       value: "0"
@@ -24,6 +24,15 @@ http:
   auth:
     type: bearer
     token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the character with updated equipment", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.equipment).to.be.an("object");
+        });
 
 settings:
   encodeUrl: true

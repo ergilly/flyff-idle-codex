@@ -69,4 +69,24 @@ describe("CharacterEquipmentPanel", () => {
     expect(screen.getByRole("button", { name: "Ammo: Arrows x25" })).toBeInTheDocument();
     expect(screen.getByTestId("equipment_span_ammo_quantity")).toHaveTextContent("25");
   });
+
+  it("shows equipped item details while a slot is hovered or focused", () => {
+    render(
+      <CharacterEquipmentPanel
+        character={buildCharacter({ equipment: { ...emptyEquipment, mainhand: sword.id } })}
+        itemsById={{ [sword.id]: sword }}
+        onSelectEquipmentSlot={jest.fn()}
+        selectedEquipmentSlot={null}
+        showItemDetails={false}
+      />
+    );
+
+    const slot = screen.getByRole("button", { name: "Main Hand: Wooden Sword" });
+    fireEvent.mouseEnter(slot);
+    expect(screen.getByRole("complementary", { name: "Wooden Sword details" })).toBeInTheDocument();
+    fireEvent.mouseLeave(slot);
+    expect(screen.queryByRole("complementary", { name: "Wooden Sword details" })).not.toBeInTheDocument();
+    fireEvent.focus(slot);
+    expect(screen.getByRole("complementary", { name: "Wooden Sword details" })).toBeInTheDocument();
+  });
 });

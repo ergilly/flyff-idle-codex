@@ -1,6 +1,11 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { type StatKey } from "@/components/molecules/main-application/StatAllocationPanel";
-import { updateCharacterProgression, type Character, type CharacterSkillLevels } from "@/lib/api";
+import {
+  allocateCharacterSkills,
+  allocateCharacterStats,
+  type Character,
+  type CharacterSkillLevels
+} from "@/lib/api";
 import { getAvailableStatPoints, getTotalSkillPoints } from "@/lib/characterProgression";
 import {
   areSkillRequirementsMet,
@@ -155,15 +160,8 @@ export function useCharacterProgression({
       return;
     }
 
-    const nextStats = statKeys.reduce(
-      (stats, stat) => ({ ...stats, [stat]: selectedCharacter.stats[stat] + pendingStats[stat] }),
-      selectedCharacter.stats
-    );
-
     try {
-      const updatedCharacter = await updateCharacterProgression(token, selectedCharacter.id, {
-        stats: nextStats
-      });
+      const updatedCharacter = await allocateCharacterStats(token, selectedCharacter.id, pendingStats);
       setCharacters((currentCharacters) =>
         currentCharacters.map((character) =>
           character.id === updatedCharacter.id ? updatedCharacter : character
@@ -240,18 +238,8 @@ export function useCharacterProgression({
       return;
     }
 
-    const nextSkillLevels = Object.entries(pendingSkillLevels).reduce(
-      (skillLevels, [skillId, pendingLevel]) => ({
-        ...skillLevels,
-        [skillId]: (skillLevels[skillId] ?? 0) + pendingLevel
-      }),
-      selectedCharacter.skillLevels
-    );
-
     try {
-      const updatedCharacter = await updateCharacterProgression(token, selectedCharacter.id, {
-        skillLevels: nextSkillLevels
-      });
+      const updatedCharacter = await allocateCharacterSkills(token, selectedCharacter.id, pendingSkillLevels);
       setCharacters((currentCharacters) =>
         currentCharacters.map((character) =>
           character.id === updatedCharacter.id ? updatedCharacter : character

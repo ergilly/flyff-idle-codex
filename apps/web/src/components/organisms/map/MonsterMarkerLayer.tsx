@@ -2,6 +2,7 @@ import Image from "next/image";
 import { type CSSProperties } from "react";
 import {
   getItemIconUrl,
+  type ItemMetadata,
   type MapMonsterFamily,
   type MonsterFamily,
   type MonsterFamilyVariant
@@ -13,6 +14,7 @@ import { getTestIdSegment } from "@/lib/testIds";
 const mapMarkerSaturationPercent = 30;
 
 type MonsterMarkerLayerProps = {
+  itemsById?: Record<string, ItemMetadata>;
   markers: MapMonsterMarker[];
   monsterFamiliesByMarkerId: Record<string, MapMonsterFamily>;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
@@ -20,6 +22,7 @@ type MonsterMarkerLayerProps = {
 };
 
 export function MonsterMarkerLayer({
+  itemsById = {},
   markers,
   monsterFamiliesByMarkerId,
   onSelectMonster,
@@ -35,6 +38,7 @@ export function MonsterMarkerLayer({
         <MonsterMarker
           key={marker.id}
           marker={marker}
+          itemsById={itemsById}
           monsterFamily={monsterFamiliesByMarkerId[marker.id]}
           onSelectMonster={onSelectMonster}
           onSelectTown={onSelectTown}
@@ -45,11 +49,13 @@ export function MonsterMarkerLayer({
 }
 
 function MonsterMarker({
+  itemsById,
   marker,
   monsterFamily,
   onSelectMonster,
   onSelectTown
 }: {
+  itemsById: Record<string, ItemMetadata>;
   marker: MapMonsterMarker;
   monsterFamily?: MapMonsterFamily;
   onSelectMonster?: (monsterFamily: MapMonsterFamily) => void;
@@ -112,15 +118,17 @@ function MonsterMarker({
           />
         </span>
       </span>
-      <MonsterTooltip marker={marker} monsterFamily={monsterFamily} />
+      <MonsterTooltip itemsById={itemsById} marker={marker} monsterFamily={monsterFamily} />
     </button>
   );
 }
 
 function MonsterTooltip({
+  itemsById,
   marker,
   monsterFamily
 }: {
+  itemsById: Record<string, ItemMetadata>;
   marker: MapMonsterMarker;
   monsterFamily?: MonsterFamily;
 }) {
@@ -155,7 +163,7 @@ function MonsterTooltip({
               <MonsterVariantRow key={`${variant.variantRank}-${variant.id}`} variant={variant} />
             ))}
           </span>
-          <MonsterQuestDropBox monsterFamily={monsterFamily} />
+          <MonsterQuestDropBox itemsById={itemsById} monsterFamily={monsterFamily} />
         </>
       ) : (
         <span
@@ -219,7 +227,13 @@ function MonsterElementIcon({ element }: { element: string | null }) {
   );
 }
 
-function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }) {
+function MonsterQuestDropBox({
+  itemsById,
+  monsterFamily
+}: {
+  itemsById: Record<string, ItemMetadata>;
+  monsterFamily: MonsterFamily;
+}) {
   const monsterTestId = getTestIdSegment(monsterFamily.name);
 
   if (monsterFamily.questDrops.length === 0) {
@@ -235,7 +249,7 @@ function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }
 
   return (
     <span
-      className="grid gap-1 rounded-[4px] border border-[rgba(194,123,255,0.35)] bg-[rgba(20,9,31,0.72)] px-2 py-1.5"
+      className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-[4px] border border-[rgba(194,123,255,0.35)] bg-[rgba(20,9,31,0.72)] px-2 py-1.5"
       data-testid={`map_span_monster_quest_drops_${monsterTestId}`}
     >
       <span
@@ -244,36 +258,48 @@ function MonsterQuestDropBox({ monsterFamily }: { monsterFamily: MonsterFamily }
       >
         Quest drop
       </span>
-      {monsterFamily.questDrops.map((item) => (
-        <span
-          key={String(item.id)}
-          className="grid grid-cols-[22px_1fr] items-center gap-2"
-          data-testid={`map_span_monster_quest_drop_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
-        >
-          <span
-            className="grid h-[22px] w-[22px] place-items-center rounded-[3px] border border-[rgba(187,161,89,0.3)] bg-black/55"
-            data-testid={`map_span_monster_quest_drop_icon_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
-          >
-            {item.icon ? (
-              <Image
-                className="h-[18px] w-[18px] object-contain"
-                src={getItemIconUrl(item.icon)}
-                alt=""
-                aria-hidden="true"
-                width={18}
-                height={18}
-                unoptimized
-              />
-            ) : null}
-          </span>
-          <span
-            className="whitespace-nowrap text-[0.72rem] font-extrabold leading-tight text-foreground"
-            data-testid={`map_span_monster_quest_drop_name_${monsterTestId}_${getTestIdSegment(String(item.id))}`}
-          >
-            {item.name}
-          </span>
-        </span>
-      ))}
+      <span className="grid min-w-0 justify-items-end gap-1">
+        {monsterFamily.questDrops.map((questDrop) => {
+          const item = itemsById[String(questDrop.id)];
+          const itemIcon = item?.icon ?? questDrop.icon;
+          const itemName = item?.name ?? questDrop.name;
+
+          return (
+            <span
+              key={String(questDrop.id)}
+              className="grid min-w-0 grid-cols-[minmax(0,auto)_28px] items-center justify-end gap-2"
+              data-testid={`map_span_monster_quest_drop_${monsterTestId}_${getTestIdSegment(String(questDrop.id))}`}
+            >
+              <span
+                className="min-w-0 truncate text-right text-[0.72rem] font-extrabold leading-tight text-foreground"
+                data-testid={`map_span_monster_quest_drop_name_${monsterTestId}_${getTestIdSegment(String(questDrop.id))}`}
+              >
+                {itemName}
+              </span>
+              <span
+                className="grid h-7 w-7 place-items-center rounded-[3px] border border-[rgba(187,161,89,0.3)] bg-black/55"
+                data-testid={`map_span_monster_quest_drop_icon_${monsterTestId}_${getTestIdSegment(String(questDrop.id))}`}
+              >
+                {itemIcon ? (
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="h-6 w-6 object-contain"
+                    height={24}
+                    src={getItemIconUrl(itemIcon)}
+                    unoptimized
+                    width={24}
+                  />
+                ) : (
+                  <span className="text-xs font-black text-text-muted" aria-hidden="true">
+                    ?
+                  </span>
+                )}
+              </span>
+            </span>
+          );
+        })}
+      </span>
     </span>
   );
 }

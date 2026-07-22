@@ -3,7 +3,7 @@ import {
   consumeEquippedArrow,
   consumeEquippedConsumableItem,
   lootInventoryItems,
-  updateCharacterProgression,
+  persistCharacterBattleState,
   type Character,
   type ItemMetadata
 } from "@/lib/api";
@@ -107,7 +107,11 @@ export function useBattleSession({
     }
 
     try {
-      const updatedCharacter = await updateCharacterProgression(token, selectedCharacter.id, progression);
+      const updatedCharacter = await persistCharacterBattleState(token, selectedCharacter.id, {
+        exp: progression.exp ?? selectedCharacter.exp,
+        level: progression.level ?? selectedCharacter.level,
+        penya: progression.penya ?? selectedCharacter.penya
+      });
       updateCharacter(updatedCharacter);
     } catch {
       setError("Unable to save character progression.");

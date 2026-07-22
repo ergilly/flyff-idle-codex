@@ -1,6 +1,8 @@
 import { type ItemMetadata, type MonsterFamilyVariant } from "@/lib/api";
 import { type BattleDroppedItem } from "@/lib/battle/types";
 
+export { isQuestDropItem } from "@/lib/itemClassification";
+
 const rarityTextClassByName: Record<string, string> = {
   common: "text-[#5fb3ff]",
   uncommon: "text-[#64d875]",
@@ -112,13 +114,6 @@ export function rollMonsterPenya(monster: MonsterFamilyVariant, random: () => nu
   const maxDropGold = Math.max(minDropGold, Math.floor(monster.maxDropGold ?? minDropGold));
 
   return minDropGold + Math.floor(random() * (maxDropGold - minDropGold + 1));
-}
-
-export function isQuestDropItem(item: ItemMetadata | undefined) {
-  const category = item?.category?.toLowerCase() ?? "";
-  const subcategory = item?.subcategory?.toLowerCase() ?? "";
-
-  return category === "booty" || category.includes("quest") || subcategory.includes("quest");
 }
 
 export function getDropCategory(item: ItemMetadata | undefined): (typeof dropCategoryOrder)[number] {

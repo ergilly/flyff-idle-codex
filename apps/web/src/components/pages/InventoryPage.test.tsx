@@ -170,6 +170,29 @@ describe("InventoryPage", () => {
     expect(onMoveItem).toHaveBeenCalledWith(2, 4);
   });
 
+  it("shows item details while an occupied slot is hovered or focused", () => {
+    render(
+      <InventoryPage
+        character={character}
+        itemsById={{ "3497": woodenSword, "5325": biscuit }}
+        onSelectSlot={jest.fn()}
+        selectedSlotIndex={0}
+      />
+    );
+
+    const biscuitSlot = screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" });
+    fireEvent.mouseEnter(biscuitSlot);
+    expect(screen.getByTestId("item_details_hover_overlay")).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "Biscuit details" })).toBeInTheDocument();
+    fireEvent.mouseLeave(biscuitSlot);
+    expect(screen.queryByRole("complementary", { name: "Biscuit details" })).not.toBeInTheDocument();
+
+    fireEvent.focus(biscuitSlot);
+    expect(screen.getByRole("complementary", { name: "Biscuit details" })).toBeInTheDocument();
+    fireEvent.blur(biscuitSlot);
+    expect(screen.queryByRole("complementary", { name: "Biscuit details" })).not.toBeInTheDocument();
+  });
+
   it("disables actions while an inventory request is pending", () => {
     render(
       <InventoryPage

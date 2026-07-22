@@ -11,6 +11,8 @@ import { getTestIdSegment } from "@/lib/testIds";
 import type { TownMapId } from "@/lib/townMapLocations";
 
 type MapSidePanelProps = {
+  activeQuestIds?: number[];
+  completedQuestIds?: number[];
   characterInventory?: CharacterInventory;
   characterJob?: string;
   characterLevel?: number;
@@ -18,6 +20,8 @@ type MapSidePanelProps = {
   characterSex?: "female" | "male";
   itemsById?: Record<string, ItemMetadata>;
   navigation: ReturnType<typeof useMapNavigation>;
+  onAcceptQuest?: (npcId: number, questId: number) => Promise<void>;
+  onCompleteQuest?: (npcId: number, questId: number) => Promise<void>;
   onBuyShopItem?: (
     townMapId: TownMapId,
     locationId: string,
@@ -69,6 +73,8 @@ export function MapSidePanel({ navigation, ...props }: MapSidePanelProps) {
       </MutedText>
       {navigation.selectedTown?.townMapId ? (
         <TownInteractionPanel
+          activeQuestIds={props.activeQuestIds}
+          completedQuestIds={props.completedQuestIds}
           characterLevel={props.characterLevel}
           characterJob={props.characterJob}
           characterInventory={props.characterInventory}
@@ -76,6 +82,8 @@ export function MapSidePanel({ navigation, ...props }: MapSidePanelProps) {
           characterSex={props.characterSex}
           itemsById={props.itemsById}
           location={navigation.selectedTownLocation}
+          onAcceptQuest={props.onAcceptQuest}
+          onCompleteQuest={props.onCompleteQuest}
           onBuyItem={props.onBuyShopItem}
           onLoadBank={props.onLoadBank}
           onSellItem={props.onSellShopItem}

@@ -1,12 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import type { ButtonHTMLAttributes, DragEvent, ReactNode } from "react";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { ItemDetailsPanel } from "@/components/organisms/main-application/ItemDetailsPanel";
+import { ItemDetailsHoverOverlay } from "@/components/organisms/main-application/ItemDetailsHoverOverlay";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { getItemIconUrl, type Character, type InventorySortOption, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import { canEquipItem } from "@/lib/itemEquipment";
+import { useItemDetailsHover } from "@/hooks/useItemDetailsHover";
 
 type InventoryPageProps = {
   actionError?: string;
@@ -40,6 +44,7 @@ export function InventoryPage({
   onSortInventory,
   selectedSlotIndex
 }: InventoryPageProps) {
+  const itemHover = useItemDetailsHover();
   const inventorySlotCount = character.inventory.size;
   const inventoryItemsBySlot = new Map(character.inventory.items.map((item) => [item.slotIndex, item]));
   const selectedInventoryItem =
@@ -140,6 +145,10 @@ export function InventoryPage({
                 }}
                 onDrop={(event) => handleDrop(event, slotIndex, onMoveItem)}
                 onClick={() => onSelectSlot(inventoryItem ? slotIndex : null)}
+                onBlur={itemHover.hideItemDetails}
+                onFocus={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onMouseEnter={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onMouseLeave={itemHover.hideItemDetails}
                 title={slotLabel}
                 type="button"
               >
@@ -201,6 +210,13 @@ export function InventoryPage({
           </div>
         ) : null}
       </ItemDetailsPanel>
+      {itemHover.inspectedItem ? (
+        <ItemDetailsHoverOverlay
+          {...itemHover.inspectedItem}
+          character={character}
+          equippedItemIds={activeEquipmentItemIds}
+        />
+      ) : null}
     </section>
   );
 }

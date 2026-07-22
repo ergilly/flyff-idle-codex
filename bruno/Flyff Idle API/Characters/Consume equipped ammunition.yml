@@ -1,0 +1,38 @@
+info:
+  name: Consume equipped ammunition
+  type: http
+  seq: 14
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/equipment/ammo/consume"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "equipmentSet": 0
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("consumes one arrow from the selected equipment set", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.ammoQuantity).to.be.a("number");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
