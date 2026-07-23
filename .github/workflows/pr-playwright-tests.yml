@@ -36,6 +36,11 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Initialize test database
+        run: |
+          npm run db:migrate -w @flyff-idle/api
+          npm run db:seed -w @flyff-idle/api
+
       - name: Run UI Playwright tests
         run: npm run test:ui
 
