@@ -44,6 +44,9 @@ describe("QuestLogPanel", () => {
       />
     );
 
+    expect(screen.getByRole("heading", { name: "Select a quest" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Blessed Doll" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Blessed Doll/ }));
     expect(screen.getByRole("heading", { name: "Blessed Doll" })).toBeInTheDocument();
     expect(screen.getByText("Collect 7 x Mia Doll")).toBeInTheDocument();
     expect(screen.getByLabelText("Collect 7 x Mia Doll progress")).toHaveTextContent("7/7");
@@ -81,6 +84,7 @@ describe("QuestLogPanel", () => {
       />
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /Blessed Doll/ }));
     fireEvent.click(screen.getByRole("button", { name: "Abandon quest" }));
     expect(screen.getByText(/You can accept it again from Mikyel/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -102,8 +106,11 @@ describe("QuestLogPanel", () => {
       />
     );
 
+    fireEvent.click(screen.getByText("Completed quests (1)"));
+    fireEvent.click(screen.getByRole("button", { name: /Blessed Doll/ }));
     expect(screen.getByText("Completed quest")).toBeInTheDocument();
     expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByLabelText("Collect 7 x Mia Doll progress")).toHaveTextContent("7/7");
     expect(screen.queryByRole("button", { name: "Abandon quest" })).not.toBeInTheDocument();
   });
 });

@@ -37,7 +37,9 @@ describe("QuestsPage", () => {
     );
 
     expect(screen.getByText("Loading active quests...")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Blessed Doll" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Select a quest" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Blessed Doll/ }));
+    expect(screen.getByRole("heading", { name: "Blessed Doll" })).toBeInTheDocument();
     expect(screen.getByLabelText("Collect 7 x Mia Doll progress")).toHaveTextContent("4/7");
     expect(mockedFetchActiveQuests).toHaveBeenCalledWith([129]);
   });
@@ -101,7 +103,8 @@ describe("QuestsPage", () => {
       />
     );
 
-    await screen.findByRole("heading", { name: "Blessed Doll" });
+    await screen.findByRole("heading", { name: "Select a quest" });
+    fireEvent.click(screen.getByRole("button", { name: /Blessed Doll/ }));
     fireEvent.click(screen.getByRole("button", { name: "Abandon quest" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirm abandon" }));
     await waitFor(() => expect(onAbandonQuest).toHaveBeenCalledWith(129));

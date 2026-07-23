@@ -3,9 +3,11 @@ import { cx } from "@/lib/classNames";
 import { getQuestItemProgress } from "@/lib/questProgress";
 
 export function QuestObjectivesSection({
+  completed = false,
   inventoryItems,
   objectives
 }: {
+  completed?: boolean;
   inventoryItems: CharacterInventoryItem[];
   objectives: ActiveQuestObjective[];
 }) {
@@ -16,6 +18,7 @@ export function QuestObjectivesSection({
         <ul className="grid gap-2 text-sm text-foreground">
           {objectives.map((objective, index) => (
             <QuestObjective
+              completed={completed}
               inventoryItems={inventoryItems}
               key={`${objective.label}-${index}`}
               objective={objective}
@@ -30,19 +33,26 @@ export function QuestObjectivesSection({
 }
 
 function QuestObjective({
+  completed,
   inventoryItems,
   objective
 }: {
+  completed: boolean;
   inventoryItems: CharacterInventoryItem[];
   objective: ActiveQuestObjective;
 }) {
   if (objective.kind !== "item") {
     return (
-      <li className="rounded-control border border-border bg-panel-muted px-3 py-2">{objective.label}</li>
+      <li className="flex items-center justify-between gap-3 rounded-control border border-border bg-panel-muted px-3 py-2">
+        <span>{objective.label}</span>
+        {completed ? <strong className="text-primary-strong">Completed</strong> : null}
+      </li>
     );
   }
 
-  const progress = getQuestItemProgress(inventoryItems, objective.itemId, objective.requiredCount);
+  const progress = completed
+    ? { current: objective.requiredCount, isComplete: true, required: objective.requiredCount }
+    : getQuestItemProgress(inventoryItems, objective.itemId, objective.requiredCount);
   const progressPercent = progress.required > 0 ? (progress.current / progress.required) * 100 : 100;
 
   return (

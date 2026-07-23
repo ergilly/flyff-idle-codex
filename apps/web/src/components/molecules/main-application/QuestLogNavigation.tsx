@@ -7,7 +7,7 @@ type QuestLogNavigationProps = {
   activeQuests: ActiveQuest[];
   completedQuests: ActiveQuest[];
   onSelect: (questId: number) => void;
-  selectedQuestId: number;
+  selectedQuestId: number | null;
 };
 
 export function QuestLogNavigation({

@@ -36,7 +36,7 @@ export function QuestLogPanel({
   const [pendingAbandonQuestId, setPendingAbandonQuestId] = useState<number | null>(null);
   const [selectedQuestId, setSelectedQuestId] = useState<number | null>(null);
   const allQuests = [...quests, ...completedQuests];
-  const selectedQuest = allQuests.find((quest) => quest.id === selectedQuestId) ?? allQuests[0];
+  const selectedQuest = allQuests.find((quest) => quest.id === selectedQuestId);
   const selectedQuestIsCompleted = completedQuests.some((quest) => quest.id === selectedQuest?.id);
 
   async function abandonQuest(questId: number) {
@@ -54,7 +54,7 @@ export function QuestLogPanel({
     }
   }
 
-  if (!selectedQuest) {
+  if (allQuests.length === 0) {
     return (
       <Panel as="section" className="place-items-center py-14 text-center" data-testid="quests_panel_empty">
         <SectionHeading eyebrow="Quest Log" title="No active quests" />
@@ -78,101 +78,114 @@ export function QuestLogPanel({
           setConfirmAbandonQuestId(null);
           setSelectedQuestId(questId);
         }}
-        selectedQuestId={selectedQuest.id}
+        selectedQuestId={selectedQuestId}
       />
 
-      <Panel as="article" className="min-h-0 content-start gap-5 overflow-y-auto">
-        <header className="grid gap-2 border-b-2 border-border pb-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wide text-primary-strong">
-                {selectedQuestIsCompleted ? "Completed quest" : "Active quest"}
-              </p>
-              <h2 className="text-2xl font-black text-foreground">{selectedQuest.name}</h2>
-            </div>
-            <span
-              className={cx(
-                "rounded-full px-3 py-1 text-xs font-black uppercase",
-                selectedQuestIsCompleted
-                  ? "bg-panel-muted text-text-muted grayscale"
-                  : "bg-primary text-background"
-              )}
-            >
-              {selectedQuestIsCompleted ? "Completed" : "Active"}
-            </span>
-          </div>
-          <p className="text-sm leading-6 text-text-muted">
-            {selectedQuest.description || "No quest description is available."}
-          </p>
-        </header>
-
-        <QuestObjectivesSection inventoryItems={inventoryItems} objectives={selectedQuest.objectives} />
-
-        {selectedQuest.instructions.length > 0 ? (
-          <QuestDetailSection title="Instructions" values={selectedQuest.instructions} />
-        ) : null}
-
-        <section className="grid gap-2">
-          <h3 className="text-sm font-black uppercase tracking-wide text-primary-strong">Quest contacts</h3>
-          <dl className="grid gap-2 rounded-control border-2 border-border bg-panel-muted p-3 text-sm">
-            <QuestContact label="Accepted from" name={selectedQuest.giverName} />
-            <QuestContact label="Hand in to" name={selectedQuest.handInName} />
-          </dl>
-        </section>
-
-        <QuestDetailSection
-          title="Rewards"
-          values={getQuestRewardLabels(selectedQuest, characterLevel, characterProgressionRank)}
-          empty="No listed rewards."
-        />
-
-        {onAbandonQuest && !selectedQuestIsCompleted ? (
-          <section className="grid gap-2 border-t-2 border-border pt-4">
-            {confirmAbandonQuestId === selectedQuest.id ? (
-              <div className="grid gap-2 rounded-control border-2 border-danger bg-danger/10 p-3">
-                <p className="text-sm font-bold text-foreground">
-                  Abandon {selectedQuest.name}? You can accept it again from{" "}
-                  {selectedQuest.giverName ?? "its NPC"}.
+      {selectedQuest ? (
+        <Panel as="article" className="min-h-0 content-start gap-5 overflow-y-auto">
+          <header className="grid gap-2 border-b-2 border-border pb-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-primary-strong">
+                  {selectedQuestIsCompleted ? "Completed quest" : "Active quest"}
                 </p>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    className="min-h-10 rounded-control border-2 border-border px-4 font-black text-foreground"
-                    disabled={pendingAbandonQuestId !== null}
-                    onClick={() => setConfirmAbandonQuestId(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="min-h-10 rounded-control bg-danger px-4 font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
-                    disabled={pendingAbandonQuestId !== null}
-                    onClick={() => void abandonQuest(selectedQuest.id)}
-                    type="button"
-                  >
-                    {pendingAbandonQuestId === selectedQuest.id ? "Abandoning..." : "Confirm abandon"}
-                  </button>
-                </div>
+                <h2 className="text-2xl font-black text-foreground">{selectedQuest.name}</h2>
               </div>
-            ) : (
-              <button
-                className="min-h-10 justify-self-start rounded-control border-2 border-danger px-4 font-black text-danger transition-colors hover:bg-danger/10"
-                onClick={() => {
-                  setAbandonError("");
-                  setConfirmAbandonQuestId(selectedQuest.id);
-                }}
-                type="button"
+              <span
+                className={cx(
+                  "rounded-full px-3 py-1 text-xs font-black uppercase",
+                  selectedQuestIsCompleted
+                    ? "bg-panel-muted text-text-muted grayscale"
+                    : "bg-primary text-background"
+                )}
               >
-                Abandon quest
-              </button>
-            )}
-            {abandonError ? (
-              <p className="text-sm font-bold text-danger" role="alert">
-                {abandonError}
-              </p>
-            ) : null}
+                {selectedQuestIsCompleted ? "Completed" : "Active"}
+              </span>
+            </div>
+            <p className="text-sm leading-6 text-text-muted">
+              {selectedQuest.description || "No quest description is available."}
+            </p>
+          </header>
+
+          <QuestObjectivesSection
+            completed={selectedQuestIsCompleted}
+            inventoryItems={inventoryItems}
+            objectives={selectedQuest.objectives}
+          />
+
+          {selectedQuest.instructions.length > 0 ? (
+            <QuestDetailSection title="Instructions" values={selectedQuest.instructions} />
+          ) : null}
+
+          <section className="grid gap-2">
+            <h3 className="text-sm font-black uppercase tracking-wide text-primary-strong">Quest contacts</h3>
+            <dl className="grid gap-2 rounded-control border-2 border-border bg-panel-muted p-3 text-sm">
+              <QuestContact label="Accepted from" name={selectedQuest.giverName} />
+              <QuestContact label="Hand in to" name={selectedQuest.handInName} />
+            </dl>
           </section>
-        ) : null}
-      </Panel>
+
+          <QuestDetailSection
+            title="Rewards"
+            values={getQuestRewardLabels(selectedQuest, characterLevel, characterProgressionRank)}
+            empty="No listed rewards."
+          />
+
+          {onAbandonQuest && !selectedQuestIsCompleted ? (
+            <section className="grid gap-2 border-t-2 border-border pt-4">
+              {confirmAbandonQuestId === selectedQuest.id ? (
+                <div className="grid gap-2 rounded-control border-2 border-danger bg-danger/10 p-3">
+                  <p className="text-sm font-bold text-foreground">
+                    Abandon {selectedQuest.name}? You can accept it again from{" "}
+                    {selectedQuest.giverName ?? "its NPC"}.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      className="min-h-10 rounded-control border-2 border-border px-4 font-black text-foreground"
+                      disabled={pendingAbandonQuestId !== null}
+                      onClick={() => setConfirmAbandonQuestId(null)}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="min-h-10 rounded-control bg-danger px-4 font-black text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={pendingAbandonQuestId !== null}
+                      onClick={() => void abandonQuest(selectedQuest.id)}
+                      type="button"
+                    >
+                      {pendingAbandonQuestId === selectedQuest.id ? "Abandoning..." : "Confirm abandon"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="min-h-10 justify-self-start rounded-control border-2 border-danger px-4 font-black text-danger transition-colors hover:bg-danger/10"
+                  onClick={() => {
+                    setAbandonError("");
+                    setConfirmAbandonQuestId(selectedQuest.id);
+                  }}
+                  type="button"
+                >
+                  Abandon quest
+                </button>
+              )}
+              {abandonError ? (
+                <p className="text-sm font-bold text-danger" role="alert">
+                  {abandonError}
+                </p>
+              ) : null}
+            </section>
+          ) : null}
+        </Panel>
+      ) : (
+        <Panel as="section" className="place-items-center self-stretch py-14 text-center">
+          <SectionHeading eyebrow="Quest Log" title="Select a quest" />
+          <p className="max-w-md text-sm text-text-muted">
+            Choose an active or completed quest to view its objectives, contacts, and rewards.
+          </p>
+        </Panel>
+      )}
     </section>
   );
 }
