@@ -6,6 +6,7 @@ import { InfoRow } from "@/components/atoms/battle/CombatInfoRow";
 import { MutedText } from "@/components/atoms/MutedText";
 import { DropItemImage, SmallDropItemImage } from "@/components/molecules/battle/DropItemImages";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
+import { ItemDetailsHoverOverlay } from "@/components/organisms/main-application/ItemDetailsHoverOverlay";
 import { type ItemMetadata, type MapMonsterFamily, type MonsterFamilyVariant } from "@/lib/api";
 import {
   dropCategoryLabels,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/battle/loot";
 import { cx } from "@/lib/classNames";
 import { getTestIdSegment } from "@/lib/testIds";
+import { useItemDetailsHover } from "@/hooks/useItemDetailsHover";
 
 export function MonsterDropsOverlay({
   itemsById,
@@ -30,6 +32,7 @@ export function MonsterDropsOverlay({
   onClose: () => void;
   selectedVariant: MonsterFamilyVariant | null;
 }) {
+  const itemHover = useItemDetailsHover();
   const [collapsedDropSections, setCollapsedDropSections] = useState<Set<string>>(() => new Set());
   const drops = selectedVariant?.drops ?? [];
   const explicitQuestDrops = monsterFamily?.questDrops ?? [];
@@ -110,10 +113,15 @@ export function MonsterDropsOverlay({
             const item = itemsById[String(questDrop.id)];
 
             return (
-              <div
+              <button
                 className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
                 data-testid={`battle_div_monster_quest_drop_${index}`}
                 key={`${questDrop.id}-${index}`}
+                onBlur={itemHover.hideItemDetails}
+                onFocus={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onMouseEnter={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onMouseLeave={itemHover.hideItemDetails}
+                type="button"
               >
                 <span
                   className="text-text-muted"
@@ -133,7 +141,7 @@ export function MonsterDropsOverlay({
                     name={item?.name ?? questDrop.name}
                   />
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -166,13 +174,18 @@ export function MonsterDropsOverlay({
                         const item = itemsById[String(drop.item)];
 
                         return (
-                          <div
+                          <button
                             className={cx(
                               "grid grid-cols-[42px_1fr] items-center gap-3 rounded-control border bg-black/24 p-2 text-sm font-bold",
                               getDropRarityBorderClass(item?.rarity)
                             )}
                             data-testid={`battle_div_monster_drop_${getTestIdSegment(group.label)}_${index}`}
                             key={`${drop.item}-${index}`}
+                            onBlur={itemHover.hideItemDetails}
+                            onFocus={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                            onMouseEnter={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                            onMouseLeave={itemHover.hideItemDetails}
+                            type="button"
                           >
                             <DropItemImage icon={item?.icon} isQuestDrop={false} name={item?.name} />
                             <div className="grid min-w-0 gap-0.5">
@@ -183,7 +196,7 @@ export function MonsterDropsOverlay({
                                 {item?.name ?? `Item ${drop.item}`}
                               </strong>
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -196,6 +209,7 @@ export function MonsterDropsOverlay({
           <MutedText data-testid="battle_p_no_monster_drops">No drops are listed for this monster.</MutedText>
         ) : null}
       </div>
+      {itemHover.inspectedItem ? <ItemDetailsHoverOverlay {...itemHover.inspectedItem} /> : null}
     </div>
   );
 }

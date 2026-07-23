@@ -1,0 +1,18 @@
+{
+  "29": {
+    "id": 29,
+    "name": "Mikyel",
+    "place": "questoffice",
+    "menus": ["dialog"],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7129.189,
+        "y": 99.95781,
+        "z": 3252.483,
+        "continent": 8859
+      }
+    ],
+    "image": "agent.png"
+  }
+}

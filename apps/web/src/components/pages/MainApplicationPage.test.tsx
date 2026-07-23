@@ -1,19 +1,24 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MainApplicationPage } from "./MainApplicationPage";
 import {
+  abandonCharacterQuest,
+  acceptCharacterQuest,
   addCharacterInventoryItem,
+  allocateCharacterSkills,
+  allocateCharacterStats,
+  completeCharacterQuest,
   consumeEquippedConsumableItem,
   equipInventoryItem,
   fetchCharacters,
   fetchItems,
   moveInventoryItem,
   purchaseTownShopItem,
+  persistCharacterBattleState,
   refundCharacterSkills,
   refundCharacterStats,
   sortInventory,
   travelCharacter,
   unequipItem,
-  updateCharacterProgression,
   type Character
 } from "@/lib/api";
 import { fetchUnlockedSkillTabs } from "@/lib/skillTrees";
@@ -27,7 +32,12 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("@/lib/api", () => ({
+  abandonCharacterQuest: jest.fn(),
+  acceptCharacterQuest: jest.fn(),
   addCharacterInventoryItem: jest.fn(),
+  allocateCharacterSkills: jest.fn(),
+  allocateCharacterStats: jest.fn(),
+  completeCharacterQuest: jest.fn(),
   consumeEquippedArrow: jest.fn(),
   consumeEquippedConsumableItem: jest.fn(),
   equipInventoryItem: jest.fn(),
@@ -36,13 +46,13 @@ jest.mock("@/lib/api", () => ({
   lootInventoryItems: jest.fn(),
   moveInventoryItem: jest.fn(),
   purchaseTownShopItem: jest.fn(),
+  persistCharacterBattleState: jest.fn(),
   sellCharacterInventoryItem: jest.fn(),
   refundCharacterSkills: jest.fn(),
   refundCharacterStats: jest.fn(),
   sortInventory: jest.fn(),
   travelCharacter: jest.fn(),
-  unequipItem: jest.fn(),
-  updateCharacterProgression: jest.fn()
+  unequipItem: jest.fn()
 }));
 
 jest.mock("@/lib/characterProgression", () => ({
@@ -61,7 +71,13 @@ jest.mock("@/lib/skillTrees", () => ({
 }));
 
 jest.mock("@/components/organisms/main-application/MainApplicationSidebar", () => ({
-  navItems: [{ label: "Character Page" }, { label: "Inventory" }, { label: "Map" }, { label: "Combat" }],
+  navItems: [
+    { label: "Character Page" },
+    { label: "Inventory" },
+    { label: "Quests" },
+    { label: "Map" },
+    { label: "Combat" }
+  ],
   MainApplicationSidebar: ({
     isAdmin,
     onLogout,
@@ -81,6 +97,9 @@ jest.mock("@/components/organisms/main-application/MainApplicationSidebar", () =
       </button>
       <button type="button" onClick={() => onSelectNavItem("Inventory")}>
         Inventory
+      </button>
+      <button type="button" onClick={() => onSelectNavItem("Quests")}>
+        Quests
       </button>
       <button type="button" onClick={() => onSelectNavItem("Map")}>
         Map
@@ -352,12 +371,16 @@ jest.mock("./BattlePage", () => ({
 jest.mock("./MapPage", () => ({
   MapPage: ({
     initialTownMapId,
+    onAcceptQuest,
     onBuyShopItem,
+    onCompleteQuest,
     onSelectMonster,
     onTravel
   }: {
     initialTownMapId?: string;
+    onAcceptQuest: (npcId: number, questId: number) => Promise<void>;
     onBuyShopItem: (townMapId: string, locationId: string, itemId: string, quantity: number) => void;
+    onCompleteQuest: (npcId: number, questId: number) => Promise<void>;
     onSelectMonster: (monsterFamily: { name: string }) => void;
     onTravel: (destination: "saint", method: "flying") => Promise<void>;
   }) => (
@@ -369,8 +392,40 @@ jest.mock("./MapPage", () => ({
       <button type="button" onClick={() => onBuyShopItem("flarine-town", "general-store", "5869", 3)}>
         Buy Skill Poster
       </button>
+      <button type="button" onClick={() => void onAcceptQuest(29, 129)}>
+        Accept Blessed Doll
+      </button>
+      <button type="button" onClick={() => void onCompleteQuest(29, 129)}>
+        Complete Blessed Doll
+      </button>
       <button type="button" onClick={() => void onTravel("saint", "flying")}>
         Move Region
+      </button>
+    </section>
+  )
+}));
+
+jest.mock("./QuestsPage", () => ({
+  QuestsPage: ({
+    activeQuestIds = [],
+    characterLevel,
+    characterProgressionRank,
+    inventoryItems = [],
+    onAbandonQuest
+  }: {
+    activeQuestIds?: number[];
+    characterLevel: number;
+    characterProgressionRank: string;
+    inventoryItems?: Array<{ itemId: string; quantity: number }>;
+    onAbandonQuest: (questId: number) => Promise<void>;
+  }) => (
+    <section aria-label="mock quests">
+      <p>
+        Active quests {activeQuestIds.join(",") || "none"}; level {characterLevel} {characterProgressionRank};
+        inventory {inventoryItems.map((item) => `${item.itemId}:${item.quantity}`).join(",") || "empty"}
+      </p>
+      <button type="button" onClick={() => void onAbandonQuest(129)}>
+        Abandon Blessed Doll
       </button>
     </section>
   )
@@ -555,9 +610,8 @@ describe("MainApplicationPage", () => {
     const statUpdated = { ...underSpentCharacter, stats: { ...underSpentCharacter.stats, str: 11 } };
     const skillUpdated = { ...statUpdated, skillLevels: { "vagrant-clean-hit": 1 } };
     const unequipped = { ...skillUpdated, equipment: { ...skillUpdated.equipment, cloak: null } };
-    (updateCharacterProgression as jest.Mock)
-      .mockResolvedValueOnce(statUpdated)
-      .mockResolvedValueOnce(skillUpdated);
+    (allocateCharacterStats as jest.Mock).mockResolvedValue(statUpdated);
+    (allocateCharacterSkills as jest.Mock).mockResolvedValue(skillUpdated);
     (unequipItem as jest.Mock).mockResolvedValue(unequipped);
 
     render(<MainApplicationPage />);
@@ -568,19 +622,18 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
 
     await waitFor(() =>
-      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
-        stats: { str: 11, sta: 10, dex: 10, int: 10 }
+      expect(allocateCharacterStats).toHaveBeenCalledWith("token", "char-1", {
+        str: 1,
+        sta: 0,
+        dex: 0,
+        int: 0
       })
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Add Skill" }));
     fireEvent.click(screen.getByRole("button", { name: "Apply Skills" }));
 
-    await waitFor(() =>
-      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
-        skillLevels: {}
-      })
-    );
+    await waitFor(() => expect(allocateCharacterSkills).toHaveBeenCalledWith("token", "char-1", {}));
 
     fireEvent.click(screen.getByRole("button", { name: "Unequip Cloak" }));
     await waitFor(() => expect(unequipItem).toHaveBeenCalledWith("token", "char-1", "cloak", 0));
@@ -592,7 +645,7 @@ describe("MainApplicationPage", () => {
       stats: { str: 10, sta: 10, dex: 10, int: 10 }
     };
     arrangeSession(underSpentCharacter);
-    (updateCharacterProgression as jest.Mock).mockResolvedValue({
+    (allocateCharacterStats as jest.Mock).mockResolvedValue({
       ...underSpentCharacter,
       stats: { ...underSpentCharacter.stats, str: 20 }
     });
@@ -604,15 +657,18 @@ describe("MainApplicationPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Max STR" }));
 
-    expect(updateCharacterProgression).not.toHaveBeenCalled();
+    expect(allocateCharacterStats).not.toHaveBeenCalled();
     expect(getByTextContent("available stats 0")).toBeInTheDocument();
     expect(getByTextContent("pending str 10")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
 
     await waitFor(() =>
-      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
-        stats: { str: 20, sta: 10, dex: 10, int: 10 }
+      expect(allocateCharacterStats).toHaveBeenCalledWith("token", "char-1", {
+        str: 10,
+        sta: 0,
+        dex: 0,
+        int: 0
       })
     );
   });
@@ -623,7 +679,7 @@ describe("MainApplicationPage", () => {
       stats: { str: 10, sta: 10, dex: 10, int: 10 }
     };
     arrangeSession(underSpentCharacter);
-    (updateCharacterProgression as jest.Mock).mockResolvedValue({
+    (allocateCharacterStats as jest.Mock).mockResolvedValue({
       ...underSpentCharacter,
       stats: { ...underSpentCharacter.stats, str: 17 }
     });
@@ -647,8 +703,11 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
 
     await waitFor(() =>
-      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", {
-        stats: { str: 17, sta: 10, dex: 10, int: 10 }
+      expect(allocateCharacterStats).toHaveBeenCalledWith("token", "char-1", {
+        str: 7,
+        sta: 0,
+        dex: 0,
+        int: 0
       })
     );
   });
@@ -775,6 +834,70 @@ describe("MainApplicationPage", () => {
     );
   });
 
+  it("opens the selected character's quest log", async () => {
+    arrangeSession({ ...baseCharacter, activeQuestIds: [129] });
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Quests" }));
+
+    expect(screen.getByText("Active quests 129; level 20 normal; inventory 5325:3")).toBeInTheDocument();
+  });
+
+  it("accepts a quest for the selected character", async () => {
+    const eligibleCharacter = { ...baseCharacter, level: 23, activeQuestIds: [] };
+    arrangeSession(eligibleCharacter);
+    (acceptCharacterQuest as jest.Mock).mockResolvedValue({
+      ...eligibleCharacter,
+      activeQuestIds: [129]
+    });
+
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Accept Blessed Doll" }));
+
+    await waitFor(() => expect(acceptCharacterQuest).toHaveBeenCalledWith("token", "char-1", 129, 29));
+  });
+
+  it("completes a quest for the selected character", async () => {
+    const readyCharacter = { ...baseCharacter, level: 23, activeQuestIds: [129] };
+    arrangeSession(readyCharacter);
+    (completeCharacterQuest as jest.Mock).mockResolvedValue({
+      ...readyCharacter,
+      activeQuestIds: [],
+      completedQuestIds: [129],
+      exp: 3633,
+      penya: 11510
+    });
+
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    fireEvent.click(screen.getByRole("button", { name: "Complete Blessed Doll" }));
+
+    await waitFor(() => expect(completeCharacterQuest).toHaveBeenCalledWith("token", "char-1", 129, 29));
+  });
+
+  it("abandons a quest for the selected character", async () => {
+    const characterWithQuest = { ...baseCharacter, activeQuestIds: [129] };
+    arrangeSession(characterWithQuest);
+    (abandonCharacterQuest as jest.Mock).mockResolvedValue({
+      ...characterWithQuest,
+      activeQuestIds: []
+    });
+
+    render(<MainApplicationPage />);
+
+    await waitForSelectedCharacter();
+    fireEvent.click(screen.getByRole("button", { name: "Quests" }));
+    fireEvent.click(screen.getByRole("button", { name: "Abandon Blessed Doll" }));
+
+    await waitFor(() => expect(abandonCharacterQuest).toHaveBeenCalledWith("token", "char-1", 129));
+  });
+
   it("decrements equipped consumable stacks through the inventory API", async () => {
     const characterWithConsumable = {
       ...baseCharacter,
@@ -793,7 +916,7 @@ describe("MainApplicationPage", () => {
         mp: null
       }
     });
-    (updateCharacterProgression as jest.Mock).mockResolvedValue({
+    (persistCharacterBattleState as jest.Mock).mockResolvedValue({
       ...characterWithConsumable,
       penya: 999,
       consumableLoadout: {
@@ -821,7 +944,11 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save Progression" }));
 
     await waitFor(() =>
-      expect(updateCharacterProgression).toHaveBeenCalledWith("token", "char-1", { penya: 999 })
+      expect(persistCharacterBattleState).toHaveBeenCalledWith("token", "char-1", {
+        exp: 0,
+        level: 20,
+        penya: 999
+      })
     );
     expect(screen.getByText("Combat consumables 5325:2")).toBeInTheDocument();
   });
@@ -902,7 +1029,8 @@ describe("MainApplicationPage", () => {
 
   it("handles failed character, inventory, and admin actions", async () => {
     arrangeSession();
-    (updateCharacterProgression as jest.Mock).mockRejectedValue(new Error("save failed"));
+    (allocateCharacterStats as jest.Mock).mockRejectedValue(new Error("save failed"));
+    (allocateCharacterSkills as jest.Mock).mockRejectedValue(new Error("save failed"));
     (unequipItem as jest.Mock).mockRejectedValue(new Error("unequip failed"));
     (equipInventoryItem as jest.Mock).mockRejectedValue(new Error("equip failed"));
     (moveInventoryItem as jest.Mock).mockRejectedValue(new Error("move failed"));
@@ -939,7 +1067,8 @@ describe("MainApplicationPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply Stats" }));
     fireEvent.click(screen.getByRole("button", { name: "Apply Skills" }));
 
-    await waitFor(() => expect(updateCharacterProgression).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(allocateCharacterStats).toHaveBeenCalledTimes(1));
+    expect(allocateCharacterSkills).toHaveBeenCalledTimes(1);
   });
 
   it("shows an error state when the selected character cannot load", async () => {

@@ -14,6 +14,7 @@ import { AdminPage } from "@/components/pages/AdminPage";
 import { BattlePage } from "@/components/pages/BattlePage";
 import { InventoryPage } from "@/components/pages/InventoryPage";
 import { MapPage } from "@/components/pages/MapPage";
+import { QuestsPage } from "@/components/pages/QuestsPage";
 import { ContentHeading } from "@/components/molecules/main-application/ContentHeading";
 import { CharacterPageContent } from "@/components/organisms/main-application/CharacterPageContent";
 import { DashboardStatsGrid } from "@/components/organisms/main-application/DashboardStatsGrid";
@@ -31,6 +32,9 @@ import {
   MainApplicationTemplate
 } from "@/components/templates/main-application/MainApplicationTemplate";
 import {
+  abandonCharacterQuest,
+  acceptCharacterQuest,
+  completeCharacterQuest,
   fetchCharacters,
   purchaseTownShopItem,
   sellCharacterInventoryItem,
@@ -268,6 +272,39 @@ export function MainApplicationPage() {
     setSelectedMonsterFamily(null);
   }
 
+  async function handleAcceptQuest(npcId: number, questId: number) {
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token || !selectedCharacter) {
+      router.replace("/");
+      throw new Error("Authentication is required");
+    }
+
+    updateCharacter(await acceptCharacterQuest(token, selectedCharacter.id, questId, npcId));
+  }
+
+  async function handleAbandonQuest(questId: number) {
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token || !selectedCharacter) {
+      router.replace("/");
+      throw new Error("Authentication is required");
+    }
+
+    updateCharacter(await abandonCharacterQuest(token, selectedCharacter.id, questId));
+  }
+
+  async function handleCompleteQuest(npcId: number, questId: number) {
+    const token = localStorage.getItem("flyffIdleToken");
+
+    if (!token || !selectedCharacter) {
+      router.replace("/");
+      throw new Error("Authentication is required");
+    }
+
+    updateCharacter(await completeCharacterQuest(token, selectedCharacter.id, questId, npcId));
+  }
+
   function updateCharacter(updatedCharacter: Character) {
     setCharacters((currentCharacters) =>
       currentCharacters.map((character) =>
@@ -404,8 +441,19 @@ export function MainApplicationPage() {
             onSortInventory={handleSortInventory}
             selectedSlotIndex={selectedInventorySlotIndex}
           />
+        ) : activeNavItem === "Quests" ? (
+          <QuestsPage
+            activeQuestIds={selectedCharacter.activeQuestIds}
+            characterLevel={selectedCharacter.level}
+            characterProgressionRank={selectedCharacter.progressionRank}
+            completedQuestIds={selectedCharacter.completedQuestIds}
+            inventoryItems={selectedCharacter.inventory.items}
+            onAbandonQuest={handleAbandonQuest}
+          />
         ) : activeNavItem === "Map" ? (
           <MapPage
+            activeQuestIds={selectedCharacter.activeQuestIds}
+            completedQuestIds={selectedCharacter.completedQuestIds}
             characterLocation={selectedCharacter.location}
             characterJob={selectedCharacter.job}
             characterLevel={selectedCharacter.level}
@@ -415,7 +463,9 @@ export function MainApplicationPage() {
             equippedFlyingItemId={getCharacterEquipmentSet(selectedCharacter, activeEquipmentSet).flying}
             itemsById={itemsById}
             initialTownMapId={respawnTownMapId}
+            onAcceptQuest={handleAcceptQuest}
             onBuyShopItem={handleBuyShopItem}
+            onCompleteQuest={handleCompleteQuest}
             onLoadBank={handleLoadBank}
             onEnterTown={() => setSelectedMonsterFamily(null)}
             onSellShopItem={handleSellShopItem}

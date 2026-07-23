@@ -1,0 +1,38 @@
+{
+  "88": {
+    "id": 88,
+    "name": "Successor of Hero -Altar-",
+    "type": "chain",
+    "repeatable": false,
+    "removable": false,
+    "minLevel": 60,
+    "maxLevel": 190
+  },
+  "129": {
+    "id": 129,
+    "name": "Blessed Doll",
+    "type": "category",
+    "repeatable": false,
+    "removable": true,
+    "beginNPC": 29,
+    "minLevel": 23,
+    "maxLevel": 190,
+    "endNPC": 29,
+    "endNeededItems": [
+      {
+        "item": 7166,
+        "count": 7
+      }
+    ],
+    "endRemoveItems": [
+      {
+        "item": 7166,
+        "count": 7
+      }
+    ],
+    "endReceiveGold": 11500,
+    "endReceiveExperience": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35],
+    "description": "Bring $QUEST_END_ITEM_COUNT$ $QUEST_END_ITEM_NAME$ to $QUEST_END_NPC_NAME$.",
+    "dialogsAccept": ["You can collect $QUEST_END_ITEM_NAME$ from all types of $QUEST_END_ITEM_MON$."]
+  }
+}

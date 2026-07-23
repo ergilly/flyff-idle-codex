@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/atoms/Button";
@@ -10,10 +9,11 @@ import { Panel } from "@/components/atoms/Panel";
 import { Stack } from "@/components/atoms/Stack";
 import { StatRow } from "@/components/atoms/StatRow";
 import { TextField } from "@/components/atoms/TextField";
+import { AdminItemResultButton } from "@/components/molecules/admin/AdminItemResultButton";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
-import { fetchDataSet, getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
-import { cx } from "@/lib/classNames";
-import { getTestIdSegment } from "@/lib/testIds";
+import { ItemDetailsHoverOverlay } from "@/components/organisms/main-application/ItemDetailsHoverOverlay";
+import { fetchDataSet, type Character, type ItemMetadata } from "@/lib/api";
+import { useItemDetailsHover } from "@/hooks/useItemDetailsHover";
 
 type AdminPageProps = {
   addingInventoryItem: boolean;
@@ -38,6 +38,7 @@ export function AdminPage({
   onRefundSkills,
   onRefundStats
 }: AdminPageProps) {
+  const itemHover = useItemDetailsHover();
   const [itemQuery, setItemQuery] = useState("");
   const [itemResults, setItemResults] = useState<ItemMetadata[]>([]);
   const [selectedItem, setSelectedItem] = useState<ItemMetadata | null>(null);
@@ -79,7 +80,6 @@ export function AdminPage({
 
     try {
       const results = await fetchDataSet<ItemMetadata>("items", {
-        fields: "id,name,icon,category,level,rarity,stack",
         limit: 12,
         q: itemQuery.trim()
       });
@@ -232,11 +232,13 @@ export function AdminPage({
             >
               {itemResults.length > 0 ? (
                 itemResults.map((item) => (
-                  <ItemResultButton
+                  <AdminItemResultButton
                     item={item}
                     isSelected={String(selectedItem?.id) === String(item.id)}
                     key={String(item.id)}
                     onClick={() => setSelectedItem(item)}
+                    onHideDetails={itemHover.hideItemDetails}
+                    onInspect={(event) => itemHover.inspectItem(item, event)}
                   />
                 ))
               ) : (
@@ -302,64 +304,9 @@ export function AdminPage({
           </Stack>
         </div>
       </Panel>
+      {itemHover.inspectedItem ? (
+        <ItemDetailsHoverOverlay {...itemHover.inspectedItem} character={character} />
+      ) : null}
     </div>
-  );
-}
-
-function ItemResultButton({
-  isSelected,
-  item,
-  onClick
-}: {
-  isSelected: boolean;
-  item: ItemMetadata;
-  onClick: () => void;
-}) {
-  const iconUrl = item.icon ? getItemIconUrl(item.icon) : null;
-
-  return (
-    <button
-      className={cx(
-        "flex min-h-[72px] w-full cursor-pointer items-center gap-3 rounded-control border-2 bg-panel-muted p-2.5 text-left transition-colors hover:border-primary",
-        isSelected ? "border-primary text-foreground" : "border-border text-text-muted"
-      )}
-      data-testid={`admin_button_item_result_${getTestIdSegment(item.id)}`}
-      type="button"
-      onClick={onClick}
-    >
-      <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-control border border-border bg-panel">
-        {iconUrl ? (
-          <Image
-            className="max-h-10 max-w-10 object-contain"
-            src={iconUrl}
-            alt=""
-            aria-hidden="true"
-            width={40}
-            height={40}
-            loading="lazy"
-            unoptimized
-          />
-        ) : null}
-      </span>
-      <span
-        className="grid min-w-0 flex-1 gap-1"
-        data-testid={`admin_span_item_result_content_${getTestIdSegment(item.id)}`}
-      >
-        <strong
-          className="line-clamp-2 text-sm leading-snug text-foreground"
-          data-testid={`admin_strong_item_result_name_${getTestIdSegment(item.id)}`}
-        >
-          {item.name}
-        </strong>
-        <span
-          className="break-words text-xs font-bold uppercase leading-snug"
-          data-testid={`admin_span_item_result_meta_${getTestIdSegment(item.id)}`}
-        >
-          #{String(item.id)}
-          {item.category ? ` - ${item.category}` : ""}
-          {item.level !== null ? ` - Lv. ${item.level}` : ""}
-        </span>
-      </span>
-    </button>
   );
 }

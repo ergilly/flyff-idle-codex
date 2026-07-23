@@ -7,17 +7,32 @@ servers:
   - url: http://localhost:4000
 tags:
   - name: Health
+    description: Service availability.
   - name: Auth
+    description: Player registration and authentication.
   - name: Characters
+    description: Character lifecycle, progression, inventory, equipment, and consumables.
   - name: Admin
+    description: Administrative character support operations.
   - name: Game Data
+    description: Cacheable read-only Flyff reference data.
   - name: Items
+    description: Indexed item metadata used by authenticated gameplay clients.
+  - name: Bank
+    description: Player bank reads and transfers scoped through an owned character.
+  - name: Shops
+    description: Town shop catalogs and character purchase or sale commands.
+  - name: Travel
+    description: Server-validated character travel commands.
+  - name: Images
+    description: Cached image proxy for approved Flyff image categories.
 paths:
   /health:
     get:
       tags:
         - Health
       summary: Health check
+      operationId: getHealth
       responses:
         "200":
           description: API status
@@ -30,6 +45,7 @@ paths:
       tags:
         - Auth
       summary: Login with email and password
+      operationId: login
       requestBody:
         required: true
         content:
@@ -47,11 +63,14 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/auth/register:
     post:
       tags:
         - Auth
       summary: Create a player profile
+      operationId: register
       requestBody:
         required: true
         content:
@@ -78,6 +97,7 @@ paths:
       tags:
         - Characters
       summary: List characters for the authenticated player
+      operationId: listCharacters
       security:
         - bearerAuth: []
       responses:
@@ -93,6 +113,7 @@ paths:
       tags:
         - Characters
       summary: Create a character in an open roster slot
+      operationId: createCharacter
       security:
         - bearerAuth: []
       requestBody:
@@ -118,21 +139,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
   /api/characters/{characterId}:
-    delete:
+    get:
       tags:
         - Characters
-      summary: Delete a character after name confirmation
+      summary: Get one character owned by the authenticated player
+      operationId: getCharacter
       security:
         - bearerAuth: []
       parameters:
         - $ref: "#/components/parameters/CharacterIdPath"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeleteCharacterRequest"
+      responses:
+        "200":
+          description: Character details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - Characters
+      summary: Delete a character after name confirmation
+      operationId: deleteCharacter
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - in: query
+          name: confirmationName
+          required: true
+          schema:
+            type: string
+            minLength: 1
       responses:
         "204":
           description: Character deleted
@@ -142,11 +186,12 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-  /api/characters/{characterId}/progression:
-    patch:
+  /api/characters/{characterId}/progression/stat-allocations:
+    post:
       tags:
         - Characters
-      summary: Update character stats or learned skill levels
+      summary: Allocate available character stat points
+      operationId: allocateCharacterStats
       security:
         - bearerAuth: []
       parameters:
@@ -156,7 +201,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateCharacterProgressionRequest"
+              $ref: "#/components/schemas/StatAllocationRequest"
       responses:
         "200":
           description: Updated character
@@ -170,11 +215,174 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/DomainRuleFailed"
+  /api/characters/{characterId}/progression/skill-allocations:
+    post:
+      tags:
+        - Characters
+      summary: Allocate available character skill points
+      operationId: allocateCharacterSkills
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillAllocationRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/DomainRuleFailed"
+  /api/characters/{characterId}/progression/battle-state:
+    put:
+      tags:
+        - Characters
+      summary: Replace the persisted progression state from the client-simulated battle system
+      operationId: replaceCharacterBattleState
+      description: This is an idempotent persistence boundary for the current client-simulated battle implementation. It is not an authoritative battle-resolution endpoint.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BattleProgressionStateRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/quests:
+    post:
+      tags:
+        - Characters
+      summary: Accept a quest offered by an NPC
+      operationId: acceptCharacterQuest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptQuestRequest"
+      responses:
+        "201":
+          description: Quest accepted and updated character returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/DomainRuleFailed"
+  /api/characters/{characterId}/quests/{questId}:
+    delete:
+      tags:
+        - Characters
+      summary: Abandon an active character quest
+      operationId: abandonCharacterQuest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - in: path
+          name: questId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Quest abandoned and updated character returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/quests/{questId}/complete:
+    post:
+      tags:
+        - Characters
+      summary: Complete an active item-collection quest at its ending NPC
+      operationId: completeCharacterQuest
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - in: path
+          name: questId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteQuestRequest"
+      responses:
+        "200":
+          description: Quest completed, rewards applied, and updated character returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/DomainRuleFailed"
   /api/characters/{characterId}/inventory/{slotIndex}/equip:
     post:
       tags:
         - Characters
       summary: Equip an inventory item into an equipment set
+      operationId: equipCharacterItem
       security:
         - bearerAuth: []
       parameters:
@@ -204,6 +412,7 @@ paths:
       tags:
         - Characters
       summary: Move, swap, or stack inventory items
+      operationId: moveCharacterInventoryItem
       security:
         - bearerAuth: []
       parameters:
@@ -232,6 +441,7 @@ paths:
       tags:
         - Characters
       summary: Sort a character inventory
+      operationId: sortCharacterInventory
       security:
         - bearerAuth: []
       parameters:
@@ -260,6 +470,7 @@ paths:
       tags:
         - Characters
       summary: Unequip an item from an equipment set
+      operationId: unequipCharacterItem
       security:
         - bearerAuth: []
       parameters:
@@ -284,11 +495,378 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/inventory/{slotIndex}/consume:
+    post:
+      tags:
+        - Characters
+      summary: Consume an item directly from an inventory slot
+      operationId: consumeCharacterInventoryItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - $ref: "#/components/parameters/SlotIndexPath"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/inventory/loot:
+    post:
+      tags:
+        - Characters
+      summary: Add awarded loot to a character inventory
+      operationId: addCharacterLoot
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LootInventoryRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/equipment/ammo/consume:
+    post:
+      tags:
+        - Characters
+      summary: Consume one arrow from an equipment set
+      operationId: consumeCharacterAmmo
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentSetRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/consumables/{resource}:
+    post:
+      tags:
+        - Characters
+      summary: Equip or clear a character consumable slot
+      operationId: setCharacterConsumable
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - $ref: "#/components/parameters/ConsumableResourcePath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipConsumableRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/consumables/{resource}/consume:
+    post:
+      tags:
+        - Characters
+      summary: Consume one item from a character consumable slot
+      operationId: consumeCharacterConsumable
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - $ref: "#/components/parameters/ConsumableResourcePath"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/shops/{townMapId}/{locationId}/purchases:
+    post:
+      tags:
+        - Shops
+      summary: Purchase an item from a town shop
+      operationId: purchaseTownShopItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+        - $ref: "#/components/parameters/TownMapIdPath"
+        - $ref: "#/components/parameters/LocationIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopPurchaseRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/shops/sales:
+    post:
+      tags:
+        - Shops
+      summary: Sell an item from a character inventory
+      operationId: sellCharacterItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopSaleRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/bank:
+    get:
+      tags:
+        - Bank
+      summary: Get the authenticated player's bank and selected character
+      operationId: getCharacterBank
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      responses:
+        "200":
+          description: Current bank and character state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankUpdateResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/bank/items:
+    post:
+      tags:
+        - Bank
+      summary: Transfer one item stack between a character and bank
+      operationId: transferBankItem
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankItemTransferRequest"
+      responses:
+        "200":
+          description: Updated bank and character state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/bank/items/all:
+    post:
+      tags:
+        - Bank
+      summary: Transfer all possible item stacks between a character and bank
+      operationId: transferAllBankItems
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankAllItemsTransferRequest"
+      responses:
+        "200":
+          description: Updated bank and character state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/bank/penya:
+    post:
+      tags:
+        - Bank
+      summary: Transfer Penya between a character and bank
+      operationId: transferBankPenya
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankPenyaTransferRequest"
+      responses:
+        "200":
+          description: Updated bank and character state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/characters/{characterId}/travel:
+    post:
+      tags:
+        - Travel
+      summary: Travel a character to another region
+      operationId: travelCharacter
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TravelRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/admin/characters/{characterId}/penya:
+    post:
+      tags:
+        - Admin
+      summary: Add Penya to a character
+      operationId: addCharacterPenya
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CharacterIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddPenyaRequest"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /api/admin/characters/{characterId}/refund-stats:
     post:
       tags:
         - Admin
       summary: Reset a character's stats to their base values
+      operationId: refundCharacterStats
       security:
         - bearerAuth: []
       parameters:
@@ -311,6 +889,7 @@ paths:
       tags:
         - Admin
       summary: Reset a character's learned skill levels
+      operationId: refundCharacterSkills
       security:
         - bearerAuth: []
       parameters:
@@ -333,6 +912,7 @@ paths:
       tags:
         - Admin
       summary: Add an item stack to a character inventory
+      operationId: addCharacterInventoryItem
       security:
         - bearerAuth: []
       parameters:
@@ -363,6 +943,7 @@ paths:
       tags:
         - Game Data
       summary: List JSON-backed data sets
+      operationId: listGameDataSets
       responses:
         "200":
           description: Available JSON data sets
@@ -375,6 +956,7 @@ paths:
       tags:
         - Game Data
       summary: Query a JSON-backed data set
+      operationId: queryGameDataSet
       description: Supports the named query parameters plus arbitrary scalar filters, including nested filters such as `location.region`.
       parameters:
         - $ref: "#/components/parameters/DataSetPath"
@@ -440,6 +1022,7 @@ paths:
       tags:
         - Game Data
       summary: Get a JSON-backed data record by id
+      operationId: getGameDataRecord
       parameters:
         - $ref: "#/components/parameters/DataSetPath"
         - in: path
@@ -461,6 +1044,7 @@ paths:
       tags:
         - Items
       summary: Get indexed item metadata by ids
+      operationId: getItemsByIds
       security:
         - bearerAuth: []
       parameters:
@@ -482,11 +1066,73 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  /api/shops/{townMapId}/{locationId}:
+    get:
+      tags:
+        - Shops
+      summary: Get a town shop and its enriched item metadata
+      operationId: getTownShop
+      parameters:
+        - $ref: "#/components/parameters/TownMapIdPath"
+        - $ref: "#/components/parameters/LocationIdPath"
+      responses:
+        "200":
+          description: Town shop inventory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /api/images/{category}/{filename}:
+    get:
+      tags:
+        - Images
+      summary: Get a cached Flyff image
+      operationId: getCachedImage
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+            enum:
+              - item
+              - monster
+              - skill
+        - in: path
+          name: filename
+          required: true
+          schema:
+            type: string
+            maxLength: 160
+            pattern: "^[a-zA-Z0-9._-]+$"
+      responses:
+        "200":
+          description: Cached image bytes
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "502":
+          description: The upstream image could not be loaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /swagger:
     get:
       tags:
         - Game Data
       summary: Open Swagger UI for the API
+      operationId: getSwaggerUi
       responses:
         "200":
           description: Swagger UI HTML page
@@ -522,6 +1168,24 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/DataSetName"
+    ConsumableResourcePath:
+      in: path
+      name: resource
+      required: true
+      schema:
+        $ref: "#/components/schemas/CharacterConsumableResource"
+    TownMapIdPath:
+      in: path
+      name: townMapId
+      required: true
+      schema:
+        type: string
+    LocationIdPath:
+      in: path
+      name: locationId
+      required: true
+      schema:
+        type: string
   responses:
     BadRequest:
       description: Invalid request body or parameters
@@ -536,13 +1200,25 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Forbidden:
-      description: Authenticated user is not an admin
+      description: The authenticated user is not permitted to perform the operation
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
       description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: The operation failed unexpectedly
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    DomainRuleFailed:
+      description: The request was valid but violates a domain rule
       content:
         application/json:
           schema:
@@ -650,24 +1326,64 @@ components:
           example: FlarisHero
         gender:
           $ref: "#/components/schemas/CharacterGender"
-    DeleteCharacterRequest:
+    StatAllocationRequest:
       type: object
       required:
-        - name
+        - allocations
       properties:
-        name:
-          type: string
-          minLength: 1
-          example: FlarisHero
-    UpdateCharacterProgressionRequest:
+        allocations:
+          type: object
+          required:
+            - str
+            - sta
+            - dex
+            - int
+          properties:
+            str:
+              type: integer
+              minimum: 0
+              maximum: 984
+            sta:
+              type: integer
+              minimum: 0
+              maximum: 984
+            dex:
+              type: integer
+              minimum: 0
+              maximum: 984
+            int:
+              type: integer
+              minimum: 0
+              maximum: 984
+    SkillAllocationRequest:
       type: object
-      description: At least one of `stats` or `skillLevels` is required.
-      minProperties: 1
+      required:
+        - allocations
       properties:
-        stats:
-          $ref: "#/components/schemas/CharacterStats"
-        skillLevels:
-          $ref: "#/components/schemas/CharacterSkillLevels"
+        allocations:
+          type: object
+          minProperties: 1
+          additionalProperties:
+            type: integer
+            minimum: 1
+            maximum: 20
+    BattleProgressionStateRequest:
+      type: object
+      required:
+        - exp
+        - level
+        - penya
+      properties:
+        exp:
+          type: integer
+          minimum: 0
+        level:
+          type: integer
+          minimum: 1
+          maximum: 170
+        penya:
+          type: integer
+          minimum: 0
     EquipmentSetRequest:
       type: object
       properties:
@@ -712,6 +1428,162 @@ components:
           minimum: 1
           maximum: 9999
           example: 1
+    AddPenyaRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    LootInventoryRequest:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required:
+              - itemId
+              - quantity
+            properties:
+              itemId:
+                type: string
+                pattern: "^\\d+$"
+              quantity:
+                type: integer
+                minimum: 1
+                maximum: 9999
+    EquipConsumableRequest:
+      type: object
+      required:
+        - slotIndex
+      properties:
+        slotIndex:
+          type: integer
+          minimum: 0
+          maximum: 99
+          nullable: true
+    ShopPurchaseRequest:
+      type: object
+      required:
+        - itemId
+        - quantity
+      properties:
+        itemId:
+          type: string
+          pattern: "^\\d+$"
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 9999
+    ShopSaleRequest:
+      type: object
+      required:
+        - slotIndex
+        - quantity
+      properties:
+        slotIndex:
+          type: integer
+          minimum: 0
+          maximum: 99
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 9999
+    BankDirection:
+      type: string
+      enum:
+        - deposit
+        - withdraw
+    BankItemTransferRequest:
+      type: object
+      required:
+        - direction
+        - slotIndex
+      properties:
+        direction:
+          $ref: "#/components/schemas/BankDirection"
+        slotIndex:
+          type: integer
+          minimum: 0
+          maximum: 99
+    BankAllItemsTransferRequest:
+      type: object
+      required:
+        - direction
+      properties:
+        direction:
+          $ref: "#/components/schemas/BankDirection"
+    BankPenyaTransferRequest:
+      type: object
+      required:
+        - direction
+        - amount
+      properties:
+        direction:
+          $ref: "#/components/schemas/BankDirection"
+        amount:
+          oneOf:
+            - type: integer
+              minimum: 1
+              maximum: 9007199254740991
+            - type: string
+              enum:
+                - all
+    TravelRequest:
+      type: object
+      required:
+        - destination
+        - method
+      properties:
+        destination:
+          type: string
+          enum:
+            - flaris
+            - saint
+            - rhisis
+            - darkon12
+            - darkon3
+            - shaduwar
+            - valley
+            - kaillun
+            - bahara
+        method:
+          type: string
+          enum:
+            - flying
+            - blinkwing
+        equipmentSet:
+          type: integer
+          minimum: 0
+          maximum: 2
+          default: 0
+    AcceptQuestRequest:
+      type: object
+      required:
+        - questId
+        - npcId
+      properties:
+        questId:
+          type: integer
+          minimum: 1
+        npcId:
+          type: integer
+          minimum: 1
+    CompleteQuestRequest:
+      type: object
+      required:
+        - npcId
+      properties:
+        npcId:
+          type: integer
+          minimum: 1
     Character:
       type: object
       required:
@@ -721,13 +1593,19 @@ components:
         - gender
         - job
         - progressionRank
+        - location
         - level
         - exp
         - penya
         - stats
         - skillLevels
+        - consumableLoadout
         - equipment
         - equipmentSets
+        - ammoQuantity
+        - ammoQuantities
+        - activeQuestIds
+        - completedQuestIds
         - inventory
       properties:
         id:
@@ -744,6 +1622,8 @@ components:
           type: string
         progressionRank:
           $ref: "#/components/schemas/CharacterProgressionRank"
+        location:
+          type: string
         level:
           type: integer
           minimum: 1
@@ -757,6 +1637,8 @@ components:
           $ref: "#/components/schemas/CharacterStats"
         skillLevels:
           $ref: "#/components/schemas/CharacterSkillLevels"
+        consumableLoadout:
+          $ref: "#/components/schemas/CharacterConsumableLoadout"
         equipment:
           $ref: "#/components/schemas/CharacterEquipment"
         equipmentSets:
@@ -765,6 +1647,26 @@ components:
           maxItems: 3
           items:
             $ref: "#/components/schemas/CharacterEquipment"
+        ammoQuantity:
+          type: integer
+          minimum: 0
+        ammoQuantities:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            type: integer
+            minimum: 0
+        activeQuestIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+        completedQuestIds:
+          type: array
+          items:
+            type: integer
+            minimum: 1
         inventory:
           $ref: "#/components/schemas/CharacterInventory"
     CharacterGender:
@@ -814,6 +1716,37 @@ components:
         maximum: 20
       example:
         vagrant-clean-hit: 1
+    CharacterConsumableResource:
+      type: string
+      enum:
+        - hp
+        - mp
+        - fp
+    CharacterConsumableSlot:
+      type: object
+      nullable: true
+      required:
+        - itemId
+        - quantity
+      properties:
+        itemId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+    CharacterConsumableLoadout:
+      type: object
+      required:
+        - hp
+        - mp
+        - fp
+      properties:
+        hp:
+          $ref: "#/components/schemas/CharacterConsumableSlot"
+        mp:
+          $ref: "#/components/schemas/CharacterConsumableSlot"
+        fp:
+          $ref: "#/components/schemas/CharacterConsumableSlot"
     CharacterEquipment:
       type: object
       required:
@@ -945,6 +1878,104 @@ components:
         quantity:
           type: integer
           minimum: 1
+    Bank:
+      type: object
+      required:
+        - size
+        - penya
+        - items
+      properties:
+        size:
+          type: integer
+          minimum: 1
+        penya:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CharacterInventoryItem"
+    BankUpdateResponse:
+      type: object
+      required:
+        - bank
+        - character
+      properties:
+        bank:
+          $ref: "#/components/schemas/Bank"
+        character:
+          $ref: "#/components/schemas/Character"
+    ShopResponse:
+      type: object
+      required:
+        - shop
+      properties:
+        shop:
+          $ref: "#/components/schemas/TownShop"
+    TownShop:
+      type: object
+      required:
+        - id
+        - merchantNames
+        - merchants
+      properties:
+        id:
+          type: string
+        merchantNames:
+          type: array
+          items:
+            type: string
+        merchants:
+          type: array
+          items:
+            $ref: "#/components/schemas/TownShopMerchant"
+    TownShopMerchant:
+      type: object
+      required:
+        - id
+        - name
+        - tabs
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        tabs:
+          type: array
+          items:
+            $ref: "#/components/schemas/TownShopTab"
+    TownShopTab:
+      type: object
+      required:
+        - id
+        - label
+        - items
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TownShopItem"
+    TownShopItem:
+      allOf:
+        - $ref: "#/components/schemas/ItemMetadata"
+        - type: object
+          required:
+            - id
+            - maxStack
+            - price
+          properties:
+            id:
+              type: string
+            maxStack:
+              type: integer
+              minimum: 1
+            price:
+              type: number
+              minimum: 0
     InventorySortOption:
       type: string
       enum:
@@ -1062,6 +2093,8 @@ components:
         - jobs
         - mapMonsters
         - monsters
+        - npcs
+        - quests
         - sets
         - skills
         - upgrades
@@ -1122,7 +2155,19 @@ components:
     ErrorResponse:
       type: object
       required:
+        - code
         - error
       properties:
+        code:
+          type: string
+          enum:
+            - authentication_required
+            - conflict
+            - domain_rule_failed
+            - forbidden
+            - internal_error
+            - invalid_request
+            - not_found
+            - upstream_error
         error:
           type: string

@@ -25,14 +25,14 @@ const lootSchema = z.object({
 });
 const sortSchema = z.object({ sortBy: z.enum(["name", "level", "job", "category"]) });
 
-characterInventoryRouter.post("/:characterId/inventory/move", requireAuth, async (request, response) => {
+characterInventoryRouter.post("/:characterId/inventory/move", requireAuth, (request, response) => {
   const characterId = z.string().safeParse(request.params.characterId);
   const move = moveSchema.safeParse(request.body);
   if (!characterId.success || !move.success) {
     response.status(400).json({ error: "Source and destination slots are required" });
     return;
   }
-  const result = await characterRepository.moveInventoryItemForPlayer(
+  const result = characterRepository.moveInventoryItemForPlayer(
     characterId.data,
     (response.locals.auth as AuthTokenPayload).sub,
     move.data.fromSlotIndex,
@@ -49,14 +49,14 @@ characterInventoryRouter.post("/:characterId/inventory/move", requireAuth, async
 characterInventoryRouter.post(
   "/:characterId/inventory/:slotIndex/consume",
   requireAuth,
-  async (request, response) => {
+  (request, response) => {
     const characterId = z.string().safeParse(request.params.characterId);
     const slotIndex = z.coerce.number().int().min(0).max(99).safeParse(request.params.slotIndex);
     if (!characterId.success || !slotIndex.success) {
       response.status(404).json({ error: "Inventory item not found" });
       return;
     }
-    const result = await characterRepository.consumeInventoryItemForPlayer(
+    const result = characterRepository.consumeInventoryItemForPlayer(
       characterId.data,
       (response.locals.auth as AuthTokenPayload).sub,
       slotIndex.data
@@ -70,7 +70,7 @@ characterInventoryRouter.post(
   }
 );
 
-characterInventoryRouter.post("/:characterId/inventory/loot", requireAuth, async (request, response) => {
+characterInventoryRouter.post("/:characterId/inventory/loot", requireAuth, (request, response) => {
   const characterId = z.string().safeParse(request.params.characterId);
   const loot = lootSchema.safeParse(request.body);
   if (!characterId.success || !loot.success) {
@@ -84,11 +84,7 @@ characterInventoryRouter.post("/:characterId/inventory/loot", requireAuth, async
     return;
   }
   const auth = response.locals.auth as AuthTokenPayload;
-  const result = await characterRepository.addInventoryItemsForPlayer(
-    characterId.data,
-    auth.sub,
-    loot.data.items
-  );
+  const result = characterRepository.addInventoryItemsForPlayer(characterId.data, auth.sub, loot.data.items);
   if (!result.character) {
     const existingCharacter = characterRepository.findById(characterId.data);
     const isOwnedCharacter = existingCharacter?.playerId === auth.sub;
@@ -100,14 +96,14 @@ characterInventoryRouter.post("/:characterId/inventory/loot", requireAuth, async
   response.json({ character: toPublicCharacter(result.character) });
 });
 
-characterInventoryRouter.post("/:characterId/inventory/sort", requireAuth, async (request, response) => {
+characterInventoryRouter.post("/:characterId/inventory/sort", requireAuth, (request, response) => {
   const characterId = z.string().safeParse(request.params.characterId);
   const sort = sortSchema.safeParse(request.body);
   if (!characterId.success || !sort.success) {
     response.status(400).json({ error: "Sort option is required" });
     return;
   }
-  const character = await characterRepository.sortInventoryForPlayer(
+  const character = characterRepository.sortInventoryForPlayer(
     characterId.data,
     (response.locals.auth as AuthTokenPayload).sub,
     sort.data.sortBy

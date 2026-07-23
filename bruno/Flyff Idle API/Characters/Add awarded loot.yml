@@ -1,0 +1,38 @@
+info:
+  name: Add awarded loot
+  type: http
+  seq: 13
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/inventory/loot"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "items": [{ "itemId": "5325", "quantity": 1 }]
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("adds loot and returns authoritative inventory", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.inventory.items).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -240,7 +240,30 @@ describe("app route integration", () => {
           expect.objectContaining({
             name: "Saint Morning",
             slotIndex: 1,
-            gender: "female"
+            gender: "female",
+            job: "Mercenary",
+            progressionRank: "normal",
+            location: "Flaris",
+            penya: 0,
+            stats: {
+              str: 15,
+              sta: 15,
+              dex: 15,
+              int: 15
+            },
+            equipment: expect.objectContaining({
+              helmet: null,
+              flying: null,
+              ammo: null,
+              ringR: null,
+              ringL: null,
+              earringR: null,
+              earringL: null
+            }),
+            inventory: {
+              size: 50,
+              items: []
+            }
           })
         ])
       }
@@ -259,12 +282,14 @@ describe("app route integration", () => {
 
   it("creates characters for authenticated players", async () => {
     const registerResponse = await registerFreshPlayer("Route");
+    const authorization = `Bearer ${registerResponse.body.token}`;
 
     await expect(
-      request(app)
-        .post("/api/characters")
-        .set("Authorization", `Bearer ${registerResponse.body.token}`)
-        .send({ slotIndex: 0, name: "RouteHero", gender: "male" })
+      request(app).post("/api/characters").set("Authorization", authorization).send({
+        slotIndex: 0,
+        name: "RouteHero",
+        gender: "male"
+      })
     ).resolves.toMatchObject({
       status: 201,
       body: {
@@ -275,6 +300,15 @@ describe("app route integration", () => {
           job: "Vagrant",
           progressionRank: "normal",
           location: "Flaris",
+          level: 1,
+          exp: 0,
+          penya: 0,
+          stats: {
+            str: 15,
+            sta: 15,
+            dex: 15,
+            int: 15
+          },
           equipment: expect.objectContaining({
             mainhand: "3497",
             suit: "3314",
@@ -304,6 +338,54 @@ describe("app route integration", () => {
         })
       }
     });
+
+    await expect(
+      request(app).post("/api/characters").set("Authorization", authorization).send({
+        slotIndex: 1,
+        name: "RouteHeroine",
+        gender: "female"
+      })
+    ).resolves.toMatchObject({
+      status: 201,
+      body: {
+        character: expect.objectContaining({
+          name: "RouteHeroine",
+          slotIndex: 1,
+          gender: "female",
+          equipment: expect.objectContaining({
+            mainhand: "3497",
+            suit: "6040",
+            gloves: "5011",
+            boots: "8195"
+          })
+        })
+      }
+    });
+  });
+
+  it("gets one character without exposing characters owned by another player", async () => {
+    const registerResponse = await registerFreshPlayer("GetOne");
+    const authorization = `Bearer ${registerResponse.body.token}`;
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", authorization)
+      .send({ slotIndex: 0, name: "OneHero", gender: "male" });
+
+    await expect(
+      request(app)
+        .get(`/api/characters/${createResponse.body.character.id}`)
+        .set("Authorization", authorization)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: { character: expect.objectContaining({ name: "OneHero" }) }
+    });
+
+    const otherPlayer = await registerFreshPlayer("GetOther");
+    await expect(
+      request(app)
+        .get(`/api/characters/${createResponse.body.character.id}`)
+        .set("Authorization", `Bearer ${otherPlayer.body.token}`)
+    ).resolves.toMatchObject({ status: 404, body: { code: "not_found" } });
   });
 
   it("returns item icon metadata for authenticated players", async () => {
@@ -347,6 +429,8 @@ describe("app route integration", () => {
       body: {
         dataSets: expect.arrayContaining([
           { name: "items", href: "/api/data/items" },
+          { name: "npcs", href: "/api/data/npcs" },
+          { name: "quests", href: "/api/data/quests" },
           { name: "skills", href: "/api/data/skills" }
         ])
       }
@@ -378,6 +462,23 @@ describe("app route integration", () => {
       }
     });
 
+    await expect(
+      request(app).get("/api/data/quests?beginNPC=29&fields=id,description,dialogsAccept")
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        dataSet: "quests",
+        total: 1,
+        results: [
+          {
+            id: 129,
+            description: "Bring 7 Mia Doll to Mikyel.",
+            dialogsAccept: ["You can collect Mia Doll from all types of Mia."]
+          }
+        ]
+      }
+    });
+
     await expect(request(app).get("/api/data/items?category=weapon&maxLevel=15")).resolves.toMatchObject({
       status: 200,
       body: {
@@ -406,70 +507,185 @@ describe("app route integration", () => {
     });
   });
 
-  it("persists stat and skill point allocation for authenticated players", async () => {
+  it("accepts eligible NPC quests and persists active quest state", async () => {
+    const player = await registerFreshPlayer("QuestAccept");
+    const authorization = `Bearer ${player.body.token}`;
+    const createResponse = await request(app)
+      .post("/api/characters")
+      .set("Authorization", authorization)
+      .send({ slotIndex: 0, name: "QuestHero", gender: "male" });
+    const characterId = createResponse.body.character.id;
+    const questRequest = { questId: 129, npcId: 29 };
+
+    await expect(
+      request(app).post(`/api/characters/${characterId}/quests`).send(questRequest)
+    ).resolves.toMatchObject({ status: 401 });
+    await expect(
+      request(app).post(`/api/characters/${characterId}/quests`).set("Authorization", authorization).send({})
+    ).resolves.toMatchObject({ status: 400, body: { code: "invalid_request" } });
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests`)
+        .set("Authorization", authorization)
+        .send(questRequest)
+    ).resolves.toMatchObject({ status: 422, body: { code: "domain_rule_failed" } });
+
+    db.prepare("UPDATE characters SET level = 23 WHERE id = ?").run(characterId);
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests`)
+        .set("Authorization", authorization)
+        .send({ questId: 129, npcId: 4000 })
+    ).resolves.toMatchObject({ status: 422, body: { error: "This NPC does not offer that quest" } });
+
+    const accepted = await request(app)
+      .post(`/api/characters/${characterId}/quests`)
+      .set("Authorization", authorization)
+      .send(questRequest);
+    expect(accepted).toMatchObject({
+      status: 201,
+      body: { character: expect.objectContaining({ activeQuestIds: [129] }) }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests`)
+        .set("Authorization", authorization)
+        .send(questRequest)
+    ).resolves.toMatchObject({ status: 409, body: { code: "conflict" } });
+
+    await expect(
+      request(app).get("/api/characters").set("Authorization", authorization)
+    ).resolves.toMatchObject({
+      status: 200,
+      body: { characters: [expect.objectContaining({ id: characterId, activeQuestIds: [129] })] }
+    });
+
+    const otherPlayer = await registerFreshPlayer("QuestOther");
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests`)
+        .set("Authorization", `Bearer ${otherPlayer.body.token}`)
+        .send(questRequest)
+    ).resolves.toMatchObject({ status: 404, body: { code: "not_found" } });
+
+    await expect(request(app).delete(`/api/characters/${characterId}/quests/129`)).resolves.toMatchObject({
+      status: 401
+    });
+    await expect(
+      request(app)
+        .delete(`/api/characters/${characterId}/quests/not-a-quest`)
+        .set("Authorization", authorization)
+    ).resolves.toMatchObject({ status: 400, body: { code: "invalid_request" } });
+    await expect(
+      request(app)
+        .delete(`/api/characters/${characterId}/quests/129`)
+        .set("Authorization", `Bearer ${otherPlayer.body.token}`)
+    ).resolves.toMatchObject({ status: 404, body: { code: "not_found" } });
+
+    const abandoned = await request(app)
+      .delete(`/api/characters/${characterId}/quests/129`)
+      .set("Authorization", authorization);
+    expect(abandoned).toMatchObject({
+      status: 200,
+      body: { character: expect.objectContaining({ activeQuestIds: [] }) }
+    });
+
+    await expect(
+      request(app).delete(`/api/characters/${characterId}/quests/129`).set("Authorization", authorization)
+    ).resolves.toMatchObject({ status: 404, body: { error: "Active quest not found" } });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests`)
+        .set("Authorization", authorization)
+        .send(questRequest)
+    ).resolves.toMatchObject({
+      status: 201,
+      body: { character: expect.objectContaining({ activeQuestIds: [129] }) }
+    });
+
+    await expect(
+      request(app).post(`/api/characters/${characterId}/quests/129/complete`).send({ npcId: 29 })
+    ).resolves.toMatchObject({ status: 401 });
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests/129/complete`)
+        .set("Authorization", authorization)
+        .send({})
+    ).resolves.toMatchObject({ status: 400, body: { code: "invalid_request" } });
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests/129/complete`)
+        .set("Authorization", authorization)
+        .send({ npcId: 4000 })
+    ).resolves.toMatchObject({ status: 422, body: { error: "This NPC does not complete that quest" } });
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests/129/complete`)
+        .set("Authorization", authorization)
+        .send({ npcId: 29 })
+    ).resolves.toMatchObject({
+      status: 422,
+      body: { error: "Required quest items have not been collected" }
+    });
+
+    const now = new Date().toISOString();
+    db.prepare(
+      `INSERT INTO character_inventory_items
+       (id, character_id, slot_index, item_id, quantity, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).run("quest-dolls", characterId, 49, "7166", 7, now, now);
+
+    const completed = await request(app)
+      .post(`/api/characters/${characterId}/quests/129/complete`)
+      .set("Authorization", authorization)
+      .send({ npcId: 29 });
+    expect(completed).toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          activeQuestIds: [],
+          completedQuestIds: [129],
+          exp: 3633,
+          level: 23,
+          penya: 11500
+        })
+      }
+    });
+    expect(completed.body.character.inventory.items).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ itemId: "7166" })])
+    );
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/quests`)
+        .set("Authorization", authorization)
+        .send(questRequest)
+    ).resolves.toMatchObject({ status: 409, body: { error: "Quest has already been completed" } });
+  });
+
+  it("persists battle state and enforces stat allocation rules", async () => {
     const registerResponse = await registerFreshPlayer("Progression");
     const createResponse = await request(app)
       .post("/api/characters")
       .set("Authorization", `Bearer ${registerResponse.body.token}`)
       .send({ slotIndex: 0, name: "PointHero", gender: "male" });
 
-    await expect(
-      request(app)
-        .patch(`/api/characters/${createResponse.body.character.id}/progression`)
-        .set("Authorization", `Bearer ${registerResponse.body.token}`)
-        .send({
-          stats: {
-            str: 17,
-            sta: 16,
-            dex: 15,
-            int: 15
-          },
-          skillLevels: {
-            "vagrant-clean-hit": 2
-          }
-        })
-    ).resolves.toMatchObject({
-      status: 200,
-      body: {
-        character: expect.objectContaining({
-          name: "PointHero",
-          stats: {
-            str: 17,
-            sta: 16,
-            dex: 15,
-            int: 15
-          },
-          skillLevels: {
-            "vagrant-clean-hit": 2
-          }
-        })
-      }
-    });
-
-    await expect(
-      request(app).get("/api/characters").set("Authorization", `Bearer ${registerResponse.body.token}`)
-    ).resolves.toMatchObject({
-      body: {
-        characters: [
-          expect.objectContaining({
-            name: "PointHero",
-            skillLevels: {
-              "vagrant-clean-hit": 2
-            }
-          })
-        ]
-      }
-    });
+    const authorization = `Bearer ${registerResponse.body.token}`;
+    const characterId = createResponse.body.character.id;
 
     await expect(
       request(app)
-        .patch(`/api/characters/${createResponse.body.character.id}/progression`)
-        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .put(`/api/characters/${characterId}/progression/battle-state`)
+        .set("Authorization", authorization)
         .send({ exp: 6, level: 2, penya: 42 })
     ).resolves.toMatchObject({
       status: 200,
       body: {
         character: expect.objectContaining({
+          name: "PointHero",
           exp: 6,
           level: 2,
           penya: 42
@@ -479,8 +695,61 @@ describe("app route integration", () => {
 
     await expect(
       request(app)
-        .post(`/api/characters/${createResponse.body.character.id}/inventory/loot`)
-        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .post(`/api/characters/${characterId}/progression/stat-allocations`)
+        .set("Authorization", authorization)
+        .send({ allocations: { str: 2, sta: 0, dex: 0, int: 0 } })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({ stats: { str: 17, sta: 15, dex: 15, int: 15 } })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/progression/stat-allocations`)
+        .set("Authorization", authorization)
+        .send({ allocations: { str: 1, sta: 0, dex: 0, int: 0 } })
+    ).resolves.toMatchObject({
+      status: 422,
+      body: { code: "domain_rule_failed", error: "Not enough stat points" }
+    });
+
+    db.prepare("UPDATE characters SET level = 15, job = 'Mercenary' WHERE id = ?").run(characterId);
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/progression/skill-allocations`)
+        .set("Authorization", authorization)
+        .send({ allocations: { "226": 1 } })
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        character: expect.objectContaining({
+          job: "Mercenary",
+          level: 15,
+          skillLevels: { "226": 1 }
+        })
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/progression/skill-allocations`)
+        .set("Authorization", authorization)
+        .send({ allocations: { "226": 1 } })
+    ).resolves.toMatchObject({
+      status: 422,
+      body: {
+        code: "domain_rule_failed",
+        error: "The skill is already at its maximum level"
+      }
+    });
+
+    await expect(
+      request(app)
+        .post(`/api/characters/${characterId}/inventory/loot`)
+        .set("Authorization", authorization)
         .send({ items: [{ itemId: "5325", quantity: 2 }] })
     ).resolves.toMatchObject({
       status: 200,
@@ -495,19 +764,19 @@ describe("app route integration", () => {
 
     await expect(
       request(app)
-        .patch(`/api/characters/${createResponse.body.character.id}/progression`)
-        .set("Authorization", `Bearer ${registerResponse.body.token}`)
+        .put(`/api/characters/${characterId}/progression/battle-state`)
+        .set("Authorization", authorization)
         .send({})
     ).resolves.toMatchObject({
       status: 400,
-      body: { error: "Progression update is required" }
+      body: { error: "A complete battle progression state is required" }
     });
 
     await expect(
       request(app)
-        .patch("/api/characters/missing/progression")
-        .set("Authorization", `Bearer ${registerResponse.body.token}`)
-        .send({ skillLevels: { "vagrant-clean-hit": 0 } })
+        .put("/api/characters/missing/progression/battle-state")
+        .set("Authorization", authorization)
+        .send({ exp: 0, level: 1, penya: 0 })
     ).resolves.toMatchObject({
       status: 404,
       body: { error: "Character not found" }
@@ -676,9 +945,9 @@ describe("app route integration", () => {
     const characterId = createResponse.body.character.id;
 
     await request(app)
-      .patch(`/api/characters/${characterId}/progression`)
+      .put(`/api/characters/${characterId}/progression/battle-state`)
       .set("Authorization", authorization)
-      .send({ penya: 1_000 });
+      .send({ exp: 0, level: 1, penya: 1_000 });
 
     await expect(
       request(app)
@@ -692,7 +961,7 @@ describe("app route integration", () => {
 
     await expect(
       request(app)
-        .post(`/api/characters/${characterId}/shops/flarine-general-store/purchases`)
+        .post(`/api/characters/${characterId}/shops/flarine-town/general-store/purchases`)
         .set("Authorization", authorization)
         .send({ itemId: "5869", quantity: 3 })
     ).resolves.toMatchObject({
@@ -709,14 +978,14 @@ describe("app route integration", () => {
 
     await expect(
       request(app)
-        .post(`/api/characters/${characterId}/shops/flarine-general-store/purchases`)
+        .post(`/api/characters/${characterId}/shops/flarine-town/general-store/purchases`)
         .set("Authorization", authorization)
         .send({ itemId: "999999", quantity: 1 })
     ).resolves.toMatchObject({ status: 404, body: { error: "Shop item not found" } });
 
     await expect(
       request(app)
-        .post(`/api/characters/${characterId}/shops/flarine-general-store/purchases`)
+        .post(`/api/characters/${characterId}/shops/flarine-town/general-store/purchases`)
         .set("Authorization", authorization)
         .send({ itemId: "5869", quantity: 10_000 })
     ).resolves.toMatchObject({ status: 400 });
@@ -747,20 +1016,10 @@ describe("app route integration", () => {
         .send({ amount: 0 })
     ).resolves.toMatchObject({ status: 400, body: { error: "A positive Penya amount is required" } });
 
-    await request(app)
-      .patch(`/api/characters/${characterId}/progression`)
-      .set("Authorization", `Bearer ${loginResponse.body.token}`)
-      .send({
-        stats: {
-          str: 19,
-          sta: 18,
-          dex: 17,
-          int: 16
-        },
-        skillLevels: {
-          "vagrant-clean-hit": 2
-        }
-      });
+    characterRepository.updateProgressionForPlayer(characterId, loginResponse.body.user.id, {
+      stats: { str: 19, sta: 18, dex: 17, int: 16 },
+      skillLevels: { "vagrant-clean-hit": 2 }
+    });
 
     await expect(
       request(app)
@@ -1187,7 +1446,7 @@ describe("app route integration", () => {
       request(app)
         .delete(`/api/characters/${createResponse.body.character.id}`)
         .set("Authorization", `Bearer ${otherPlayer.body.token}`)
-        .send({ name: "DeleteHero" })
+        .query({ confirmationName: "DeleteHero" })
     ).resolves.toMatchObject({
       status: 404,
       body: { error: "Character not found" }
@@ -1197,7 +1456,7 @@ describe("app route integration", () => {
       request(app)
         .delete(`/api/characters/${createResponse.body.character.id}`)
         .set("Authorization", `Bearer ${registerResponse.body.token}`)
-        .send({ name: "WrongName" })
+        .query({ confirmationName: "WrongName" })
     ).resolves.toMatchObject({
       status: 400,
       body: { error: "Character name confirmation does not match" }
@@ -1207,7 +1466,7 @@ describe("app route integration", () => {
       request(app)
         .delete(`/api/characters/${createResponse.body.character.id}`)
         .set("Authorization", `Bearer ${registerResponse.body.token}`)
-        .send({ name: "DeleteHero" })
+        .query({ confirmationName: "DeleteHero" })
     ).resolves.toMatchObject({
       status: 204
     });

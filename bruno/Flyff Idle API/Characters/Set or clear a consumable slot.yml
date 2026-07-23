@@ -1,0 +1,41 @@
+info:
+  name: Set or clear a consumable slot
+  type: http
+  seq: 15
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/consumables/:resource"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+    - name: resource
+      value: hp
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "slotIndex": 0
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the updated consumable loadout", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.consumableLoadout).to.be.an("object");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -21,6 +21,10 @@ it("selects, double-click loots, and exposes bulk actions for drops", () => {
     />
   );
   const item = screen.getByRole("button", { name: "Select dropped item Rare Gem" });
+  fireEvent.mouseEnter(item);
+  expect(screen.getByRole("complementary", { name: "Rare Gem details" })).toBeInTheDocument();
+  fireEvent.mouseLeave(item);
+  expect(screen.queryByRole("complementary", { name: "Rare Gem details" })).not.toBeInTheDocument();
   fireEvent.click(item);
   fireEvent.doubleClick(item);
   fireEvent.click(screen.getByRole("button", { name: "Loot all" }));

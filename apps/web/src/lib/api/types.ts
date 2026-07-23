@@ -26,6 +26,8 @@ export type Character = {
   equipmentSets?: CharacterEquipment[];
   ammoQuantity?: number;
   ammoQuantities?: number[];
+  activeQuestIds?: number[];
+  completedQuestIds?: number[];
   inventory: CharacterInventory;
 };
 

@@ -12,6 +12,7 @@ import {
   type MonsterQuestDrop,
   type MonsterVariantRank
 } from "@/lib/api/types";
+import { isQuestDropItem, questDropItemLookupCategories } from "@/lib/itemClassification";
 
 export function getItemIconUrl(icon: string) {
   return `${apiBaseUrl}/api/images/item/${encodeURIComponent(icon)}`;
@@ -368,15 +369,21 @@ async function fetchQuestDropsByItemId(itemIds: string[]) {
     return {};
   }
 
-  const items = await fetchDataSet<MonsterQuestDrop & { category: string | null }>("items", {
-    fields: "id,name,icon,category",
-    ids: itemIds.join(","),
-    limit: 500
-  });
+  const itemIdSet = new Set(itemIds);
+  const itemGroups = await Promise.all(
+    questDropItemLookupCategories.map((category) =>
+      fetchDataSet<MonsterQuestDrop & { category: string | null; subcategory: string | null }>("items", {
+        category,
+        fields: "id,name,icon,category,subcategory",
+        limit: 500
+      })
+    )
+  );
 
   return Object.fromEntries(
-    items
-      .filter((item) => item.category === "quest")
+    itemGroups
+      .flat()
+      .filter((item) => itemIdSet.has(String(item.id)) && isQuestDropItem(item))
       .map((item) => [
         String(item.id),
         {
