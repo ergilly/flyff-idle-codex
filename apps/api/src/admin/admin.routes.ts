@@ -3,13 +3,10 @@ import { z } from "zod";
 import { requireAdmin } from "../auth/auth.middleware.js";
 import { characterRepository } from "../data/characterRepository.js";
 import { findItemsByIds } from "../items/itemIconRepository.js";
-import type { AuthTokenPayload, Character } from "../types.js";
+import type { AuthTokenPayload } from "../types.js";
+import { toPublicCharacter } from "../http/characterResponse.js";
 
 export const adminRouter = Router();
-
-function toPublicCharacter({ playerId: _playerId, ...character }: Character) {
-  return character;
-}
 
 const addInventoryItemSchema = z.object({
   itemId: z.string().regex(/^\d+$/),
@@ -19,7 +16,7 @@ const addPenyaSchema = z.object({
   amount: z.number().int().min(1).max(2_147_483_647)
 });
 
-adminRouter.post("/characters/:characterId/penya", requireAdmin, async (request, response) => {
+adminRouter.post("/characters/:characterId/penya", requireAdmin, (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);
   const amountResult = addPenyaSchema.safeParse(request.body);
 
@@ -43,7 +40,7 @@ adminRouter.post("/characters/:characterId/penya", requireAdmin, async (request,
   response.json({ character: toPublicCharacter(character) });
 });
 
-adminRouter.post("/characters/:characterId/refund-stats", requireAdmin, async (request, response) => {
+adminRouter.post("/characters/:characterId/refund-stats", requireAdmin, (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);
 
   if (!characterIdResult.success) {
@@ -52,7 +49,7 @@ adminRouter.post("/characters/:characterId/refund-stats", requireAdmin, async (r
   }
 
   const auth = response.locals.auth as AuthTokenPayload;
-  const character = await characterRepository.refundStatsForPlayer(characterIdResult.data, auth.sub);
+  const character = characterRepository.refundStatsForPlayer(characterIdResult.data, auth.sub);
 
   if (!character) {
     response.status(404).json({ error: "Character not found" });
@@ -62,7 +59,7 @@ adminRouter.post("/characters/:characterId/refund-stats", requireAdmin, async (r
   response.json({ character: toPublicCharacter(character) });
 });
 
-adminRouter.post("/characters/:characterId/inventory", requireAdmin, async (request, response) => {
+adminRouter.post("/characters/:characterId/inventory", requireAdmin, (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);
 
   if (!characterIdResult.success) {
@@ -85,7 +82,7 @@ adminRouter.post("/characters/:characterId/inventory", requireAdmin, async (requ
   }
 
   const auth = response.locals.auth as AuthTokenPayload;
-  const character = await characterRepository.setInventoryItemForPlayer(characterIdResult.data, auth.sub, {
+  const character = characterRepository.setInventoryItemForPlayer(characterIdResult.data, auth.sub, {
     itemId: result.data.itemId,
     quantity: result.data.quantity
   });
@@ -103,7 +100,7 @@ adminRouter.post("/characters/:characterId/inventory", requireAdmin, async (requ
   response.json({ character: toPublicCharacter(character) });
 });
 
-adminRouter.post("/characters/:characterId/refund-skills", requireAdmin, async (request, response) => {
+adminRouter.post("/characters/:characterId/refund-skills", requireAdmin, (request, response) => {
   const characterIdResult = z.string().safeParse(request.params.characterId);
 
   if (!characterIdResult.success) {
@@ -112,7 +109,7 @@ adminRouter.post("/characters/:characterId/refund-skills", requireAdmin, async (
   }
 
   const auth = response.locals.auth as AuthTokenPayload;
-  const character = await characterRepository.refundSkillsForPlayer(characterIdResult.data, auth.sub);
+  const character = characterRepository.refundSkillsForPlayer(characterIdResult.data, auth.sub);
 
   if (!character) {
     response.status(404).json({ error: "Character not found" });

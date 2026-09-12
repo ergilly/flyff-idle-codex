@@ -1,0 +1,35 @@
+info:
+  name: Abandon an active quest
+  type: http
+  seq: 15
+  tags:
+    - Characters
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/api/characters/:characterId/quests/:questId"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+    - name: questId
+      value: "129"
+      type: path
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("abandons the quest and returns active quest state", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.activeQuestIds).not.to.include(129);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

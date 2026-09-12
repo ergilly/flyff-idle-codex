@@ -156,6 +156,14 @@
     "sex": "female",
     "stack": 1
   },
+  "7166": {
+    "id": 7166,
+    "name": "Mia Doll",
+    "description": "Quest item that drops from Mia.",
+    "category": "booty",
+    "level": 1,
+    "stack": 9999
+  },
   "8195": {
     "id": 8195,
     "name": "Cream Boots",

@@ -1,0 +1,33 @@
+info:
+  name: Get a character bank
+  type: http
+  seq: 1
+  tags:
+    - Bank
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/characters/:characterId/bank"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the shared bank and selected character", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.bank).to.be.an("object");
+          expect(res.body.character).to.be.an("object");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

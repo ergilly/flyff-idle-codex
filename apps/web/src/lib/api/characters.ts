@@ -50,14 +50,16 @@ export async function createCharacter(
 }
 
 export async function deleteCharacter(token: string, characterId: string, name: string): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ name })
-  });
+  const confirmationName = encodeURIComponent(name);
+  const response = await fetch(
+    `${apiBaseUrl}/api/characters/${characterId}?confirmationName=${confirmationName}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
 
   if (!response.ok) {
     throw new Error(
@@ -91,19 +93,13 @@ export async function travelCharacter(
   return data.character;
 }
 
-export async function updateCharacterProgression(
+export async function persistCharacterBattleState(
   token: string,
   characterId: string,
-  progression: {
-    exp?: number;
-    level?: number;
-    penya?: number;
-    skillLevels?: CharacterSkillLevels;
-    stats?: CharacterStats;
-  }
+  progression: { exp: number; level: number; penya: number }
 ): Promise<Character> {
-  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/progression`, {
-    method: "PATCH",
+  const response = await fetch(`${apiBaseUrl}/api/characters/${characterId}/progression/battle-state`, {
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
@@ -119,31 +115,43 @@ export async function updateCharacterProgression(
   return data.character;
 }
 
-export async function purchaseFlarineGeneralStoreItem(
+async function allocateCharacterProgression(
   token: string,
   characterId: string,
-  itemId: string,
-  quantity: number
+  allocationType: "skill" | "stat",
+  allocations: CharacterSkillLevels | Record<keyof CharacterStats, number>
 ): Promise<Character> {
   const response = await fetch(
-    `${apiBaseUrl}/api/characters/${characterId}/shops/flarine-general-store/purchases`,
+    `${apiBaseUrl}/api/characters/${characterId}/progression/${allocationType}-allocations`,
     {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ itemId, quantity })
+      body: JSON.stringify({ allocations })
     }
   );
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error ?? "Unable to purchase item");
-  }
-
-  const data = (await response.json()) as { character: Character };
+  const data = (await response.json().catch(() => null)) as { character?: Character; error?: string } | null;
+  if (!response.ok || !data?.character) throw new Error(data?.error ?? "Unable to allocate points");
   return data.character;
+}
+
+export function allocateCharacterStats(
+  token: string,
+  characterId: string,
+  allocations: Record<keyof CharacterStats, number>
+) {
+  return allocateCharacterProgression(token, characterId, "stat", allocations);
+}
+
+export function allocateCharacterSkills(
+  token: string,
+  characterId: string,
+  allocations: CharacterSkillLevels
+) {
+  return allocateCharacterProgression(token, characterId, "skill", allocations);
 }
 
 export async function sellCharacterInventoryItem(

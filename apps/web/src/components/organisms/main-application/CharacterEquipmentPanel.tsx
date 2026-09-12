@@ -1,3 +1,5 @@
+"use client";
+
 import {
   EquipmentLayout,
   EquipmentPanelContent,
@@ -12,9 +14,11 @@ import {
 } from "@/components/molecules/main-application/EquipmentLayout";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { ItemDetailsPanel } from "@/components/organisms/main-application/ItemDetailsPanel";
+import { ItemDetailsHoverOverlay } from "@/components/organisms/main-application/ItemDetailsHoverOverlay";
 import { getItemIconUrl, type Character, type CharacterEquipmentSlot, type ItemMetadata } from "@/lib/api";
 import { getCharacterEquipmentSet } from "@/lib/characterEquipment";
 import { getTestIdSegment } from "@/lib/testIds";
+import { useItemDetailsHover } from "@/hooks/useItemDetailsHover";
 
 export { getEquipmentItems, getEquippedItemIds } from "@/lib/characterEquipment";
 
@@ -51,6 +55,7 @@ export function CharacterEquipmentPanel({
   showSetSelector = true,
   variant = "framed"
 }: CharacterEquipmentPanelProps) {
+  const itemHover = useItemDetailsHover();
   const equipment = getCharacterEquipmentSet(character, activeEquipmentSet);
   const activeEquipmentItemIds = Object.values(equipment).filter((itemId): itemId is string =>
     Boolean(itemId)
@@ -106,6 +111,10 @@ export function CharacterEquipmentPanel({
                 aria-pressed={isSelected}
                 title={slotLabel}
                 onClick={() => (itemId ? onSelectEquipmentSlot(selectableSlot) : undefined)}
+                onBlur={itemHover.hideItemDetails}
+                onFocus={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onMouseEnter={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onMouseLeave={itemHover.hideItemDetails}
                 disabled={!itemId}
               >
                 <EquipmentSlotLabel testId={`equipment_span_slot_label_${getTestIdSegment(slot)}`}>
@@ -153,6 +162,13 @@ export function CharacterEquipmentPanel({
           />
         ) : null}
       </EquipmentPanelContent>
+      {itemHover.inspectedItem ? (
+        <ItemDetailsHoverOverlay
+          {...itemHover.inspectedItem}
+          character={character}
+          equippedItemIds={activeEquipmentItemIds}
+        />
+      ) : null}
     </>
   );
 

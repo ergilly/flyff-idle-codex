@@ -1,4 +1,4 @@
-name: PR Playwright Tests
+name: PR UI Playwright Tests
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   playwright-tests:
-    name: Playwright tests
+    name: UI Playwright tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -36,25 +36,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Prepare API test database
+      - name: Initialize test database
         run: |
           npm run db:migrate -w @flyff-idle/api
           npm run db:seed -w @flyff-idle/api
 
-      - name: Run API Playwright tests
-        run: npm run test:api
-
       - name: Run UI Playwright tests
         run: npm run test:ui
-
-      - name: Upload API Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-playwright-report
-          path: apps/api/test/reports/playwright-report/
-          if-no-files-found: ignore
-          retention-days: 7
 
       - name: Upload web Playwright report
         if: always()
@@ -70,8 +58,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results
-          path: |
-            apps/api/test/reports/test-results/
-            apps/web/test/reports/test-results/
+          path: apps/web/test/reports/test-results/
           if-no-files-found: ignore
           retention-days: 7

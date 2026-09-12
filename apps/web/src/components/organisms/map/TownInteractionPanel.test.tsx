@@ -1,10 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { TownInteractionPanel } from "@/components/organisms/map/TownInteractionPanel";
-import { fetchTownShop } from "@/lib/api";
+import { fetchQuestOfficeQuests, fetchTownShop } from "@/lib/api";
 import type { TownMapLocation } from "@/lib/townMapLocations";
 
 jest.mock("@/lib/api", () => ({
   ...jest.requireActual("@/lib/api"),
+  fetchQuestOfficeQuests: jest.fn(),
   fetchTownShop: jest.fn()
 }));
 
@@ -19,8 +20,12 @@ const shopLocation = {
 
 describe("TownInteractionPanel", () => {
   const mockedFetchTownShop = jest.mocked(fetchTownShop);
+  const mockedFetchQuestOfficeQuests = jest.mocked(fetchQuestOfficeQuests);
 
-  beforeEach(() => mockedFetchTownShop.mockReset());
+  beforeEach(() => {
+    mockedFetchQuestOfficeQuests.mockReset();
+    mockedFetchTownShop.mockReset();
+  });
 
   it("prompts for a location when none is selected", () => {
     render(<TownInteractionPanel location={null} townMapId="flarine-town" />);
@@ -60,6 +65,26 @@ describe("TownInteractionPanel", () => {
       />
     );
     expect(screen.getByText("This npc is not available yet.")).toBeInTheDocument();
+  });
+
+  it("opens the selected quest office NPC", async () => {
+    mockedFetchQuestOfficeQuests.mockResolvedValue([]);
+    render(
+      <TownInteractionPanel
+        characterLevel={15}
+        location={{
+          ...shopLocation,
+          id: "quest-office",
+          kind: "npc",
+          label: "Mikyel",
+          npcId: 29
+        }}
+        townMapId="flarine-town"
+      />
+    );
+
+    expect(await screen.findByTestId("map_section_quest_office")).toHaveTextContent("Mikyel");
+    expect(mockedFetchQuestOfficeQuests).toHaveBeenCalledWith(29);
   });
 
   it("opens the shared bank at a public office", async () => {

@@ -1,0 +1,42 @@
+info:
+  name: Complete an item collection quest
+  type: http
+  seq: 16
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/quests/:questId/complete"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+    - name: questId
+      value: "129"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "npcId": 29
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("completes the quest and returns completed quest state", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.activeQuestIds).not.to.include(129);
+          expect(res.body.character.completedQuestIds).to.include(129);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

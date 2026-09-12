@@ -112,6 +112,7 @@ export function useMapNavigation({
     selectRegion,
     selectTown,
     selectedRegion,
+    selectedRegionFamilies,
     selectedRegionMarkers,
     selectedTown,
     selectedTownLocation,

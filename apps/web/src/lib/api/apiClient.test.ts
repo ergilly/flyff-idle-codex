@@ -1,4 +1,6 @@
 import {
+  allocateCharacterSkills,
+  allocateCharacterStats,
   createCharacter,
   deleteCharacter,
   addCharacterInventoryItem,
@@ -17,15 +19,14 @@ import {
   login,
   lootInventoryItems,
   moveInventoryItem,
-  purchaseFlarineGeneralStoreItem,
+  persistCharacterBattleState,
   purchaseTownShopItem,
   sellCharacterInventoryItem,
   register,
   refundCharacterSkills,
   refundCharacterStats,
   sortInventory,
-  unequipItem,
-  updateCharacterProgression
+  unequipItem
 } from "../api";
 
 function mockFetch(response: Partial<Response>) {
@@ -159,10 +160,9 @@ describe("api client", () => {
 
     await expect(deleteCharacter("token", "char-1", "Hero")).resolves.toBeUndefined();
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:4000/api/characters/char-1",
+      "http://localhost:4000/api/characters/char-1?confirmationName=Hero",
       expect.objectContaining({
-        method: "DELETE",
-        body: JSON.stringify({ name: "Hero" })
+        method: "DELETE"
       })
     );
 
@@ -174,40 +174,24 @@ describe("api client", () => {
     });
 
     await expect(
-      updateCharacterProgression("token", "char-1", {
-        penya: 25,
-        stats: { str: 16, sta: 15, dex: 15, int: 15 },
-        skillLevels: { "vagrant-clean-hit": 1 }
-      })
+      allocateCharacterStats("token", "char-1", { str: 1, sta: 0, dex: 0, int: 0 })
     ).resolves.toEqual({ ...character, stats: { str: 16, sta: 15, dex: 15, int: 15 } });
     expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:4000/api/characters/char-1/progression",
-      expect.objectContaining({
-        method: "PATCH",
-        body: JSON.stringify({
-          penya: 25,
-          stats: { str: 16, sta: 15, dex: 15, int: 15 },
-          skillLevels: { "vagrant-clean-hit": 1 }
-        })
-      })
-    );
-
-    mockFetch({
-      ok: true,
-      json: jest.fn().mockResolvedValue({ character: { ...character, penya: 950 } })
-    });
-
-    await expect(purchaseFlarineGeneralStoreItem("token", "char-1", "5869", 3)).resolves.toEqual({
-      ...character,
-      penya: 950
-    });
-    expect(global.fetch).toHaveBeenCalledWith(
-      "http://localhost:4000/api/characters/char-1/shops/flarine-general-store/purchases",
+      "http://localhost:4000/api/characters/char-1/progression/stat-allocations",
       expect.objectContaining({
         method: "POST",
-        body: JSON.stringify({ itemId: "5869", quantity: 3 })
+        body: JSON.stringify({ allocations: { str: 1, sta: 0, dex: 0, int: 0 } })
       })
     );
+
+    await expect(allocateCharacterSkills("token", "char-1", { "226": 1 })).resolves.toEqual({
+      ...character,
+      stats: { str: 16, sta: 15, dex: 15, int: 15 }
+    });
+
+    await expect(
+      persistCharacterBattleState("token", "char-1", { exp: 2, level: 1, penya: 25 })
+    ).resolves.toEqual({ ...character, stats: { str: 16, sta: 15, dex: 15, int: 15 } });
 
     mockFetch({
       ok: true,
@@ -362,7 +346,10 @@ describe("api client", () => {
             total: 1,
             limit: 500,
             offset: 0,
-            results: [{ id: 100, name: "Twinkle Stone", icon: "twinkle.png", category: "quest" }]
+            results:
+              requestUrl.searchParams.get("category") === "booty"
+                ? [{ id: 100, name: "Twinkle Stone", icon: "twinkle.png", category: "booty" }]
+                : []
           })
         });
       }
@@ -462,6 +449,7 @@ describe("api client", () => {
         ]
       }
     });
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("/api/data/items?category=booty"));
   });
 
   it("uses explicit monster family names when marker data provides them", async () => {

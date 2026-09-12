@@ -1,0 +1,39 @@
+info:
+  name: Transfer all item stacks
+  type: http
+  seq: 3
+  tags:
+    - Bank
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/bank/items/all"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "direction": "deposit"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("transfers all possible stacks atomically", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.bank.items).to.be.an("array");
+          expect(res.body.character.inventory.items).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

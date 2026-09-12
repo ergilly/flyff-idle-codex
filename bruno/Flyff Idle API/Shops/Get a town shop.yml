@@ -1,0 +1,34 @@
+info:
+  name: Get a town shop
+  type: http
+  seq: 1
+  tags:
+    - Shops
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/shops/:townMapId/:locationId"
+  params:
+    - name: townMapId
+      value: sain-city
+      type: path
+    - name: locationId
+      value: magic-vendor
+      type: path
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns an enriched town shop", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.shop).to.be.an("object");
+          expect(res.body.shop.merchants).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

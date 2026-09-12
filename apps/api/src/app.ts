@@ -12,6 +12,7 @@ import { imageRouter } from "./images/image.routes.js";
 import { itemRouter } from "./items/item.routes.js";
 import { shopRouter } from "./shops/shop.routes.js";
 import { travelRouter } from "./travel/travel.routes.js";
+import { apiErrorEnvelope, unexpectedErrorHandler } from "./http/apiError.js";
 
 const openApiPath = path.resolve(process.cwd(), "../../docs/api/openapi.yaml");
 const openApiDocument = YAML.parse(fs.readFileSync(openApiPath, "utf8"));
@@ -43,6 +44,7 @@ export function createApp() {
 
   app.use(cors());
   app.use(express.json());
+  app.use(apiErrorEnvelope);
 
   app.get("/health", (_request, response) => {
     response.json({ status: "ok" });
@@ -60,6 +62,7 @@ export function createApp() {
   app.get("/swagger", (_request, response) => {
     response.type("html").send(swaggerHtml);
   });
+  app.use(unexpectedErrorHandler);
 
   return app;
 }

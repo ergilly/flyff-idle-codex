@@ -5,6 +5,7 @@ export type TownMapLocation = {
   iconSrc: string;
   kind: "npc" | "shop";
   label: string;
+  npcId?: number;
   x: number;
   y: number;
 };
@@ -22,7 +23,7 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     npc("housing-specialist", "Housing Specialist", 35.5, 59.8),
     npc("buff-pang", "Buff Pang", 29.5, 65.1),
     npc("public-office", "Public Office", 26.7, 68.5),
-    npc("quest-office", "Quest Office", 65.8, 52.4),
+    npc("quest-office", "Mikyel", 65.8, 52.4, 29),
     shop("magic-vendor", "Magic Vendor", 77.9, 45.7),
     shop("food-vendor", "Food Vendor", 77.7, 66.1)
   ],
@@ -32,7 +33,7 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     shop("armory", "Armory", 40.9, 73.3),
     shop("general-store", "General Store", 47, 72.6),
     shop("food-vendor", "Food Vendor", 40, 79.1),
-    npc("quest-office", "Quest Office", 54.8, 75.4),
+    npc("quest-office", "Lancomi", 54.8, 75.4, 4000),
     npc("arena-manager", "Arena Manager", 48, 81.8),
     npc("pet-tamer", "Pet Tamer", 52.4, 81.7),
     npc("buff-pang", "Buff Pang", 50.2, 84.7),
@@ -45,7 +46,7 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     npc("arena-manager", "Arena Manager", 36.1, 50),
     npc("buff-pang", "Buff Pang", 34.3, 50.4),
     shop("station", "Station", 47.7, 51.4),
-    npc("quest-office", "Quest Office", 42.3, 57.3),
+    npc("quest-office", "Lurif", 42.3, 57.3, 4677),
     shop("armory", "Armory", 22.8, 59.7),
     shop("magic-vendor", "Magic Vendor", 60.4, 71.9),
     shop("food-vendor", "Food Vendor", 43.8, 78.1)
@@ -59,14 +60,14 @@ export const townMapLocations: Record<TownMapId, TownMapLocation[]> = {
     shop("red-chip-merchant", "Red Chip Merchant", 70.8, 40.4),
     npc("pet-tamer", "Pet Tamer", 40, 43.2),
     npc("public-office", "Public Office", 38.4, 53.3),
-    npc("quest-office", "Quest Office", 41.6, 58.6),
+    npc("quest-office", "Miorang", 41.6, 58.6, 20250),
     shop("armory", "Armory", 53.5, 60.2),
     npc("arena-manager", "Arena Manager", 64.9, 65.3)
   ]
 };
 
-function npc(id: string, label: string, x: number, y: number): TownMapLocation {
-  return { id, iconSrc: getTownLocationIconSrc(id), kind: "npc", label, x, y };
+function npc(id: string, label: string, x: number, y: number, npcId?: number): TownMapLocation {
+  return { id, iconSrc: getTownLocationIconSrc(id), kind: "npc", label, npcId, x, y };
 }
 
 function shop(id: string, label: string, x: number, y: number): TownMapLocation {

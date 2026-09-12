@@ -1,14 +1,18 @@
+"use client";
+
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
+import { ItemDetailsHoverOverlay } from "@/components/organisms/main-application/ItemDetailsHoverOverlay";
 import { DropItemImage } from "@/components/molecules/battle/DropItemImages";
 import { type ItemMetadata } from "@/lib/api";
 import { getDropRarityBorderClass, getDropRarityTextClass, isQuestDropItem } from "@/lib/battle/loot";
 import { type BattleDroppedItem } from "@/lib/battle/types";
 import { cx } from "@/lib/classNames";
 import { getTestIdSegment } from "@/lib/testIds";
+import { useItemDetailsHover } from "@/hooks/useItemDetailsHover";
 
 export function MonsterDroppedItemsPanel({
   droppedItems,
@@ -31,6 +35,7 @@ export function MonsterDroppedItemsPanel({
   onSelectDroppedItem: (itemId: string) => void;
   selectedDroppedItemId: string | null;
 }) {
+  const itemHover = useItemDetailsHover();
   const hasDroppedItems = droppedItems.length > 0;
 
   return (
@@ -106,6 +111,10 @@ export function MonsterDroppedItemsPanel({
                     disabled={isLootPending}
                     onClick={() => onSelectDroppedItem(drop.itemId)}
                     onDoubleClick={() => onLootDroppedItem(drop)}
+                    onBlur={itemHover.hideItemDetails}
+                    onFocus={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                    onMouseEnter={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                    onMouseLeave={itemHover.hideItemDetails}
                     type="button"
                   >
                     <DropItemImage icon={item?.icon} isQuestDrop={isQuestDropItem(item)} name={itemName} />
@@ -136,6 +145,7 @@ export function MonsterDroppedItemsPanel({
           </div>
         )}
       </div>
+      {itemHover.inspectedItem ? <ItemDetailsHoverOverlay {...itemHover.inspectedItem} /> : null}
     </Panel>
   );
 }

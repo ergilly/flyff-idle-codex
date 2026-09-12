@@ -17,7 +17,7 @@
     "test": "npm run test -w @flyff-idle/api && npm run test -w @flyff-idle/web",
     "test:unit": "npm run test:unit -w @flyff-idle/api && npm run test:unit -w @flyff-idle/web",
     "test:coverage": "npm run test:coverage -w @flyff-idle/api && npm run test:coverage -w @flyff-idle/web",
-    "test:api": "npm run test:api -w @flyff-idle/api",
+    "test:api": "npm run test:integration -w @flyff-idle/api",
     "test:ui": "npm run test:ui -w @flyff-idle/web",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

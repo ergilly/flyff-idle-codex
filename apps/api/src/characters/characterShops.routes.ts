@@ -60,12 +60,6 @@ async function purchaseShopItem(request: Request, response: Response, townMapId:
 }
 
 characterShopsRouter.post(
-  "/:characterId/shops/flarine-general-store/purchases",
-  requireAuth,
-  (request, response) => purchaseShopItem(request, response, "flarine-town", "general-store")
-);
-
-characterShopsRouter.post(
   "/:characterId/shops/:townMapId/:locationId/purchases",
   requireAuth,
   (request, response) =>

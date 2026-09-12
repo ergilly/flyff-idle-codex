@@ -3,7 +3,6 @@ import {
   addDroppedItems,
   formatBattleValue,
   getDropCategory,
-  isQuestDropItem,
   removeDroppedItems,
   rollMonsterDrops,
   rollMonsterPenya
@@ -14,10 +13,6 @@ describe("battle loot", () => {
   it("formats values and classifies drops by player-facing category", () => {
     expect(formatBattleValue(null)).toBe("Unknown");
     expect(formatBattleValue(0)).toBe("0");
-    expect(isQuestDropItem(buildItem({ category: "booty" }))).toBe(true);
-    expect(isQuestDropItem(buildItem({ category: "quest item" }))).toBe(true);
-    expect(isQuestDropItem(buildItem({ category: null, subcategory: "quest reward" }))).toBe(true);
-    expect(isQuestDropItem(undefined)).toBe(false);
     expect(
       [
         buildItem({ consumable: true }),

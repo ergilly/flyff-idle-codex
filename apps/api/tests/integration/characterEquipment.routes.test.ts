@@ -1,8 +1,8 @@
 import request from "supertest";
-import { createApp } from "../app.js";
-import { characterRepository } from "../data/characterRepository.js";
-import { db } from "../data/database.js";
-import { disconnectTestDatabase, resetTestDatabase } from "../../tests/setup/database.js";
+import { createApp } from "../../src/app.js";
+import { characterRepository } from "../../src/data/characterRepository.js";
+import { db } from "../../src/data/database.js";
+import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
 describe("character equipment routes", () => {
   const app = createApp();

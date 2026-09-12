@@ -3,6 +3,8 @@ export const dataSetNames = [
   "jobs",
   "mapMonsters",
   "monsters",
+  "npcs",
+  "quests",
   "sets",
   "skills",
   "upgrades"

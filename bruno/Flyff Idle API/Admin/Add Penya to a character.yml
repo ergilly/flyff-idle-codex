@@ -1,0 +1,38 @@
+info:
+  name: Add Penya to a character
+  type: http
+  seq: 4
+  tags:
+    - Admin
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/admin/characters/:characterId/penya"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "amount": 1000
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("adds Penya and returns the authoritative balance", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.penya).to.be.a("number");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

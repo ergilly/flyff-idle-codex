@@ -7,6 +7,7 @@ import { MapTravelDialog } from "@/components/organisms/map/MapTravelDialog";
 import { RegionMapView } from "@/components/organisms/map/RegionMapView";
 import { WorldMapView } from "@/components/organisms/map/WorldMapView";
 import { useMapNavigation } from "@/hooks/map/useMapNavigation";
+import { useMapQuestItemMetadata } from "@/hooks/map/useMapQuestItemMetadata";
 import { useMapViewport } from "@/hooks/map/useMapViewport";
 import type { MapMonsterFamily } from "@/lib/api";
 import type { Bank, CharacterInventory, ItemMetadata } from "@/lib/api/types";
@@ -15,6 +16,8 @@ import type { TravelMethod } from "@/lib/mapTravel";
 import type { TownMapId } from "@/lib/townMapLocations";
 
 type MapPageProps = {
+  activeQuestIds?: number[];
+  completedQuestIds?: number[];
   characterLocation?: string;
   characterJob?: string;
   characterLevel?: number;
@@ -24,6 +27,8 @@ type MapPageProps = {
   equippedFlyingItemId?: string | null;
   itemsById?: Record<string, ItemMetadata>;
   initialTownMapId?: TownMapId;
+  onAcceptQuest?: (npcId: number, questId: number) => Promise<void>;
+  onCompleteQuest?: (npcId: number, questId: number) => Promise<void>;
   onBuyShopItem?: (
     townMapId: TownMapId,
     locationId: string,
@@ -41,6 +46,8 @@ type MapPageProps = {
 };
 
 export function MapPage({
+  activeQuestIds,
+  completedQuestIds,
   characterLocation = "Flaris",
   characterJob,
   characterLevel,
@@ -50,6 +57,8 @@ export function MapPage({
   equippedFlyingItemId,
   itemsById,
   initialTownMapId,
+  onAcceptQuest,
+  onCompleteQuest,
   onBuyShopItem,
   onLoadBank,
   onEnterTown,
@@ -62,6 +71,7 @@ export function MapPage({
 }: MapPageProps) {
   const navigation = useMapNavigation({ characterLocation, initialTownMapId, onEnterTown, onTravel });
   const viewport = useMapViewport(navigation.resetKey);
+  const mapItemsById = useMapQuestItemMetadata(navigation.selectedRegionFamilies, itemsById ?? {});
 
   return (
     <section
@@ -89,12 +99,19 @@ export function MapPage({
           zoom={viewport.zoom}
         />
         {navigation.selectedRegion && navigation.displayedMapSrc ? (
-          <RegionMapView navigation={navigation} onSelectMonster={onSelectMonster} viewport={viewport} />
+          <RegionMapView
+            itemsById={mapItemsById}
+            navigation={navigation}
+            onSelectMonster={onSelectMonster}
+            viewport={viewport}
+          />
         ) : (
           <WorldMapView characterLocation={characterLocation} navigation={navigation} viewport={viewport} />
         )}
       </Panel>
       <MapSidePanel
+        activeQuestIds={activeQuestIds}
+        completedQuestIds={completedQuestIds}
         characterInventory={characterInventory}
         characterJob={characterJob}
         characterLevel={characterLevel}
@@ -102,6 +119,8 @@ export function MapPage({
         characterSex={characterSex}
         itemsById={itemsById}
         navigation={navigation}
+        onAcceptQuest={onAcceptQuest}
+        onCompleteQuest={onCompleteQuest}
         onBuyShopItem={onBuyShopItem}
         onLoadBank={onLoadBank}
         onSellShopItem={onSellShopItem}

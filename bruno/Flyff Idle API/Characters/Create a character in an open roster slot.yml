@@ -20,6 +20,22 @@ http:
     type: bearer
     token: "{{token}}"
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201 && res.body.character) {
+          bru.setEnvVar("characterId", res.body.character.id, { persist: true });
+          bru.setEnvVar("characterName", res.body.character.name, { persist: true });
+        }
+    - type: tests
+      code: |-
+        test("creates and returns the authoritative character", function() {
+          expect(res.status).to.equal(201);
+          expect(res.body.character).to.be.an("object");
+          expect(res.body.character.id).to.be.a("string").and.not.empty;
+        });
+
 settings:
   encodeUrl: true
   timeout: 0

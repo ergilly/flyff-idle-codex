@@ -10,45 +10,41 @@ export const characterConsumablesRouter = Router();
 const resourceSchema = z.enum(["hp", "mp", "fp"]);
 const equipSchema = z.object({ slotIndex: z.number().int().min(0).max(99).nullable() });
 
-characterConsumablesRouter.post(
-  "/:characterId/consumables/:resource",
-  requireAuth,
-  async (request, response) => {
-    const characterId = z.string().safeParse(request.params.characterId);
-    const resource = resourceSchema.safeParse(request.params.resource);
-    const equip = equipSchema.safeParse(request.body);
-    if (!characterId.success || !resource.success || !equip.success) {
-      response.status(400).json({ error: "Consumable item is required" });
-      return;
-    }
-    const result = await characterRepository.equipConsumableItemForPlayer(
-      characterId.data,
-      (response.locals.auth as AuthTokenPayload).sub,
-      resource.data,
-      equip.data.slotIndex
-    );
-    if (!result.character) {
-      const missing = ["Character not found", "Inventory item not found", "Item not found"].includes(
-        result.error ?? ""
-      );
-      response.status(missing ? 404 : 400).json({ error: result.error ?? "Unable to equip consumable" });
-      return;
-    }
-    response.json({ character: toPublicCharacter(result.character) });
+characterConsumablesRouter.post("/:characterId/consumables/:resource", requireAuth, (request, response) => {
+  const characterId = z.string().safeParse(request.params.characterId);
+  const resource = resourceSchema.safeParse(request.params.resource);
+  const equip = equipSchema.safeParse(request.body);
+  if (!characterId.success || !resource.success || !equip.success) {
+    response.status(400).json({ error: "Consumable item is required" });
+    return;
   }
-);
+  const result = characterRepository.equipConsumableItemForPlayer(
+    characterId.data,
+    (response.locals.auth as AuthTokenPayload).sub,
+    resource.data,
+    equip.data.slotIndex
+  );
+  if (!result.character) {
+    const missing = ["Character not found", "Inventory item not found", "Item not found"].includes(
+      result.error ?? ""
+    );
+    response.status(missing ? 404 : 400).json({ error: result.error ?? "Unable to equip consumable" });
+    return;
+  }
+  response.json({ character: toPublicCharacter(result.character) });
+});
 
 characterConsumablesRouter.post(
   "/:characterId/consumables/:resource/consume",
   requireAuth,
-  async (request, response) => {
+  (request, response) => {
     const characterId = z.string().safeParse(request.params.characterId);
     const resource = resourceSchema.safeParse(request.params.resource);
     if (!characterId.success || !resource.success) {
       response.status(404).json({ error: "Consumable slot not found" });
       return;
     }
-    const result = await characterRepository.consumeEquippedConsumableForPlayer(
+    const result = characterRepository.consumeEquippedConsumableForPlayer(
       characterId.data,
       (response.locals.auth as AuthTokenPayload).sub,
       resource.data

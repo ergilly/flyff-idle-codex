@@ -2,6 +2,7 @@
 
 import { GeneralStorePanel } from "@/components/organisms/map/GeneralStorePanel";
 import { BankPanel } from "@/components/organisms/map/BankPanel";
+import { QuestOfficePanel } from "@/components/organisms/map/QuestOfficePanel";
 import { useEffect, useState } from "react";
 import { fetchTownShop } from "@/lib/api";
 import { type Bank, type CharacterInventory, type ItemMetadata } from "@/lib/api/types";
@@ -9,6 +10,8 @@ import { type TownShop } from "@/lib/townShops";
 import { type TownMapId, type TownMapLocation } from "@/lib/townMapLocations";
 
 type TownInteractionPanelProps = {
+  activeQuestIds?: number[];
+  completedQuestIds?: number[];
   characterLevel?: number;
   characterJob?: string;
   characterInventory?: CharacterInventory;
@@ -16,6 +19,8 @@ type TownInteractionPanelProps = {
   characterSex?: "female" | "male";
   itemsById?: Record<string, ItemMetadata>;
   location: TownMapLocation | null;
+  onAcceptQuest?: (npcId: number, questId: number) => Promise<void>;
+  onCompleteQuest?: (npcId: number, questId: number) => Promise<void>;
   onBuyItem?: (townMapId: TownMapId, locationId: string, itemId: string, quantity: number) => Promise<void>;
   onLoadBank?: () => Promise<Bank>;
   onSellItem?: (slotIndex: number, quantity: number) => Promise<void>;
@@ -26,6 +31,8 @@ type TownInteractionPanelProps = {
 };
 
 export function TownInteractionPanel({
+  activeQuestIds,
+  completedQuestIds,
   characterLevel,
   characterJob,
   characterInventory,
@@ -33,6 +40,8 @@ export function TownInteractionPanel({
   characterSex,
   itemsById,
   location,
+  onAcceptQuest,
+  onCompleteQuest,
   onBuyItem,
   onLoadBank,
   onSellItem,
@@ -102,6 +111,22 @@ export function TownInteractionPanel({
         shopName={location.label}
         shopMerchants={shop.merchants}
         townName={getTownName(townMapId)}
+      />
+    );
+  }
+
+  if (location.id === "quest-office" && location.npcId) {
+    return (
+      <QuestOfficePanel
+        activeQuestIds={activeQuestIds}
+        characterInventory={characterInventory}
+        characterLevel={characterLevel}
+        completedQuestIds={completedQuestIds}
+        key={location.npcId}
+        npcId={location.npcId}
+        npcName={location.label}
+        onAcceptQuest={onAcceptQuest}
+        onCompleteQuest={onCompleteQuest}
       />
     );
   }

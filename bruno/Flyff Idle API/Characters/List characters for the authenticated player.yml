@@ -12,6 +12,22 @@ http:
     type: bearer
     token: "{{token}}"
 
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const character = res.body.characters?.[0];
+        if (res.status === 200 && character) {
+          bru.setEnvVar("characterId", character.id, { persist: true });
+          bru.setEnvVar("characterName", character.name, { persist: true });
+        }
+    - type: tests
+      code: |-
+        test("returns the authenticated player's roster", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.characters).to.be.an("array");
+        });
+
 settings:
   encodeUrl: true
   timeout: 0

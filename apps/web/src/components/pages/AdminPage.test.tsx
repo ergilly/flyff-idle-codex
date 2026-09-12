@@ -128,7 +128,6 @@ describe("AdminPage", () => {
 
     await waitFor(() =>
       expect(fetchDataSet).toHaveBeenCalledWith("items", {
-        fields: "id,name,icon,category,level,rarity,stack",
         limit: 12,
         q: "cloak"
       })
@@ -136,6 +135,16 @@ describe("AdminPage", () => {
     expect((await screen.findAllByText("Dragon Cloak of the Master")).length).toBeGreaterThan(0);
     expect(screen.getByText("#40 - fashion - Lv. 1")).toBeInTheDocument();
     expect(screen.getByText("Next open slot")).toBeInTheDocument();
+
+    const result = screen.getByTestId("admin_button_item_result_40");
+    fireEvent.mouseEnter(result);
+    expect(
+      screen.getByRole("complementary", { name: "Dragon Cloak of the Master details" })
+    ).toBeInTheDocument();
+    fireEvent.mouseLeave(result);
+    expect(
+      screen.queryByRole("complementary", { name: "Dragon Cloak of the Master details" })
+    ).not.toBeInTheDocument();
 
     expect(screen.getByLabelText("Quantity")).toHaveAttribute("max", "2");
 

@@ -1,0 +1,46 @@
+info:
+  name: Purchase a town shop item
+  type: http
+  seq: 17
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/shops/:townMapId/:locationId/purchases"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+    - name: townMapId
+      value: flarine-town
+      type: path
+    - name: locationId
+      value: general-store
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "itemId": "5869",
+        "quantity": 1
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("purchases at the server-controlled price", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.inventory.items).to.be.an("array");
+          expect(res.body.character.penya).to.be.a("number");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -9,12 +9,89 @@ describe("game data service", () => {
       expect.arrayContaining([
         { name: "items", href: "/api/data/items" },
         { name: "mapMonsters", href: "/api/data/mapMonsters" },
+        { name: "npcs", href: "/api/data/npcs" },
+        { name: "quests", href: "/api/data/quests" },
         { name: "skills", href: "/api/data/skills" }
       ])
     );
     expect(isDataSetName("items")).toBe(true);
     expect(isDataSetName("mapMonsters")).toBe(true);
+    expect(isDataSetName("npcs")).toBe(true);
+    expect(isDataSetName("quests")).toBe(true);
     expect(isDataSetName("unknown")).toBe(false);
+  });
+
+  it("loads quest records from the game data database", () => {
+    expect(findDataRecord("quests", "88")).toEqual(
+      expect.objectContaining({
+        id: 88,
+        name: "Successor of Hero -Altar-",
+        type: "chain"
+      })
+    );
+    expect(queryDataSet("quests", { beginNPC: "29", fields: "id,name,minLevel" })).toMatchObject({
+      dataSet: "quests",
+      total: 1,
+      results: [{ id: 129, name: "Blessed Doll", minLevel: 23 }]
+    });
+    expect(findDataRecord("quests", "129")).toMatchObject({
+      description: "Bring 7 Mia Doll to Mikyel.",
+      dialogsAccept: ["You can collect Mia Doll from all types of Mia."]
+    });
+    expect(
+      queryDataSet("quests", {
+        beginNPC: "29",
+        fields: "id,description,dialogsAccept"
+      }).results
+    ).toEqual([
+      {
+        id: 129,
+        description: "Bring 7 Mia Doll to Mikyel.",
+        dialogsAccept: ["You can collect Mia Doll from all types of Mia."]
+      }
+    ]);
+  });
+
+  it("loads NPC records from the game data database", () => {
+    expect(findDataRecord("npcs", "29")).toEqual(
+      expect.objectContaining({
+        id: 29,
+        name: "Mikyel",
+        place: "questoffice"
+      })
+    );
+  });
+
+  it("includes every imported NPC in the deployable game data database", () => {
+    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
+      readOnly: true
+    });
+
+    try {
+      const { count } = database
+        .prepare("SELECT COUNT(*) AS count FROM game_data_records WHERE data_set = 'npcs'")
+        .get() as { count: number };
+
+      expect(count).toBe(286);
+    } finally {
+      database.close();
+    }
+  });
+
+  it("includes every imported quest in the deployable game data database", () => {
+    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
+      readOnly: true
+    });
+
+    try {
+      const { count } = database
+        .prepare("SELECT COUNT(*) AS count FROM game_data_records WHERE data_set = 'quests'")
+        .get() as { count: number };
+
+      expect(count).toBe(775);
+    } finally {
+      database.close();
+    }
   });
 
   it("finds records and ignores missing ids", () => {

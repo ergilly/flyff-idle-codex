@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { characterRepository } from "../data/characterRepository.js";
 import type { AuthTokenPayload } from "../types.js";
-import { toPublicCharacter } from "./characterRoute.shared.js";
+import { sendApiError } from "../http/apiError.js";
+import { sendCharacter, toPublicCharacter } from "./characterRoute.shared.js";
 
 export const characterCoreRouter = Router();
 
@@ -17,15 +18,15 @@ const createCharacterSchema = z.object({
     .regex(/^[A-Za-z][A-Za-z0-9 ]*$/),
   gender: z.enum(["male", "female"])
 });
-const deleteCharacterSchema = z.object({ name: z.string().trim().min(1) });
+const deleteCharacterSchema = z.object({ confirmationName: z.string().trim().min(1) });
 
-characterCoreRouter.get("/", requireAuth, async (_request, response) => {
+characterCoreRouter.get("/", requireAuth, (_request, response) => {
   const auth = response.locals.auth as AuthTokenPayload;
-  const characters = (await characterRepository.listByPlayerId(auth.sub)).map(toPublicCharacter);
+  const characters = characterRepository.listByPlayerId(auth.sub).map(toPublicCharacter);
   response.json({ characters });
 });
 
-characterCoreRouter.post("/", requireAuth, async (request, response) => {
+characterCoreRouter.post("/", requireAuth, (request, response) => {
   const result = createCharacterSchema.safeParse(request.body);
   if (!result.success) {
     response.status(400).json({ error: "Character name and slot are required" });
@@ -33,7 +34,7 @@ characterCoreRouter.post("/", requireAuth, async (request, response) => {
   }
 
   try {
-    const character = await characterRepository.create({
+    const character = characterRepository.create({
       playerId: (response.locals.auth as AuthTokenPayload).sub,
       ...result.data
     });
@@ -52,8 +53,20 @@ characterCoreRouter.post("/", requireAuth, async (request, response) => {
   }
 });
 
-characterCoreRouter.delete("/:characterId", requireAuth, async (request, response) => {
-  const confirmation = deleteCharacterSchema.safeParse(request.body);
+characterCoreRouter.get("/:characterId", requireAuth, (request, response) => {
+  const character = characterRepository.findById(String(request.params.characterId));
+  const auth = response.locals.auth as AuthTokenPayload;
+
+  if (!character || character.playerId !== auth.sub) {
+    sendApiError(response, 404, "not_found", "Character not found");
+    return;
+  }
+
+  sendCharacter(response, character);
+});
+
+characterCoreRouter.delete("/:characterId", requireAuth, (request, response) => {
+  const confirmation = deleteCharacterSchema.safeParse(request.query);
   if (!confirmation.success) {
     response.status(400).json({ error: "Character name confirmation is required" });
     return;
@@ -65,15 +78,15 @@ characterCoreRouter.delete("/:characterId", requireAuth, async (request, respons
     response.status(404).json({ error: "Character not found" });
     return;
   }
-  const character = await characterRepository.findById(characterId.data);
+  const character = characterRepository.findById(characterId.data);
   if (!character || character.playerId !== auth.sub) {
     response.status(404).json({ error: "Character not found" });
     return;
   }
-  if (character.name !== confirmation.data.name) {
+  if (character.name !== confirmation.data.confirmationName) {
     response.status(400).json({ error: "Character name confirmation does not match" });
     return;
   }
-  await characterRepository.deleteByIdForPlayer(character.id, auth.sub);
+  characterRepository.deleteByIdForPlayer(character.id, auth.sub);
   response.status(204).send();
 });

@@ -69,3 +69,18 @@ These instructions apply to all code changes in this repository.
 - Keep tests deterministic and independent of execution order or external mutable state.
 - Use the narrowest suitable test level: unit tests for domain logic, component tests for interactions, integration tests for boundaries, and end-to-end tests only for critical cross-system flows.
 - Avoid tests that merely duplicate implementation details or assert static markup without meaningful behavior.
+
+## API architecture and contracts
+
+- Organize API code by domain capability. Route modules parse and validate HTTP input, apply authentication, invoke one domain operation, and map its result to HTTP. Keep multi-step business workflows and persistence details outside route handlers.
+- Keep request schemas and inferred request types together. Validate path parameters, query parameters, bodies, and external data before use.
+- Treat `docs/api/openapi.yaml` as part of every API change. Adding, removing, or changing a route must update its request schema, response schemas, security, status codes, and error responses in the same change.
+- Keep the OpenAPI route-parity contract test passing. Add integration coverage for success, validation, authentication, authorization, ownership, conflict, and not-found behavior.
+- Do not expose a general character update endpoint for inventory, equipment, progression, currency, travel, or other server-controlled state. Model these as focused subresources or domain commands.
+- Use `PUT` only for idempotent complete replacement of a resource or subresource, `PATCH` for partial field updates, `POST` for creation and domain commands, and `DELETE` with path or query identification and normally a `204` response.
+- Return the created resource, authoritative updated state, or smallest useful result that prevents an immediate refetch. Do not return a success wrapper when the client needs canonical server state.
+- Enforce ownership, pricing, capacity, progression, and eligibility on the API. Clients may request actions but must not submit authoritative calculated outcomes unless an endpoint is explicitly documented as persistence for a client-simulated system.
+- Perform related writes atomically. Repositories return precise typed results so routes do not repeat existence or ownership queries.
+- Use the shared JSON error contract and central unexpected-error handler. Distinguish invalid input, unauthenticated requests, forbidden actions, missing resources, state conflicts, domain-rule failures, and unexpected failures.
+- Avoid repeated aggregate hydration and large responses on high-frequency endpoints. Batch related commands or return authoritative deltas when that materially reduces database and network work.
+- Prevent N+1 queries when loading collections. Any cache must have explicit ownership and invalidation rules.

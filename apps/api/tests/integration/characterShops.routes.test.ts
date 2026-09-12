@@ -1,6 +1,6 @@
 import request from "supertest";
-import { createApp } from "../app.js";
-import { disconnectTestDatabase, resetTestDatabase } from "../../tests/setup/database.js";
+import { createApp } from "../../src/app.js";
+import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
 describe("character shop routes", () => {
   const app = createApp();

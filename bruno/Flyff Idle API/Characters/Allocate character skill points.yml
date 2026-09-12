@@ -1,0 +1,38 @@
+info:
+  name: Allocate character skill points
+  type: http
+  seq: 6
+  tags:
+    - Characters
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/characters/:characterId/progression/skill-allocations"
+  params:
+    - name: characterId
+      value: "{{characterId}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "allocations": { "226": 1 }
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the character with allocated skills", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.skillLevels).to.be.an("object");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

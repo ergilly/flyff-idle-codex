@@ -1,4 +1,4 @@
-name: PR Unit Tests
+name: PR Unit and API Integration Tests
 
 on:
   pull_request:
@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 jobs:
-  unit-tests:
-    name: Unit tests
+  automated-tests:
+    name: Unit and API integration tests
     runs-on: ubuntu-latest
 
     steps:
@@ -29,5 +29,10 @@ jobs:
 
       - name: Run unit tests
         run: npm run test:unit
+        env:
+          CI: true
+
+      - name: Run API integration tests
+        run: npm run test:api
         env:
           CI: true

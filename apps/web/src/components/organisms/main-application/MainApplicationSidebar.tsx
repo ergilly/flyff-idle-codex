@@ -3,6 +3,7 @@ import {
   ChevronDown,
   CircleUserRound,
   Cog,
+  ListChecks,
   ShieldCheck,
   Map,
   Moon,
@@ -19,6 +20,7 @@ import { getTestIdSegment } from "@/lib/testIds";
 export const navItems = [
   { label: "Character Page", icon: CircleUserRound },
   { label: "Inventory", icon: Backpack },
+  { label: "Quests", icon: ListChecks },
   { label: "Map", icon: Map },
   { label: "Combat", icon: Swords },
   { label: "Upgrading", icon: Sparkles }

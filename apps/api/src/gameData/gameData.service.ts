@@ -1,11 +1,18 @@
 import { loadStoredDataSet } from "./gameData.database.js";
 import { dataSetNames, type DataSetName, type JsonDataRecord } from "./gameData.types.js";
+import {
+  createQuestTextReferenceIndex,
+  resolveQuestText,
+  type QuestTextReferenceIndex
+} from "./questTextResolver.js";
 
 export { dataSetNames, type DataSetName, type JsonDataRecord } from "./gameData.types.js";
 
 type DataSet = Record<string, JsonDataRecord>;
 const dataSetNameSet = new Set<string>(dataSetNames);
 const dataCache = new Map<DataSetName, DataSet>();
+const resolvedQuestCache = new WeakMap<JsonDataRecord, JsonDataRecord>();
+let questTextReferenceIndex: QuestTextReferenceIndex | undefined;
 
 const reservedQueryParams = new Set(["fields", "ids", "limit", "maxLevel", "minLevel", "offset", "q"]);
 
@@ -23,6 +30,27 @@ function loadDataSet(dataSetName: DataSetName) {
   const dataSet = loadStoredDataSet(dataSetName);
   dataCache.set(dataSetName, dataSet);
   return dataSet;
+}
+
+function getQuestTextReferenceIndex() {
+  questTextReferenceIndex ??= createQuestTextReferenceIndex({
+    items: loadDataSet("items"),
+    monsters: loadDataSet("monsters"),
+    npcs: loadDataSet("npcs")
+  });
+  return questTextReferenceIndex;
+}
+
+function resolveDataSetRecord(dataSetName: DataSetName, item: JsonDataRecord) {
+  if (dataSetName !== "quests") return item;
+
+  const cachedQuest = resolvedQuestCache.get(item);
+
+  if (cachedQuest) return cachedQuest;
+
+  const resolvedQuest = resolveQuestText(item, getQuestTextReferenceIndex());
+  resolvedQuestCache.set(item, resolvedQuest);
+  return resolvedQuest;
 }
 
 function normalize(value: unknown) {
@@ -135,7 +163,8 @@ export function listDataSets() {
 }
 
 export function findDataRecord(dataSetName: DataSetName, id: string) {
-  return findDataRecordById(loadDataSet(dataSetName), id);
+  const item = findDataRecordById(loadDataSet(dataSetName), id);
+  return item ? resolveDataSetRecord(dataSetName, item) : undefined;
 }
 
 export function queryDataSet(dataSetName: DataSetName, query: Record<string, unknown>) {
@@ -167,12 +196,13 @@ export function queryDataSet(dataSetName: DataSetName, query: Record<string, unk
     : Object.values(dataSet);
 
   const filteredItems = dataSetItems
-    .filter((item) => (textQuery ? matchesQuery(item, textQuery) : true))
     .filter((item) => matchesRange(item, minimumLevel, maximumLevel))
     .filter((item) => (dataSetName === "skills" && classId ? matchesScalarFilter(item.class, classId) : true))
     .filter((item) =>
       scalarFilters.every(({ field, expected }) => matchesScalarFilter(getFieldValue(item, field), expected))
-    );
+    )
+    .map((item) => resolveDataSetRecord(dataSetName, item))
+    .filter((item) => (textQuery ? matchesQuery(item, textQuery) : true));
 
   return {
     dataSet: dataSetName,

@@ -1,11 +1,12 @@
 import {
+  allocateCharacterSkills,
   consumeEquippedConsumableItem,
   consumeEquippedArrow,
   consumeInventoryItem,
   equipConsumableItem,
   lootInventoryItems,
-  travelCharacter,
-  updateCharacterProgression
+  persistCharacterBattleState,
+  travelCharacter
 } from "@/lib/api";
 import { buildCharacter } from "@/test/fixtures";
 
@@ -68,18 +69,23 @@ describe("character API action contracts", () => {
   it("sends progression and loot batches without losing fields", async () => {
     respond({});
 
-    await updateCharacterProgression("token", "character-1", {
+    await persistCharacterBattleState("token", "character-1", {
       level: 21,
       exp: 12,
-      penya: 500,
-      skillLevels: { cleanHit: 2 }
+      penya: 500
     });
     expect(global.fetch).toHaveBeenLastCalledWith(
-      "http://localhost:4000/api/characters/character-1/progression",
+      "http://localhost:4000/api/characters/character-1/progression/battle-state",
       expect.objectContaining({
-        method: "PATCH",
-        body: JSON.stringify({ level: 21, exp: 12, penya: 500, skillLevels: { cleanHit: 2 } })
+        method: "PUT",
+        body: JSON.stringify({ level: 21, exp: 12, penya: 500 })
       })
+    );
+
+    await allocateCharacterSkills("token", "character-1", { "226": 2 });
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "http://localhost:4000/api/characters/character-1/progression/skill-allocations",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ allocations: { "226": 2 } }) })
     );
 
     await lootInventoryItems("token", "character-1", [

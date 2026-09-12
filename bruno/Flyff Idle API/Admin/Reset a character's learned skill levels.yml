@@ -10,11 +10,20 @@ http:
   url: "{{baseUrl}}/api/admin/characters/:characterId/refund-skills"
   params:
     - name: characterId
-      value: ""
+      value: "{{characterId}}"
       type: path
   auth:
     type: bearer
     token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the character with no learned skill levels", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.skillLevels).to.deep.equal({});
+        });
 
 settings:
   encodeUrl: true

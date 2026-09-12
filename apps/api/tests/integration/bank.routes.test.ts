@@ -1,7 +1,7 @@
 import request from "supertest";
-import { createApp } from "../app.js";
-import { db } from "../data/database.js";
-import { disconnectTestDatabase, resetTestDatabase } from "../../tests/setup/database.js";
+import { createApp } from "../../src/app.js";
+import { db } from "../../src/data/database.js";
+import { disconnectTestDatabase, resetTestDatabase } from "../setup/database.js";
 
 describe("bank routes", () => {
   const app = createApp();

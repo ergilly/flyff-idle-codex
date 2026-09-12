@@ -1,0 +1,33 @@
+info:
+  name: Get a cached Flyff image
+  type: http
+  seq: 1
+  tags:
+    - Images
+
+http:
+  method: GET
+  url: "{{baseUrl}}/api/images/:category/:filename"
+  params:
+    - name: category
+      value: item
+      type: path
+    - name: filename
+      value: weaswowooden.png
+      type: path
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns image content", function() {
+          expect(res.status).to.equal(200);
+          expect(res.headers["content-type"]).to.match(/^image\//);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

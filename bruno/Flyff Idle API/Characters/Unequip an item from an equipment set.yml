@@ -1,7 +1,7 @@
 info:
   name: Unequip an item from an equipment set
   type: http
-  seq: 8
+  seq: 11
   tags:
     - Characters
 
@@ -10,7 +10,7 @@ http:
   url: "{{baseUrl}}/api/characters/:characterId/equipment/:equipmentSlot/unequip"
   params:
     - name: characterId
-      value: ""
+      value: "{{characterId}}"
       type: path
     - name: equipmentSlot
       value: helmet
@@ -96,6 +96,16 @@ http:
   auth:
     type: bearer
     token: "{{token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("returns the character with updated equipment and inventory", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.character.equipment).to.be.an("object");
+          expect(res.body.character.inventory.items).to.be.an("array");
+        });
 
 settings:
   encodeUrl: true

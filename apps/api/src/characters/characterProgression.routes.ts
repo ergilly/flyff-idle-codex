@@ -2,63 +2,114 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireAuth } from "../auth/auth.middleware.js";
 import { characterRepository } from "../data/characterRepository.js";
+import { sendApiError } from "../http/apiError.js";
+import { sendCharacter } from "../http/characterResponse.js";
 import type { AuthTokenPayload } from "../types.js";
-import { toPublicCharacter } from "./characterRoute.shared.js";
+import { allocateSkills, allocateStats } from "./characterProgression.service.js";
 
 export const characterProgressionRouter = Router();
 
-const progressionSchema = z
+const characterIdSchema = z.string().min(1);
+const statAllocationsSchema = z
   .object({
-    exp: z.number().int().min(0).optional(),
-    level: z.number().int().min(1).max(170).optional(),
-    penya: z.number().int().min(0).optional(),
-    stats: z
-      .object({
-        str: z.number().int().min(15).max(999),
-        sta: z.number().int().min(15).max(999),
-        dex: z.number().int().min(15).max(999),
-        int: z.number().int().min(15).max(999)
-      })
-      .optional(),
-    skillLevels: z.record(z.string().min(1).max(80), z.number().int().min(0).max(20)).optional()
+    allocations: z.object({
+      str: z.number().int().min(0).max(984),
+      sta: z.number().int().min(0).max(984),
+      dex: z.number().int().min(0).max(984),
+      int: z.number().int().min(0).max(984)
+    })
   })
-  .refine(
-    (value) =>
-      value.stats ||
-      value.skillLevels ||
-      value.penya !== undefined ||
-      value.level !== undefined ||
-      value.exp !== undefined,
-    { message: "Progression update is required" }
-  )
-  .refine((value) => (value.level === undefined) === (value.exp === undefined), {
-    message: "Level and exp must be updated together"
-  });
+  .refine(({ allocations }) => Object.values(allocations).some((points) => points > 0));
+const skillAllocationsSchema = z.object({
+  allocations: z
+    .record(z.string().regex(/^\d+$/), z.number().int().min(1).max(20))
+    .refine((value) => Object.keys(value).length > 0)
+});
+const battleStateSchema = z.object({
+  exp: z.number().int().min(0),
+  level: z.number().int().min(1).max(170),
+  penya: z.number().int().min(0)
+});
 
-characterProgressionRouter.patch("/:characterId/progression", requireAuth, async (request, response) => {
-  const characterId = z.string().safeParse(request.params.characterId);
-  if (!characterId.success) {
-    response.status(404).json({ error: "Character not found" });
+characterProgressionRouter.post(
+  "/:characterId/progression/stat-allocations",
+  requireAuth,
+  (request, response) => {
+    const characterId = characterIdSchema.safeParse(request.params.characterId);
+    const input = statAllocationsSchema.safeParse(request.body);
+    if (!characterId.success || !input.success) {
+      sendApiError(response, 400, "invalid_request", "At least one positive stat allocation is required");
+      return;
+    }
+
+    const result = allocateStats(
+      characterId.data,
+      (response.locals.auth as AuthTokenPayload).sub,
+      input.data.allocations
+    );
+    if (!result.character) {
+      const status = result.error === "Character not found" ? 404 : 422;
+      sendApiError(
+        response,
+        status,
+        status === 404 ? "not_found" : "domain_rule_failed",
+        result.error ?? "Unable to allocate stat points"
+      );
+      return;
+    }
+
+    sendCharacter(response, result.character);
+  }
+);
+
+characterProgressionRouter.post(
+  "/:characterId/progression/skill-allocations",
+  requireAuth,
+  (request, response) => {
+    const characterId = characterIdSchema.safeParse(request.params.characterId);
+    const input = skillAllocationsSchema.safeParse(request.body);
+    if (!characterId.success || !input.success) {
+      sendApiError(response, 400, "invalid_request", "At least one positive skill allocation is required");
+      return;
+    }
+
+    const result = allocateSkills(
+      characterId.data,
+      (response.locals.auth as AuthTokenPayload).sub,
+      input.data.allocations
+    );
+    if (!result.character) {
+      const status = result.error === "Character not found" ? 404 : 422;
+      sendApiError(
+        response,
+        status,
+        status === 404 ? "not_found" : "domain_rule_failed",
+        result.error ?? "Unable to allocate skill points"
+      );
+      return;
+    }
+
+    sendCharacter(response, result.character);
+  }
+);
+
+characterProgressionRouter.put("/:characterId/progression/battle-state", requireAuth, (request, response) => {
+  const characterId = characterIdSchema.safeParse(request.params.characterId);
+  const battleState = battleStateSchema.safeParse(request.body);
+  if (!characterId.success || !battleState.success) {
+    sendApiError(response, 400, "invalid_request", "A complete battle progression state is required");
     return;
   }
-  const progression = progressionSchema.safeParse(request.body);
-  if (!progression.success) {
-    response.status(400).json({ error: "Progression update is required" });
-    return;
-  }
-  const character = await characterRepository.updateProgressionForPlayer(
+
+  const character = characterRepository.updateProgressionForPlayer(
     characterId.data,
     (response.locals.auth as AuthTokenPayload).sub,
-    {
-      ...progression.data,
-      skillLevels: progression.data.skillLevels
-        ? Object.fromEntries(Object.entries(progression.data.skillLevels).filter(([, level]) => level > 0))
-        : undefined
-    }
+    battleState.data
   );
   if (!character) {
-    response.status(404).json({ error: "Character not found" });
+    sendApiError(response, 404, "not_found", "Character not found");
     return;
   }
-  response.json({ character: toPublicCharacter(character) });
+
+  sendCharacter(response, character);
 });
