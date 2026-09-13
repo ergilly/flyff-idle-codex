@@ -85,12 +85,7 @@ export function CharacterPageContent({
     <div className="grid h-full min-h-0 gap-[18px] max-[1800px]:h-auto" data-testid="character_div_page">
       <CharacterPageWorkspace>
         <Panel className="h-full content-start gap-4 [&_strong]:text-base" data-testid="character_panel_info">
-          <SectionHeading eyebrow="Info" testId="character_heading_info" />
-          <CharacterInfoSection>
-            <StatRow data-testid="character_stat_name" label="Name" value={character.name} />
-            <StatRow data-testid="character_stat_job" label="Job" value={character.job} />
-            <StatRow data-testid="character_stat_level" label="Level" value={character.level} />
-          </CharacterInfoSection>
+          <SectionHeading eyebrow="Combat snapshot" testId="character_heading_info" />
           <CharacterInfoSection>
             {detailStats.map((stat) => (
               <StatRow
@@ -119,29 +114,34 @@ export function CharacterPageContent({
           </div>
         </Panel>
 
-        <CharacterEquipmentPanel
-          actionError={equipmentActionError}
-          activeEquipmentSet={activeEquipmentSet}
-          character={character}
-          isActionPending={isEquipmentActionPending}
-          itemsById={itemsById}
-          onEquipmentSetChange={onEquipmentSetChange}
-          onUnequipEquipmentSlot={onUnequipEquipmentSlot}
-          onSelectEquipmentSlot={onSelectEquipmentSlot}
-          selectedEquipmentSlot={selectedEquipmentSlot}
-        />
-
-        <CharacterSkillsPanel
-          availableSkillPoints={availableSkillPoints}
-          character={character}
-          onAddSkillLevel={onAddSkillLevel}
-          onApplySkills={onApplySkills}
-          onCanRemoveSkillLevel={onCanRemoveSkillLevel}
-          onRemoveSkillLevel={onRemoveSkillLevel}
-          onResetSkills={onResetSkills}
-          pendingSkillLevels={pendingSkillLevels}
-          skillTabs={skillTabs}
-        />
+        <div className="grid min-w-0 content-start gap-4" data-testid="character_div_setup_column">
+          <div className="min-w-0" data-testid="character_div_equipment_column">
+            <CharacterEquipmentPanel
+              actionError={equipmentActionError}
+              activeEquipmentSet={activeEquipmentSet}
+              character={character}
+              isActionPending={isEquipmentActionPending}
+              itemsById={itemsById}
+              onEquipmentSetChange={onEquipmentSetChange}
+              onUnequipEquipmentSlot={onUnequipEquipmentSlot}
+              onSelectEquipmentSlot={onSelectEquipmentSlot}
+              selectedEquipmentSlot={selectedEquipmentSlot}
+            />
+          </div>
+          <div className="min-w-0" data-testid="character_div_skills_row">
+            <CharacterSkillsPanel
+              availableSkillPoints={availableSkillPoints}
+              character={character}
+              onAddSkillLevel={onAddSkillLevel}
+              onApplySkills={onApplySkills}
+              onCanRemoveSkillLevel={onCanRemoveSkillLevel}
+              onRemoveSkillLevel={onRemoveSkillLevel}
+              onResetSkills={onResetSkills}
+              pendingSkillLevels={pendingSkillLevels}
+              skillTabs={skillTabs}
+            />
+          </div>
+        </div>
       </CharacterPageWorkspace>
     </div>
   );
@@ -150,7 +150,7 @@ export function CharacterPageContent({
 function CharacterPageWorkspace({ children }: { children: ReactNode }) {
   return (
     <section
-      className="grid h-full min-h-0 grid-cols-[minmax(240px,0.6fr)_minmax(600px,1.3fr)_minmax(580px,1fr)] items-stretch gap-4 max-[1800px]:h-auto max-[1800px]:grid-cols-1 max-[1800px]:items-start"
+      className="grid h-full min-h-0 items-start gap-4 min-[640px]:grid-cols-[minmax(240px,0.8fr)_minmax(0,1.2fr)] max-[640px]:h-auto"
       data-testid="character_section_workspace"
     >
       {children}
