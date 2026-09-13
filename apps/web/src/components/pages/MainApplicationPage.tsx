@@ -40,12 +40,11 @@ import {
   sellCharacterInventoryItem,
   travelCharacter,
   type Character,
-  type ItemMetadata,
   type MapMonsterFamily
 } from "@/lib/api";
-import { getCombatStats } from "@/lib/combatStats";
 import { getCharacterEquipmentSet } from "@/lib/characterEquipment";
 import { getCharacterMaxHp } from "@/lib/characterResources";
+import { getCharacterDetailStats } from "@/lib/characterPageStats";
 import type { MapRegionId } from "@/lib/mapMonsterMarkers";
 import type { TravelMethod } from "@/lib/mapTravel";
 import type { TownMapId } from "@/lib/townMapLocations";
@@ -54,20 +53,6 @@ const storageKey = "flyffIdleTheme";
 function applyTheme(theme: MainApplicationTheme) {
   document.documentElement.dataset.theme = theme;
   localStorage.setItem(storageKey, theme);
-}
-function getDetailStats(
-  character: Character,
-  itemsById: Record<string, ItemMetadata>,
-  activeEquipmentSet: number
-) {
-  const combatStats = getCombatStats(character, itemsById, activeEquipmentSet);
-  const statsByLabel = new Map(combatStats.map((stat) => [stat.label, stat.value]));
-  return [
-    { label: "ATK", value: statsByLabel.get("Attack") ?? 0 },
-    { label: "DEF", value: statsByLabel.get("Defense") ?? 0 },
-    { label: "Crit%", value: statsByLabel.get("Critical Chance") ?? "0%" },
-    { label: "Attk Speed", value: statsByLabel.get("Attack Speed") ?? "0%" }
-  ];
 }
 export function MainApplicationPage() {
   const router = useRouter();
@@ -204,7 +189,8 @@ export function MainApplicationPage() {
       updateCharacter
     });
   const detailStats = useMemo(
-    () => (selectedCharacter ? getDetailStats(selectedCharacter, itemsById, activeEquipmentSet) : []),
+    () =>
+      selectedCharacter ? getCharacterDetailStats(selectedCharacter, itemsById, activeEquipmentSet) : [],
     [activeEquipmentSet, itemsById, selectedCharacter]
   );
   const maxHp = getCharacterMaxHp(selectedCharacter, itemsById, activeEquipmentSet);
