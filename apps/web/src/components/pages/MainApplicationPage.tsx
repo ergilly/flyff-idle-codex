@@ -90,7 +90,7 @@ export function MainApplicationPage() {
     const storedTheme = localStorage.getItem(storageKey) === "light" ? "light" : "dark";
     setTheme(storedTheme);
     const storedAutosave = Number(localStorage.getItem("flyffIdleAutosaveSeconds"));
-    if ([30, 60, 120].includes(storedAutosave)) setAutosaveIntervalSeconds(storedAutosave);
+    if ([30, 60, 120, 300, 600, 1800].includes(storedAutosave)) setAutosaveIntervalSeconds(storedAutosave);
     applyTheme(storedTheme);
     setSelectedCharacterId(storedCharacterId);
     try {
