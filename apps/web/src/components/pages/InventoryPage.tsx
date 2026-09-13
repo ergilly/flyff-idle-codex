@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { ButtonHTMLAttributes, DragEvent, ReactNode } from "react";
+import { useMemo, useState, type ButtonHTMLAttributes, type DragEvent, type ReactNode } from "react";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { ItemDetailsPanel } from "@/components/organisms/main-application/ItemDetailsPanel";
@@ -45,6 +45,9 @@ export function InventoryPage({
   selectedSlotIndex
 }: InventoryPageProps) {
   const itemHover = useItemDetailsHover();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [equippableOnly, setEquippableOnly] = useState(false);
   const inventorySlotCount = character.inventory.size;
   const inventoryItemsBySlot = new Map(character.inventory.items.map((item) => [item.slotIndex, item]));
   const selectedInventoryItem =
@@ -57,6 +60,18 @@ export function InventoryPage({
   const canEquipSelectedItem = selectedItem
     ? canEquipItem(character, selectedItem, activeEquipment, itemsById)
     : false;
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          character.inventory.items
+            .map((entry) => itemsById[entry.itemId]?.category)
+            .filter((category): category is string => Boolean(category))
+        )
+      ).sort(),
+    [character.inventory.items, itemsById]
+  );
+  const normalizedQuery = searchQuery.trim().toLowerCase();
 
   return (
     <section
@@ -106,6 +121,41 @@ export function InventoryPage({
               ))}
             </select>
           </label>
+          <label className="grid min-w-[180px] gap-1 text-xs font-black uppercase tracking-[0.08em] text-text-muted">
+            Search
+            <input
+              className="h-10 rounded-control border-2 border-border bg-panel-muted px-3 text-sm font-bold normal-case tracking-normal text-foreground outline-none focus:border-primary"
+              data-testid="inventory_input_search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Item name"
+            />
+          </label>
+          <label className="grid min-w-[150px] gap-1 text-xs font-black uppercase tracking-[0.08em] text-text-muted">
+            Category
+            <select
+              className="h-10 rounded-control border-2 border-border bg-panel-muted px-3 text-sm font-black normal-case tracking-normal text-foreground outline-none focus:border-primary"
+              data-testid="inventory_select_category"
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+            >
+              <option value="all">All categories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex min-h-10 items-center gap-2 text-xs font-black uppercase tracking-[0.08em] text-text-muted">
+            <input
+              checked={equippableOnly}
+              data-testid="inventory_input_equippable"
+              onChange={(event) => setEquippableOnly(event.target.checked)}
+              type="checkbox"
+            />
+            Equippable only
+          </label>
         </div>
         <div
           className="themed-scrollbar grid min-h-0 grid-cols-[repeat(auto-fill,100px)] content-start justify-start gap-2 overflow-y-auto pr-2"
@@ -114,21 +164,31 @@ export function InventoryPage({
           {Array.from({ length: inventorySlotCount }, (_slot, slotIndex) => {
             const inventoryItem = inventoryItemsBySlot.get(slotIndex);
             const item = inventoryItem ? itemsById[inventoryItem.itemId] : null;
-            const iconUrl = item?.icon ? getItemIconUrl(item.icon) : null;
+            const matchesFilter = Boolean(
+              inventoryItem &&
+              item &&
+              (!normalizedQuery || item.name.toLowerCase().includes(normalizedQuery)) &&
+              (categoryFilter === "all" || item.category === categoryFilter) &&
+              (!equippableOnly || canEquipItem(character, item, activeEquipment, itemsById))
+            );
+            const displayedInventoryItem = inventoryItem;
+            const displayedItem = item;
+            const iconUrl = displayedItem?.icon ? getItemIconUrl(displayedItem.icon) : null;
             const isSelected = selectedSlotIndex === slotIndex;
-            const itemName = item?.name ?? inventoryItem?.itemId;
-            const slotLabel = inventoryItem
-              ? `Slot ${slotIndex + 1}: ${itemName}, quantity ${inventoryItem.quantity}`
+            const itemName = displayedItem?.name ?? displayedInventoryItem?.itemId;
+            const slotLabel = displayedInventoryItem
+              ? `Slot ${slotIndex + 1}: ${itemName}, quantity ${displayedInventoryItem.quantity}`
               : `Slot ${slotIndex + 1}: Empty`;
 
             return (
               <InventorySlot
-                $filled={Boolean(inventoryItem)}
+                $filled={Boolean(displayedInventoryItem)}
+                $muted={Boolean(displayedInventoryItem) && !matchesFilter}
                 $selected={isSelected}
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
                 data-testid={`inventory_button_slot_${slotIndex}`}
-                draggable={Boolean(inventoryItem) && !isActionPending}
+                draggable={Boolean(displayedInventoryItem) && matchesFilter && !isActionPending}
                 key={slotIndex}
                 onDragOver={(event) => {
                   if (onMoveItem) {
@@ -136,7 +196,7 @@ export function InventoryPage({
                   }
                 }}
                 onDragStart={(event) => {
-                  if (!inventoryItem) {
+                  if (!displayedInventoryItem || !matchesFilter) {
                     return;
                   }
 
@@ -144,25 +204,32 @@ export function InventoryPage({
                   event.dataTransfer.setData("text/plain", String(slotIndex));
                 }}
                 onDrop={(event) => handleDrop(event, slotIndex, onMoveItem)}
-                onClick={() => onSelectSlot(inventoryItem ? slotIndex : null)}
+                onClick={() => onSelectSlot(displayedInventoryItem && matchesFilter ? slotIndex : null)}
                 onBlur={itemHover.hideItemDetails}
-                onFocus={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
-                onMouseEnter={(event) => (item ? itemHover.inspectItem(item, event) : undefined)}
+                onFocus={(event) =>
+                  displayedItem && matchesFilter ? itemHover.inspectItem(displayedItem, event) : undefined
+                }
+                onMouseEnter={(event) =>
+                  displayedItem && matchesFilter ? itemHover.inspectItem(displayedItem, event) : undefined
+                }
                 onMouseLeave={itemHover.hideItemDetails}
                 title={slotLabel}
                 type="button"
               >
                 <span className="sr-only">{slotLabel}</span>
                 {iconUrl ? (
-                  <InventorySlotIcon alt={item?.name ?? inventoryItem?.itemId ?? ""} src={iconUrl} />
+                  <InventorySlotIcon
+                    alt={displayedItem?.name ?? displayedInventoryItem?.itemId ?? ""}
+                    src={iconUrl}
+                  />
                 ) : null}
-                {inventoryItem && !iconUrl ? (
+                {displayedInventoryItem && !iconUrl ? (
                   <strong className="text-[0.72rem] leading-tight text-[#f7e7a3]">
-                    {inventoryItem.itemId}
+                    {displayedInventoryItem.itemId}
                   </strong>
                 ) : null}
-                {inventoryItem && inventoryItem.quantity > 1 ? (
-                  <InventoryQuantity>{inventoryItem.quantity}</InventoryQuantity>
+                {displayedInventoryItem && displayedInventoryItem.quantity > 1 ? (
+                  <InventoryQuantity>{displayedInventoryItem.quantity}</InventoryQuantity>
                 ) : null}
               </InventorySlot>
             );
@@ -246,10 +313,11 @@ function handleDrop(
 
 type InventorySlotProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   $filled: boolean;
+  $muted: boolean;
   $selected: boolean;
 };
 
-function InventorySlot({ $filled, $selected, children, className, ...props }: InventorySlotProps) {
+function InventorySlot({ $filled, $muted, $selected, children, className, ...props }: InventorySlotProps) {
   return (
     <button
       className={cx(
@@ -259,6 +327,7 @@ function InventorySlot({ $filled, $selected, children, className, ...props }: In
           "outline outline-1 -outline-offset-4 outline-[rgba(255,222,91,0.74)] shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",
         $filled &&
           "hover:outline hover:outline-1 hover:-outline-offset-4 hover:outline-[rgba(255,222,91,0.74)] hover:shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",
+        $muted && "opacity-40 grayscale",
         className
       )}
       {...props}

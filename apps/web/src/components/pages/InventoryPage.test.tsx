@@ -193,6 +193,57 @@ describe("InventoryPage", () => {
     expect(screen.queryByRole("complementary", { name: "Biscuit details" })).not.toBeInTheDocument();
   });
 
+  it("filters by name and category while preserving slot positions", () => {
+    render(
+      <InventoryPage
+        character={character}
+        itemsById={{ "3497": woodenSword, "5325": biscuit }}
+        onSelectSlot={jest.fn()}
+        selectedSlotIndex={null}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId("inventory_input_search"), {
+      target: { value: "biscuit" }
+    });
+
+    expect(screen.getByRole("button", { name: "Slot 1: Wooden Sword, quantity 1" })).toHaveClass(
+      "opacity-40",
+      "grayscale"
+    );
+    expect(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByTestId("inventory_input_search"), { target: { value: "" } });
+    fireEvent.change(screen.getByTestId("inventory_select_category"), {
+      target: { value: "weapon" }
+    });
+
+    expect(screen.getByRole("button", { name: "Slot 1: Wooden Sword, quantity 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" })).toHaveClass(
+      "opacity-40",
+      "grayscale"
+    );
+  });
+
+  it("filters to items that can be equipped by the character", () => {
+    render(
+      <InventoryPage
+        character={character}
+        itemsById={{ "3497": woodenSword, "5325": biscuit }}
+        onSelectSlot={jest.fn()}
+        selectedSlotIndex={null}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId("inventory_input_equippable"));
+
+    expect(screen.getByRole("button", { name: "Slot 1: Wooden Sword, quantity 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" })).toHaveClass(
+      "opacity-40",
+      "grayscale"
+    );
+  });
+
   it("disables actions while an inventory request is pending", () => {
     render(
       <InventoryPage
