@@ -5,6 +5,7 @@ import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
 import { StatLabel } from "@/components/atoms/StatRow";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
+import { ItemComparisonPanel } from "@/components/molecules/main-application/ItemComparisonPanel";
 import { getItemIconUrl, type Character, type ItemMetadata } from "@/lib/api";
 import { cx } from "@/lib/classNames";
 import { isItemRequirementUnmet } from "@/lib/itemEquipment";
@@ -19,6 +20,8 @@ type ItemDetailsPanelProps = {
   character?: Character;
   children?: ReactNode;
   className?: string;
+  comparisonEquipmentSet?: number;
+  comparisonItemsById?: Record<string, ItemMetadata>;
   emptyDescription?: string;
   equippedItemIds?: string[];
   item?: ItemMetadata | null;
@@ -126,6 +129,8 @@ export function ItemDetailsPanel({
   character,
   children,
   className,
+  comparisonEquipmentSet,
+  comparisonItemsById,
   emptyDescription = "Select an equipped item to inspect its stats.",
   equippedItemIds = [],
   item,
@@ -267,6 +272,15 @@ export function ItemDetailsPanel({
             Awakening Available
           </strong>
         </div>
+      ) : null}
+
+      {character && comparisonItemsById && comparisonEquipmentSet !== undefined ? (
+        <ItemComparisonPanel
+          character={character}
+          equipmentSet={comparisonEquipmentSet}
+          item={item}
+          itemsById={comparisonItemsById}
+        />
       ) : null}
 
       {actionError ? <ErrorMessage message={actionError} testId="item_details_error_action" /> : null}
