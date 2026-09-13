@@ -8,6 +8,8 @@ type MainApplicationHeaderProps = {
   character: Character;
   currentHp?: number;
   maxHp?: number;
+  saveError?: string;
+  saveStatus?: "idle" | "saving" | "saved" | "error";
   isProfileMenuOpen: boolean;
   onChangeCharacter: () => void;
   onLogout: () => void;
@@ -18,6 +20,8 @@ export function MainApplicationHeader({
   character,
   currentHp,
   maxHp,
+  saveError,
+  saveStatus,
   isProfileMenuOpen,
   onChangeCharacter,
   onLogout,
@@ -69,13 +73,22 @@ export function MainApplicationHeader({
         />
       </CharacterSummary>
 
-      <ProfileActionsMenu
-        characterName={character.name}
-        isOpen={isProfileMenuOpen}
-        onChangeCharacter={onChangeCharacter}
-        onLogout={onLogout}
-        onToggle={onProfileMenuToggle}
-      />
+      <div className="flex items-center gap-3 max-[560px]:justify-between">
+        <span
+          aria-live="polite"
+          className="text-xs font-bold text-text-muted"
+          data-testid="game_header_save_status"
+        >
+          {saveError || (saveStatus === "saving" ? "Saving" : saveStatus === "saved" ? "Saved" : "")}
+        </span>
+        <ProfileActionsMenu
+          characterName={character.name}
+          isOpen={isProfileMenuOpen}
+          onChangeCharacter={onChangeCharacter}
+          onLogout={onLogout}
+          onToggle={onProfileMenuToggle}
+        />
+      </div>
     </header>
   );
 }

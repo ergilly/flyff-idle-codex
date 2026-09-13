@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import {
   consumeEquippedArrow,
   consumeEquippedConsumableItem,
@@ -12,6 +12,8 @@ import { getCombatStats } from "@/lib/combatStats";
 
 const passiveHpRegenIntervalMs = 5000;
 const passiveHpRegenRate = 0.05;
+const defaultAutosaveIntervalMs = 60000;
+const savedStatusDurationMs = 4000;
 
 function getMaxHp(character: Character, itemsById: Record<string, ItemMetadata>, activeEquipmentSet: number) {
   const value = getCombatStats(character, itemsById, activeEquipmentSet).find(
@@ -25,22 +27,22 @@ function getMaxHp(character: Character, itemsById: Record<string, ItemMetadata>,
 
 type UseBattleSessionOptions = {
   activeEquipmentSet: number;
+  autosaveIntervalMs?: number;
   isCombatViewActive: boolean;
   itemsById: Record<string, ItemMetadata>;
   onAuthenticationRequired: () => void;
   selectedCharacter: Character | null;
-  setError: Dispatch<SetStateAction<string>>;
   setItemActionError: Dispatch<SetStateAction<string>>;
   updateCharacter: (character: Character) => void;
 };
 
 export function useBattleSession({
   activeEquipmentSet,
+  autosaveIntervalMs = defaultAutosaveIntervalMs,
   isCombatViewActive,
   itemsById,
   onAuthenticationRequired,
   selectedCharacter,
-  setError,
   setItemActionError,
   updateCharacter
 }: UseBattleSessionOptions) {
@@ -50,6 +52,44 @@ export function useBattleSession({
   const [battleStateByCharacterId, setBattleStateByCharacterId] = useState<
     Record<string, BattlePersistenceState>
   >({});
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState("");
+  const selectedCharacterRef = useRef(selectedCharacter);
+  selectedCharacterRef.current = selectedCharacter;
+  const updateCharacterRef = useRef(updateCharacter);
+  updateCharacterRef.current = updateCharacter;
+
+  useEffect(() => {
+    if (saveStatus !== "saved") return undefined;
+    const timeout = window.setTimeout(() => setSaveStatus("idle"), savedStatusDurationMs);
+    return () => window.clearTimeout(timeout);
+  }, [saveStatus]);
+
+  useEffect(() => {
+    if (!selectedCharacter) return undefined;
+    const autosave = window.setInterval(() => {
+      const token = localStorage.getItem("flyffIdleToken");
+      if (!token) return;
+      setSaveStatus("saving");
+      const character = selectedCharacterRef.current;
+      if (!character) return;
+      void persistCharacterBattleState(token, character.id, {
+        exp: character.exp,
+        level: character.level,
+        penya: character.penya
+      })
+        .then((updatedCharacter) => {
+          updateCharacterRef.current(updatedCharacter);
+          setSaveError("");
+          setSaveStatus("saved");
+        })
+        .catch(() => {
+          setSaveError("Autosave failed. Your current progress is still available locally.");
+          setSaveStatus("error");
+        });
+    }, autosaveIntervalMs);
+    return () => window.clearInterval(autosave);
+  }, [autosaveIntervalMs, selectedCharacter?.id]);
 
   useEffect(() => {
     if (!selectedCharacter || isCombatViewActive) {
@@ -107,14 +147,18 @@ export function useBattleSession({
     }
 
     try {
+      setSaveStatus("saving");
       const updatedCharacter = await persistCharacterBattleState(token, selectedCharacter.id, {
         exp: progression.exp ?? selectedCharacter.exp,
         level: progression.level ?? selectedCharacter.level,
         penya: progression.penya ?? selectedCharacter.penya
       });
       updateCharacter(updatedCharacter);
+      setSaveError("");
+      setSaveStatus("saved");
     } catch {
-      setError("Unable to save character progression.");
+      setSaveError("Unable to save character progression. Your current progress is still available locally.");
+      setSaveStatus("error");
     }
   }
 
@@ -238,6 +282,8 @@ export function useBattleSession({
     handleConsumeInventoryItem,
     handleConsumeEquippedArrow,
     handleLootInventoryItems,
-    handleUpdateCharacterProgression
+    handleUpdateCharacterProgression,
+    saveError,
+    saveStatus
   };
 }
