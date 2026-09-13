@@ -114,7 +114,10 @@ export function CharacterPageContent({
           </div>
         </Panel>
 
-        <div className="grid min-w-0 content-start gap-4" data-testid="character_div_setup_column">
+        <div
+          className="grid min-w-0 content-start gap-4 min-[640px]:grid-cols-2"
+          data-testid="character_div_setup_column"
+        >
           <div className="min-w-0" data-testid="character_div_equipment_column">
             <CharacterEquipmentPanel
               actionError={equipmentActionError}

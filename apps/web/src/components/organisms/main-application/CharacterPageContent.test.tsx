@@ -50,5 +50,6 @@ describe("CharacterPageContent", () => {
     expect(screen.getByTestId("character_section_workspace")).toHaveClass(
       "min-[640px]:grid-cols-[minmax(240px,0.8fr)_minmax(0,1.2fr)]"
     );
+    expect(screen.getByTestId("character_div_setup_column")).toHaveClass("min-[640px]:grid-cols-2");
   });
 });
