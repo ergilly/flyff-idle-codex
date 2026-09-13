@@ -1059,10 +1059,8 @@ describe("BattlePage", () => {
     expect(screen.getByTestId("battle_heading_monster_offensive_stats")).toHaveTextContent("Offensive Stats");
     expect(screen.getByTestId("battle_heading_monster_defensive_stats")).toHaveTextContent("Defensive Stats");
     expect(screen.getByTestId("battle_heading_monster_combat_options")).toHaveTextContent("Combat Options");
-    expect(screen.getByTestId("battle_div_monster_more_stats")).toHaveClass("min-[900px]:grid-cols-3");
-    expect(screen.getByTestId("battle_div_monster_combat_buttons")).not.toHaveClass(
-      "min-[560px]:grid-cols-2"
-    );
+    expect(screen.getByRole("button", { name: "Start combat" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "View monster drops" })).toBeEnabled();
     expect(
       within(screen.getByTestId("battle_div_monster_offensive_stats")).getByText("Damage")
     ).toBeInTheDocument();

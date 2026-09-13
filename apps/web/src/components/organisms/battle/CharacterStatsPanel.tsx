@@ -42,7 +42,7 @@ export function CharacterStatsPanel({ combatStats }: { combatStats: CombatStat[]
     <Panel as="section" className="min-w-0 content-start gap-4" data-testid="battle_panel_character_stats">
       <SectionHeading eyebrow="Character" testId="battle_heading_character_stats" />
       <div
-        className="grid gap-2 text-sm font-bold min-[520px]:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2"
+        className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,170px),1fr))] gap-2 text-sm font-bold"
         data-testid="battle_div_character_stats"
       >
         {statGroups.map((group) =>

@@ -81,7 +81,7 @@ export function ProfileActionsMenu({
 function ProfileMenuWrap({ children }: { children: ReactNode }) {
   return (
     <div
-      className="relative z-[1001] flex-none max-[560px]:hidden"
+      className="relative z-[1001] flex-none max-[920px]:hidden"
       data-testid="game_profile_div_wrap_desktop"
     >
       {children}
@@ -92,7 +92,7 @@ function ProfileMenuWrap({ children }: { children: ReactNode }) {
 function ProfileButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.9),rgba(9,10,8,0.96))] px-3 font-extrabold text-foreground shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[560px]:w-full max-[560px]:items-stretch"
+      className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-control border-2 border-border bg-[linear-gradient(180deg,rgba(31,29,22,0.9),rgba(9,10,8,0.96))] px-3 font-extrabold text-foreground shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[920px]:w-full max-[920px]:items-stretch"
       {...props}
     />
   );
@@ -101,7 +101,7 @@ function ProfileButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
 function MobileProfileMenu({ children }: { children: ReactNode }) {
   return (
     <div
-      className="relative z-40 hidden flex-none max-[560px]:block"
+      className="relative z-40 hidden flex-none max-[920px]:block"
       data-testid="game_profile_div_wrap_mobile"
     >
       {children}

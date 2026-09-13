@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { buildCharacter, buildSkill, buildSkillTab } from "@/test/fixtures";
+import { buildCharacter, buildItem, buildSkill, buildSkillTab } from "@/test/fixtures";
 import { CharacterCombatPanel } from "./CharacterCombatPanel";
 
 function buildProps(
@@ -60,4 +60,24 @@ it("renders the skill tree and action wheel for the skills tab", () => {
   render(<CharacterCombatPanel {...buildProps({ activeTab: "skills" })} />);
   expect(screen.getByTestId("battle_div_skill_trees")).toBeInTheDocument();
   expect(screen.getByRole("group", { name: "Action wheel" })).toBeInTheDocument();
+});
+
+it("keeps loadout and log actions available as combat resources update", () => {
+  const character = buildCharacter();
+  character.equipment.mainhand = "sword";
+  const props = buildProps({
+    character,
+    itemsById: { sword: buildItem({ id: "sword", name: "Wooden Sword" }) },
+    battleLog: [{ id: 1, message: "Aibatt attacks", tone: "danger" }]
+  });
+  const { rerender } = render(<CharacterCombatPanel {...props} />);
+
+  rerender(<CharacterCombatPanel {...props} characterHp={60} isCombatInProgress />);
+  expect(screen.getByTestId("battle_character_header_hp_span_status_value")).toHaveTextContent("60 / 100");
+  fireEvent.click(screen.getByRole("button", { name: "Main Hand: Wooden Sword" }));
+  expect(props.onSelectEquipmentSlot).toHaveBeenCalledWith("mainhand");
+  fireEvent.click(screen.getByRole("button", { name: "Equipment set 2" }));
+  expect(props.onSelectEquipmentSet).toHaveBeenCalledWith(1);
+  fireEvent.click(screen.getByRole("button", { name: "Clear" }));
+  expect(props.onClearBattleLog).toHaveBeenCalledTimes(1);
 });
