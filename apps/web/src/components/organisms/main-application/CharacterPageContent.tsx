@@ -82,7 +82,7 @@ export function CharacterPageContent({
   statKeys
 }: CharacterPageContentProps) {
   return (
-    <div className="grid h-full min-h-0 gap-[18px] max-[1800px]:h-auto" data-testid="character_div_page">
+    <div className="grid h-full min-h-0 gap-[18px]" data-testid="character_div_page">
       <CharacterPageWorkspace>
         <Panel className="h-full content-start gap-4 [&_strong]:text-base" data-testid="character_panel_info">
           <SectionHeading eyebrow="Combat snapshot" testId="character_heading_info" />
