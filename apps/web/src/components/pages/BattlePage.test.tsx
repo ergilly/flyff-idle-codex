@@ -624,7 +624,7 @@ describe("BattlePage", () => {
     );
   });
 
-  it("keeps attack interval bars empty until combat is in progress", () => {
+  it("keeps player timing empty and prompts for a monster before combat", () => {
     render(
       <BattlePage
         character={character}
@@ -637,9 +637,10 @@ describe("BattlePage", () => {
     expect(screen.getByTestId("battle_div_timeline_fill_player_attack")).toHaveStyle({
       transform: "scaleX(0)"
     });
-    expect(screen.getByTestId("battle_div_timeline_fill_monster_attack")).toHaveStyle({
-      transform: "scaleX(0)"
-    });
+    expect(screen.getByTestId("battle_p_choose_monster")).toHaveTextContent(
+      "Choose a monster from the map to begin combat."
+    );
+    expect(screen.queryByTestId("battle_div_timeline_fill_monster_attack")).not.toBeInTheDocument();
   });
 
   it("renders preserved HP, MP, and FP resource values", () => {

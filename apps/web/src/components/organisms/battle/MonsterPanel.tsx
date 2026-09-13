@@ -42,6 +42,7 @@ export function MonsterPanel({
   onLootDroppedItem,
   onLootSelectedDroppedItem,
   onPauseCombat,
+  onOpenMap,
   onRunAway,
   onSelectDroppedItem,
   onStartCombat,
@@ -67,6 +68,7 @@ export function MonsterPanel({
   onLootDroppedItem: (drop: BattleDroppedItem) => void;
   onLootSelectedDroppedItem: () => void;
   onPauseCombat: () => void;
+  onOpenMap?: () => void;
   onRunAway: () => void;
   onSelectDroppedItem: (itemId: string) => void;
   onStartCombat: () => void;
@@ -83,7 +85,11 @@ export function MonsterPanel({
         monsterMaxHp={monsterMaxHp}
         selectedVariant={selectedVariant}
       />
-      <MonsterBasicPanel monsterFamily={monsterFamily} selectedVariant={selectedVariant} />
+      <MonsterBasicPanel
+        monsterFamily={monsterFamily}
+        onOpenMap={onOpenMap}
+        selectedVariant={selectedVariant}
+      />
       <MonsterStatsAndOptionsPanel
         autoAttackDamage={autoAttackDamage}
         battleOutcome={battleOutcome}
@@ -139,13 +145,19 @@ function MonsterCombatHeader({
       className="grid min-h-[98px] gap-4 rounded-control border border-border bg-black/35 p-3 min-[560px]:grid-cols-2 min-[560px]:items-center"
       data-testid="battle_div_monster_combat_header"
     >
-      <AttackTimeline
-        attackDelaySeconds={monsterAttackTiming.attackDelaySeconds}
-        attackIntervalSeconds={monsterAttackTiming.attackSpeedSeconds}
-        isActive={isCombatInProgress}
-        label="Monster attack"
-        tone="danger"
-      />
+      {selectedVariant ? (
+        <AttackTimeline
+          attackDelaySeconds={monsterAttackTiming.attackDelaySeconds}
+          attackIntervalSeconds={monsterAttackTiming.attackSpeedSeconds}
+          isActive={isCombatInProgress}
+          label="Monster attack"
+          tone="danger"
+        />
+      ) : (
+        <MutedText data-testid="battle_p_choose_monster">
+          Choose a monster from the map to begin combat.
+        </MutedText>
+      )}
       {monsterHp !== null ? (
         <StatusBar
           label="HP"
@@ -167,8 +179,10 @@ function MonsterCombatHeader({
 }
 
 function MonsterBasicPanel({
+  onOpenMap,
   selectedVariant
 }: {
+  onOpenMap?: () => void;
   monsterFamily: MapMonsterFamily | null;
   selectedVariant: MonsterFamilyVariant | null;
 }) {
@@ -207,9 +221,16 @@ function MonsterBasicPanel({
             <InfoRow label="Element" value={formatBattleValue(selectedVariant.element)} />
           </div>
         ) : (
-          <MutedText data-testid="battle_p_no_monster_target">
-            Select a monster from the map to prepare a battle target.
-          </MutedText>
+          <div className="grid content-start gap-3">
+            <MutedText data-testid="battle_p_no_monster_target">
+              Select a monster from the map to prepare a battle target.
+            </MutedText>
+            {onOpenMap ? (
+              <Button data-testid="battle_button_open_map" onClick={onOpenMap} type="button">
+                Choose a monster on the map
+              </Button>
+            ) : null}
+          </div>
         )}
       </div>
     </Panel>

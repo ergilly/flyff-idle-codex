@@ -38,6 +38,7 @@ export function BattlePage({
   itemsById,
   onBattleStateChange,
   onClearMonsterTarget,
+  onOpenMap,
   onCharacterResourcesChange,
   onConsumeInventoryItem,
   onConsumeEquippedArrow,
@@ -380,6 +381,7 @@ export function BattlePage({
         isCombatInProgress={isCombatInProgress}
         isAttackTimelineActive={canResolveCombat}
         monsterFamily={selectedMonsterFamily}
+        onOpenMap={onOpenMap}
         monsterHp={currentMonsterHp}
         monsterMaxHp={monsterHp}
         onRunAway={handleRunAway}
