@@ -12,7 +12,8 @@ import { getCombatStats } from "@/lib/combatStats";
 
 const passiveHpRegenIntervalMs = 5000;
 const passiveHpRegenRate = 0.05;
-const autosaveIntervalMs = 30000;
+const defaultAutosaveIntervalMs = 60000;
+const savedStatusDurationMs = 4000;
 
 function getMaxHp(character: Character, itemsById: Record<string, ItemMetadata>, activeEquipmentSet: number) {
   const value = getCombatStats(character, itemsById, activeEquipmentSet).find(
@@ -26,6 +27,7 @@ function getMaxHp(character: Character, itemsById: Record<string, ItemMetadata>,
 
 type UseBattleSessionOptions = {
   activeEquipmentSet: number;
+  autosaveIntervalMs?: number;
   isCombatViewActive: boolean;
   itemsById: Record<string, ItemMetadata>;
   onAuthenticationRequired: () => void;
@@ -36,6 +38,7 @@ type UseBattleSessionOptions = {
 
 export function useBattleSession({
   activeEquipmentSet,
+  autosaveIntervalMs = defaultAutosaveIntervalMs,
   isCombatViewActive,
   itemsById,
   onAuthenticationRequired,
@@ -55,6 +58,12 @@ export function useBattleSession({
   selectedCharacterRef.current = selectedCharacter;
   const updateCharacterRef = useRef(updateCharacter);
   updateCharacterRef.current = updateCharacter;
+
+  useEffect(() => {
+    if (saveStatus !== "saved") return undefined;
+    const timeout = window.setTimeout(() => setSaveStatus("idle"), savedStatusDurationMs);
+    return () => window.clearTimeout(timeout);
+  }, [saveStatus]);
 
   useEffect(() => {
     if (!selectedCharacter) return undefined;
@@ -80,7 +89,7 @@ export function useBattleSession({
         });
     }, autosaveIntervalMs);
     return () => window.clearInterval(autosave);
-  }, [selectedCharacter?.id]);
+  }, [autosaveIntervalMs, selectedCharacter?.id]);
 
   useEffect(() => {
     if (!selectedCharacter || isCombatViewActive) {
