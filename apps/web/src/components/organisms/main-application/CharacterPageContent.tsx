@@ -115,10 +115,10 @@ export function CharacterPageContent({
         </Panel>
 
         <div
-          className="grid min-w-0 content-start gap-4 min-[640px]:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]"
+          className="grid h-full min-w-0 content-start gap-4 min-[640px]:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)] max-[640px]:h-auto"
           data-testid="character_div_setup_column"
         >
-          <div className="min-w-0" data-testid="character_div_equipment_column">
+          <div className="h-full min-w-0" data-testid="character_div_equipment_column">
             <CharacterEquipmentPanel
               actionError={equipmentActionError}
               activeEquipmentSet={activeEquipmentSet}
@@ -131,7 +131,7 @@ export function CharacterPageContent({
               selectedEquipmentSlot={selectedEquipmentSlot}
             />
           </div>
-          <div className="min-w-0" data-testid="character_div_skills_row">
+          <div className="h-full min-w-0" data-testid="character_div_skills_row">
             <CharacterSkillsPanel
               availableSkillPoints={availableSkillPoints}
               character={character}
@@ -153,7 +153,7 @@ export function CharacterPageContent({
 function CharacterPageWorkspace({ children }: { children: ReactNode }) {
   return (
     <section
-      className="grid h-full min-h-0 items-start gap-4 min-[640px]:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] max-[640px]:h-auto"
+      className="grid h-full min-h-0 items-stretch gap-4 min-[640px]:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] max-[640px]:h-auto"
       data-testid="character_section_workspace"
     >
       {children}
