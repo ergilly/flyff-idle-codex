@@ -37,7 +37,11 @@ type MapSidePanelProps = {
 
 export function MapSidePanel({ navigation, ...props }: MapSidePanelProps) {
   return (
-    <Panel as="aside" className="min-w-0 max-w-full content-start gap-4" data-testid="map_panel_regions">
+    <Panel
+      as="aside"
+      className="h-full min-w-0 max-w-full content-start gap-4"
+      data-testid="map_panel_regions"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3" data-testid="map_div_region_header">
         <SectionHeading
           eyebrow={

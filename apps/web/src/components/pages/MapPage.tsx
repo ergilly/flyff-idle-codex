@@ -75,12 +75,12 @@ export function MapPage({
 
   return (
     <section
-      className="grid min-w-0 content-start items-start gap-4 self-start min-[1101px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+      className="grid h-full min-h-0 min-w-0 items-stretch gap-4 self-stretch min-[1101px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] max-[1100px]:h-auto"
       data-testid="map_section_page"
     >
       <Panel
         as="section"
-        className="relative aspect-[1195/896] w-full min-w-0 overflow-hidden p-2"
+        className="relative h-full min-h-0 w-full min-w-0 overflow-hidden p-2 max-[1100px]:aspect-[1195/896]"
         data-testid="map_panel_canvas"
         aria-label={
           navigation.selectedTown

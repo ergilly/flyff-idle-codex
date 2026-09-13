@@ -327,7 +327,7 @@ export function BattlePage({
 
   return (
     <section
-      className="grid min-w-0 content-start items-start gap-4 self-start xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+      className="grid h-full min-h-0 min-w-0 items-stretch gap-4 self-stretch max-xl:h-auto xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
       data-testid="battle_section_page"
     >
       <CharacterCombatPanel
