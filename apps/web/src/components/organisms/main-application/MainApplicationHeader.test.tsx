@@ -7,6 +7,7 @@ describe("MainApplicationHeader", () => {
     render(
       <MainApplicationHeader
         character={buildCharacter({ name: "Saint Morning", gender: "female", level: 65, location: "Flaris" })}
+        currentHp={123}
         isProfileMenuOpen={false}
         onChangeCharacter={jest.fn()}
         onLogout={jest.fn()}
@@ -17,6 +18,7 @@ describe("MainApplicationHeader", () => {
     expect(screen.getByRole("heading", { name: "Saint Morning" })).toBeInTheDocument();
     expect(screen.getByTestId("game_header_strong_stat_sex_value")).toHaveTextContent("Female");
     expect(screen.getByTestId("game_header_strong_stat_location_value")).toHaveTextContent("Flaris");
+    expect(screen.getByTestId("game_header_strong_stat_hp_value")).toHaveTextContent("123");
     expect(screen.getByTestId("game_header_div_exp_bar")).toHaveAttribute("title", "0 / 22,280,630");
   });
 });

@@ -366,6 +366,27 @@ export function MainApplicationPage() {
     );
   }
 
+  const battlePage = (
+    <BattlePage
+      character={selectedCharacter}
+      initialBattleState={battleStateByCharacterId[selectedCharacter.id]}
+      initialCharacterResources={characterResourcesById[selectedCharacter.id]}
+      itemsById={itemsById}
+      onBattleStateChange={handleBattleStateChange}
+      onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
+      onOpenMap={() => handleSelectNavItem("Map")}
+      onCharacterResourcesChange={handleCharacterResourcesChange}
+      onConsumeInventoryItem={handleConsumeInventoryItem}
+      onConsumeEquippedArrow={handleConsumeEquippedArrow}
+      onEquipConsumableItem={handleEquipConsumableItem}
+      onLootInventoryItems={handleLootInventoryItems}
+      onRespawnAtTown={handleRespawnAtTown}
+      onUpdateCharacterProgression={handleUpdateCharacterProgression}
+      selectedMonsterFamily={selectedMonsterFamily}
+      skillTabs={skillTabs}
+    />
+  );
+
   return (
     <MainApplicationTemplate
       sidebar={
@@ -387,6 +408,7 @@ export function MainApplicationPage() {
       header={
         <MainApplicationHeader
           character={selectedCharacter}
+          currentHp={characterResourcesById[selectedCharacter.id]?.hp}
           isProfileMenuOpen={isProfileMenuOpen}
           onChangeCharacter={handleChangeCharacter}
           onLogout={handleLogout}
@@ -396,6 +418,12 @@ export function MainApplicationPage() {
     >
       <MainApplicationContent>
         <ContentHeading activeNavItem={activeNavItem} />
+        <div
+          className={activeNavItem === "Combat" ? "contents" : "hidden"}
+          data-testid="game_div_battle_session"
+        >
+          {battlePage}
+        </div>
         {activeNavItem === "Character Page" ? (
           <CharacterPageContent
             activeEquipmentSet={activeEquipmentSet}
@@ -475,26 +503,7 @@ export function MainApplicationPage() {
             onSelectMonster={handleSelectMapMonster}
             onTravel={handleTravel}
           />
-        ) : activeNavItem === "Combat" ? (
-          <BattlePage
-            character={selectedCharacter}
-            initialBattleState={battleStateByCharacterId[selectedCharacter.id]}
-            initialCharacterResources={characterResourcesById[selectedCharacter.id]}
-            itemsById={itemsById}
-            onBattleStateChange={handleBattleStateChange}
-            onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
-            onOpenMap={() => handleSelectNavItem("Map")}
-            onCharacterResourcesChange={handleCharacterResourcesChange}
-            onConsumeInventoryItem={handleConsumeInventoryItem}
-            onConsumeEquippedArrow={handleConsumeEquippedArrow}
-            onEquipConsumableItem={handleEquipConsumableItem}
-            onLootInventoryItems={handleLootInventoryItems}
-            onRespawnAtTown={handleRespawnAtTown}
-            onUpdateCharacterProgression={handleUpdateCharacterProgression}
-            selectedMonsterFamily={selectedMonsterFamily}
-            skillTabs={skillTabs}
-          />
-        ) : activeNavItem === "Admin" ? (
+        ) : activeNavItem === "Combat" ? null : activeNavItem === "Admin" ? (
           <AdminPage
             addingInventoryItem={isAddingInventoryItem}
             addingPenya={isAddingPenya}

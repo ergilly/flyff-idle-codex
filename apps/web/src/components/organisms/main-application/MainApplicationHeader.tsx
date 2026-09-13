@@ -6,6 +6,7 @@ import { getCharacterExpProgress } from "@/lib/characterProgression";
 
 type MainApplicationHeaderProps = {
   character: Character;
+  currentHp?: number;
   isProfileMenuOpen: boolean;
   onChangeCharacter: () => void;
   onLogout: () => void;
@@ -14,6 +15,7 @@ type MainApplicationHeaderProps = {
 
 export function MainApplicationHeader({
   character,
+  currentHp,
   isProfileMenuOpen,
   onChangeCharacter,
   onLogout,
@@ -44,6 +46,10 @@ export function MainApplicationHeader({
         <HeaderStat testId="game_header_div_stat_level">
           <span data-testid="game_header_span_stat_level_label">Level</span>
           <strong data-testid="game_header_strong_stat_level_value">{character.level}</strong>
+        </HeaderStat>
+        <HeaderStat testId="game_header_div_stat_hp">
+          <span data-testid="game_header_span_stat_hp_label">HP</span>
+          <strong data-testid="game_header_strong_stat_hp_value">{currentHp ?? "—"}</strong>
         </HeaderStat>
         <HeaderStat testId="game_header_div_stat_location">
           <span data-testid="game_header_span_stat_location_label">Location</span>

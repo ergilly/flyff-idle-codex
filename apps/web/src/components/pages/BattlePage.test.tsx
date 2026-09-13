@@ -1273,7 +1273,7 @@ describe("BattlePage", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Start combat" }));
-    fireEvent.click(screen.getByRole("button", { name: "Pause combat" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pause after this monster" }));
 
     expect(screen.getByRole("button", { name: "Pausing..." })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Run away" })).toBeInTheDocument();
