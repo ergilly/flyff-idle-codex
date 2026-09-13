@@ -483,6 +483,7 @@ export function MainApplicationPage() {
             itemsById={itemsById}
             onBattleStateChange={handleBattleStateChange}
             onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
+            onOpenMap={() => handleSelectNavItem("Map")}
             onCharacterResourcesChange={handleCharacterResourcesChange}
             onConsumeInventoryItem={handleConsumeInventoryItem}
             onConsumeEquippedArrow={handleConsumeEquippedArrow}

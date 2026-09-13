@@ -62,6 +62,7 @@ export type BattlePageProps = {
   itemsById: Record<string, ItemMetadata>;
   onBattleStateChange?: (state: BattlePersistenceState) => void;
   onClearMonsterTarget?: () => void;
+  onOpenMap?: () => void;
   onCharacterResourcesChange?: (resources: CharacterResourceState) => void;
   onConsumeInventoryItem?: (resource: ConsumableResource) => Promise<void> | void;
   onConsumeEquippedArrow?: (equipmentSet: number) => Promise<number | null>;
