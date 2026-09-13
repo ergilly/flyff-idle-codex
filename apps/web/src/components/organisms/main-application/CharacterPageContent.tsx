@@ -82,7 +82,7 @@ export function CharacterPageContent({
   statKeys
 }: CharacterPageContentProps) {
   return (
-    <div className="grid h-full min-h-0 gap-[18px]" data-testid="character_div_page">
+    <div className="grid h-full min-h-0 min-w-0 self-stretch gap-[18px]" data-testid="character_div_page">
       <CharacterPageWorkspace>
         <Panel className="h-full content-start gap-4 [&_strong]:text-base" data-testid="character_panel_info">
           <SectionHeading eyebrow="Combat snapshot" testId="character_heading_info" />
@@ -153,7 +153,7 @@ export function CharacterPageContent({
 function CharacterPageWorkspace({ children }: { children: ReactNode }) {
   return (
     <section
-      className="grid h-full min-h-0 items-stretch gap-4 min-[640px]:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] max-[640px]:h-auto"
+      className="grid h-full min-h-0 min-w-0 items-stretch gap-4 min-[640px]:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] max-[640px]:h-auto"
       data-testid="character_section_workspace"
     >
       {children}

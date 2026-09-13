@@ -57,5 +57,6 @@ describe("CharacterPageContent", () => {
     expect(screen.getByTestId("character_div_equipment_column")).toHaveClass("h-full");
     expect(screen.getByTestId("character_div_skills_row")).toHaveClass("h-full");
     expect(screen.getByTestId("character_div_page")).toHaveClass("h-full");
+    expect(screen.getByTestId("character_div_page")).toHaveClass("self-stretch");
   });
 });
