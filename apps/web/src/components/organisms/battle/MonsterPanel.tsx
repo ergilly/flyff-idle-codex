@@ -76,7 +76,7 @@ export function MonsterPanel({
   const [isDropsOverlayOpen, setIsDropsOverlayOpen] = useState(false);
 
   return (
-    <Panel as="section" className="min-w-0 content-start gap-4" data-testid="battle_panel_monster">
+    <Panel as="section" className="h-full min-w-0 content-start gap-4" data-testid="battle_panel_monster">
       <MonsterCombatHeader
         isCombatInProgress={isAttackTimelineActive}
         monsterHp={monsterHp}

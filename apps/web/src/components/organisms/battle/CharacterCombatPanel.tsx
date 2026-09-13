@@ -88,7 +88,7 @@ export function CharacterCombatPanel({
   skills: SkillDefinition[];
 }) {
   return (
-    <Panel as="section" className="min-w-0 content-start gap-4" data-testid="battle_panel_character">
+    <Panel as="section" className="h-full min-w-0 content-start gap-4" data-testid="battle_panel_character">
       <CharacterCombatHeader
         attackTiming={characterAttackTiming}
         characterFp={characterFp}

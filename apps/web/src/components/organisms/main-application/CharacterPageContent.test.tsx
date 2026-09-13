@@ -36,8 +36,28 @@ describe("CharacterPageContent", () => {
       />
     );
 
-    expect(screen.getByText("ATK")).toBeInTheDocument();
+    expect(screen.getByText("Combat snapshot")).toBeInTheDocument();
+    expect(screen.queryByTestId("character_stat_name")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("character_stat_job")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("character_stat_level")).not.toBeInTheDocument();
     expect(screen.getByText("Equipment")).toBeInTheDocument();
     expect(screen.getByText("Skills")).toBeInTheDocument();
+    expect(screen.getByTestId("character_div_equipment_column")).toBeInTheDocument();
+    expect(screen.getByTestId("character_div_skills_row")).toBeInTheDocument();
+    expect(screen.getByTestId("character_div_setup_column")).toContainElement(
+      screen.getByTestId("character_div_skills_row")
+    );
+    expect(screen.getByTestId("character_section_workspace")).toHaveClass(
+      "min-[640px]:grid-cols-[minmax(240px,360px)_minmax(0,1fr)]"
+    );
+    expect(screen.getByTestId("character_div_setup_column")).toHaveClass(
+      "min-[640px]:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]"
+    );
+    expect(screen.getByTestId("character_div_setup_column")).toHaveClass("h-full");
+    expect(screen.getByTestId("character_div_setup_column")).toHaveClass("content-stretch");
+    expect(screen.getByTestId("character_div_equipment_column")).toHaveClass("h-full");
+    expect(screen.getByTestId("character_div_skills_row")).toHaveClass("h-full");
+    expect(screen.getByTestId("character_div_page")).toHaveClass("h-full");
+    expect(screen.getByTestId("character_div_page")).toHaveClass("self-stretch");
   });
 });
