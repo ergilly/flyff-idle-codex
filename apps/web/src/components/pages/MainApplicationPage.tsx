@@ -213,6 +213,17 @@ export function MainApplicationPage() {
     () => (selectedCharacter ? getDetailStats(selectedCharacter, itemsById, activeEquipmentSet) : []),
     [activeEquipmentSet, itemsById, selectedCharacter]
   );
+  const maxHp = useMemo(() => {
+    if (!selectedCharacter) {
+      return 0;
+    }
+
+    const value = getCombatStats(selectedCharacter, itemsById, activeEquipmentSet).find(
+      (stat) => stat.label === "Max HP"
+    )?.value;
+    const parsed = Number.parseFloat(String(value ?? "0").replace(/[^\d.-]/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [activeEquipmentSet, itemsById, selectedCharacter]);
 
   function handleSelectNavItem(label: MainApplicationNavItem) {
     setActiveNavItem(label);
@@ -409,6 +420,7 @@ export function MainApplicationPage() {
         <MainApplicationHeader
           character={selectedCharacter}
           currentHp={characterResourcesById[selectedCharacter.id]?.hp}
+          maxHp={maxHp}
           isProfileMenuOpen={isProfileMenuOpen}
           onChangeCharacter={handleChangeCharacter}
           onLogout={handleLogout}

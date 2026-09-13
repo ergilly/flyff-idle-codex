@@ -7,6 +7,7 @@ import { getCharacterExpProgress } from "@/lib/characterProgression";
 type MainApplicationHeaderProps = {
   character: Character;
   currentHp?: number;
+  maxHp?: number;
   isProfileMenuOpen: boolean;
   onChangeCharacter: () => void;
   onLogout: () => void;
@@ -16,6 +17,7 @@ type MainApplicationHeaderProps = {
 export function MainApplicationHeader({
   character,
   currentHp,
+  maxHp,
   isProfileMenuOpen,
   onChangeCharacter,
   onLogout,
@@ -47,10 +49,7 @@ export function MainApplicationHeader({
           <span data-testid="game_header_span_stat_level_label">Level</span>
           <strong data-testid="game_header_strong_stat_level_value">{character.level}</strong>
         </HeaderStat>
-        <HeaderStat testId="game_header_div_stat_hp">
-          <span data-testid="game_header_span_stat_hp_label">HP</span>
-          <strong data-testid="game_header_strong_stat_hp_value">{currentHp ?? "—"}</strong>
-        </HeaderStat>
+        <HpBar currentHp={currentHp ?? maxHp ?? 0} maxHp={maxHp ?? 0} />
         <HeaderStat testId="game_header_div_stat_location">
           <span data-testid="game_header_span_stat_location_label">Location</span>
           <strong data-testid="game_header_strong_stat_location_value">
@@ -117,6 +116,33 @@ function ExpBar({
         <div
           className="h-full bg-[linear-gradient(90deg,#8b5cf6,#c084fc)] shadow-[0_0_10px_rgba(192,132,252,0.55)]"
           data-testid="game_header_div_exp_bar_fill"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function HpBar({ currentHp, maxHp }: { currentHp: number; maxHp: number }) {
+  const percent = maxHp > 0 ? Math.min(100, Math.max(0, (currentHp / maxHp) * 100)) : 0;
+
+  return (
+    <div
+      className="grid min-w-[140px] gap-[5px] border-l-2 border-border pl-[18px] max-[720px]:min-w-0 max-[560px]:rounded-control max-[560px]:border-2 max-[560px]:border-border max-[560px]:bg-panel-muted max-[560px]:p-2"
+      data-testid="game_header_div_hp_bar"
+      title={`HP ${currentHp.toLocaleString()} / ${maxHp.toLocaleString()}`}
+      aria-label={`HP ${currentHp.toLocaleString()} / ${maxHp.toLocaleString()}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[0.78rem] font-extrabold uppercase text-text-muted">HP</span>
+        <strong className="text-xs text-[#ffb3b3]" data-testid="game_header_strong_stat_hp_value">
+          {currentHp.toLocaleString()} / {maxHp.toLocaleString()}
+        </strong>
+      </div>
+      <div className="h-3 overflow-hidden rounded-[4px] border border-[#ff4f4f]/45 bg-black/45">
+        <div
+          className="h-full bg-gradient-to-r from-[#ff4f4f] to-[#9b1717]"
+          data-testid="game_header_div_hp_bar_fill"
           style={{ width: `${percent}%` }}
         />
       </div>
