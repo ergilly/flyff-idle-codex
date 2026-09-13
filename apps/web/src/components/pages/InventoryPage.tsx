@@ -171,8 +171,8 @@ export function InventoryPage({
               (categoryFilter === "all" || item.category === categoryFilter) &&
               (!equippableOnly || canEquipItem(character, item, activeEquipment, itemsById))
             );
-            const displayedInventoryItem = matchesFilter ? inventoryItem : undefined;
-            const displayedItem = displayedInventoryItem ? item : null;
+            const displayedInventoryItem = inventoryItem;
+            const displayedItem = item;
             const iconUrl = displayedItem?.icon ? getItemIconUrl(displayedItem.icon) : null;
             const isSelected = selectedSlotIndex === slotIndex;
             const itemName = displayedItem?.name ?? displayedInventoryItem?.itemId;
@@ -183,11 +183,12 @@ export function InventoryPage({
             return (
               <InventorySlot
                 $filled={Boolean(displayedInventoryItem)}
+                $muted={Boolean(displayedInventoryItem) && !matchesFilter}
                 $selected={isSelected}
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
                 data-testid={`inventory_button_slot_${slotIndex}`}
-                draggable={Boolean(displayedInventoryItem) && !isActionPending}
+                draggable={Boolean(displayedInventoryItem) && matchesFilter && !isActionPending}
                 key={slotIndex}
                 onDragOver={(event) => {
                   if (onMoveItem) {
@@ -195,7 +196,7 @@ export function InventoryPage({
                   }
                 }}
                 onDragStart={(event) => {
-                  if (!displayedInventoryItem) {
+                  if (!displayedInventoryItem || !matchesFilter) {
                     return;
                   }
 
@@ -203,11 +204,13 @@ export function InventoryPage({
                   event.dataTransfer.setData("text/plain", String(slotIndex));
                 }}
                 onDrop={(event) => handleDrop(event, slotIndex, onMoveItem)}
-                onClick={() => onSelectSlot(displayedInventoryItem ? slotIndex : null)}
+                onClick={() => onSelectSlot(displayedInventoryItem && matchesFilter ? slotIndex : null)}
                 onBlur={itemHover.hideItemDetails}
-                onFocus={(event) => (displayedItem ? itemHover.inspectItem(displayedItem, event) : undefined)}
+                onFocus={(event) =>
+                  displayedItem && matchesFilter ? itemHover.inspectItem(displayedItem, event) : undefined
+                }
                 onMouseEnter={(event) =>
-                  displayedItem ? itemHover.inspectItem(displayedItem, event) : undefined
+                  displayedItem && matchesFilter ? itemHover.inspectItem(displayedItem, event) : undefined
                 }
                 onMouseLeave={itemHover.hideItemDetails}
                 title={slotLabel}
@@ -310,10 +313,11 @@ function handleDrop(
 
 type InventorySlotProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   $filled: boolean;
+  $muted: boolean;
   $selected: boolean;
 };
 
-function InventorySlot({ $filled, $selected, children, className, ...props }: InventorySlotProps) {
+function InventorySlot({ $filled, $muted, $selected, children, className, ...props }: InventorySlotProps) {
   return (
     <button
       className={cx(
@@ -323,6 +327,7 @@ function InventorySlot({ $filled, $selected, children, className, ...props }: In
           "outline outline-1 -outline-offset-4 outline-[rgba(255,222,91,0.74)] shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",
         $filled &&
           "hover:outline hover:outline-1 hover:-outline-offset-4 hover:outline-[rgba(255,222,91,0.74)] hover:shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",
+        $muted && "opacity-40 grayscale",
         className
       )}
       {...props}

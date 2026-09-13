@@ -207,7 +207,10 @@ describe("InventoryPage", () => {
       target: { value: "biscuit" }
     });
 
-    expect(screen.getByRole("button", { name: "Slot 1: Empty" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Slot 1: Wooden Sword, quantity 1" })).toHaveClass(
+      "opacity-40",
+      "grayscale"
+    );
     expect(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" })).toBeInTheDocument();
 
     fireEvent.change(screen.getByTestId("inventory_input_search"), { target: { value: "" } });
@@ -216,7 +219,10 @@ describe("InventoryPage", () => {
     });
 
     expect(screen.getByRole("button", { name: "Slot 1: Wooden Sword, quantity 1" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Slot 3: Empty" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" })).toHaveClass(
+      "opacity-40",
+      "grayscale"
+    );
   });
 
   it("filters to items that can be equipped by the character", () => {
@@ -232,7 +238,10 @@ describe("InventoryPage", () => {
     fireEvent.click(screen.getByTestId("inventory_input_equippable"));
 
     expect(screen.getByRole("button", { name: "Slot 1: Wooden Sword, quantity 1" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Slot 3: Empty" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" })).toHaveClass(
+      "opacity-40",
+      "grayscale"
+    );
   });
 
   it("disables actions while an inventory request is pending", () => {
