@@ -8,6 +8,8 @@ type MainApplicationHeaderProps = {
   character: Character;
   currentHp?: number;
   maxHp?: number;
+  saveError?: string;
+  saveStatus?: "idle" | "saving" | "saved" | "error";
   isProfileMenuOpen: boolean;
   onChangeCharacter: () => void;
   onLogout: () => void;
@@ -18,6 +20,8 @@ export function MainApplicationHeader({
   character,
   currentHp,
   maxHp,
+  saveError,
+  saveStatus,
   isProfileMenuOpen,
   onChangeCharacter,
   onLogout,
@@ -76,6 +80,13 @@ export function MainApplicationHeader({
         onLogout={onLogout}
         onToggle={onProfileMenuToggle}
       />
+      <span
+        aria-live="polite"
+        className="text-xs font-bold text-text-muted max-[720px]:col-span-3"
+        data-testid="game_header_save_status"
+      >
+        {saveError || (saveStatus === "saving" ? "Saving" : saveStatus === "saved" ? "Saved" : "")}
+      </span>
     </header>
   );
 }

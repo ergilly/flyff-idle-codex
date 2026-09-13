@@ -174,14 +174,15 @@ export function MainApplicationPage() {
     handleConsumeEquippedArrow,
     handleConsumeInventoryItem,
     handleLootInventoryItems,
-    handleUpdateCharacterProgression
+    handleUpdateCharacterProgression,
+    saveError,
+    saveStatus
   } = useBattleSession({
     activeEquipmentSet,
     isCombatViewActive: activeNavItem === "Combat",
     itemsById,
     onAuthenticationRequired: () => router.replace("/"),
     selectedCharacter,
-    setError,
     setItemActionError,
     updateCharacter
   });
@@ -421,6 +422,8 @@ export function MainApplicationPage() {
           character={selectedCharacter}
           currentHp={characterResourcesById[selectedCharacter.id]?.hp}
           maxHp={maxHp}
+          saveError={saveError}
+          saveStatus={saveStatus}
           isProfileMenuOpen={isProfileMenuOpen}
           onChangeCharacter={handleChangeCharacter}
           onLogout={handleLogout}

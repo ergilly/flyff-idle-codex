@@ -9,6 +9,7 @@ describe("MainApplicationHeader", () => {
         character={buildCharacter({ name: "Saint Morning", gender: "female", level: 65, location: "Flaris" })}
         currentHp={123}
         maxHp={200}
+        saveStatus="saved"
         isProfileMenuOpen={false}
         onChangeCharacter={jest.fn()}
         onLogout={jest.fn()}
@@ -21,6 +22,7 @@ describe("MainApplicationHeader", () => {
     expect(screen.getByTestId("game_header_strong_stat_location_value")).toHaveTextContent("Flaris");
     expect(screen.getByTestId("game_header_strong_stat_hp_value")).toHaveTextContent("123 / 200");
     expect(screen.getByTestId("game_header_div_hp_bar_fill")).toHaveStyle({ width: "61.5%" });
+    expect(screen.getByTestId("game_header_save_status")).toHaveTextContent("Saved");
     expect(screen.getByTestId("game_header_div_exp_bar")).toHaveAttribute("title", "0 / 22,280,630");
   });
 });
