@@ -389,7 +389,7 @@ function MonsterCombatOptions({
             onClick={onPauseCombat}
             type="button"
           >
-            {isPauseAfterCurrentMonster ? "Pausing..." : "Pause combat"}
+            {isPauseAfterCurrentMonster ? "Pausing..." : "Pause after this monster"}
           </Button>
         ) : (
           <Button
