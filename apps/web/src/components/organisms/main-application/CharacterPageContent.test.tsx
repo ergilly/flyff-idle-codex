@@ -54,6 +54,7 @@ describe("CharacterPageContent", () => {
       "min-[640px]:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]"
     );
     expect(screen.getByTestId("character_div_setup_column")).toHaveClass("h-full");
+    expect(screen.getByTestId("character_div_setup_column")).toHaveClass("content-stretch");
     expect(screen.getByTestId("character_div_equipment_column")).toHaveClass("h-full");
     expect(screen.getByTestId("character_div_skills_row")).toHaveClass("h-full");
     expect(screen.getByTestId("character_div_page")).toHaveClass("h-full");
