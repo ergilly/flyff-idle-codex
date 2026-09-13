@@ -88,11 +88,7 @@ export function CharacterCombatPanel({
   skills: SkillDefinition[];
 }) {
   return (
-    <Panel
-      as="section"
-      className="h-full min-h-0 gap-4 [grid-template-rows:auto_minmax(0,1fr)]"
-      data-testid="battle_panel_character"
-    >
+    <Panel as="section" className="min-w-0 content-start gap-4" data-testid="battle_panel_character">
       <CharacterCombatHeader
         attackTiming={characterAttackTiming}
         characterFp={characterFp}
@@ -103,11 +99,8 @@ export function CharacterCombatPanel({
         characterMaxMp={characterMaxMp}
         isCombatInProgress={isCombatInProgress}
       />
-      <div className="grid min-h-0 items-stretch gap-4 lg:grid-cols-2">
-        <div
-          className="grid min-h-0 min-w-0 gap-4 [grid-template-rows:auto_auto_minmax(0,1fr)]"
-          data-testid="battle_div_character_control_column"
-        >
+      <div className="grid min-w-0 items-start gap-4 min-[1600px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid min-w-0 content-start gap-4" data-testid="battle_div_character_control_column">
           <RecoveryPanel
             consumableLoadout={character.consumableLoadout ?? emptyConsumableLoadout}
             cooldownRemainingByResource={cooldownRemainingByResource}
@@ -119,7 +112,7 @@ export function CharacterCombatPanel({
           <CharacterBattleTabs activeTab={activeTab} onTabChange={onTabChange} />
           <Panel
             as="section"
-            className="h-full min-h-0 content-start gap-4 overflow-y-auto [&_[data-testid='equipment_div_content']]:justify-center [&_[data-testid='equipment_div_layout']]:!max-w-[190px]"
+            className="min-w-0 content-start gap-4 [&_[data-testid='equipment_div_content']]:justify-center [&_[data-testid='equipment_div_layout']]:!max-w-[280px]"
             data-testid="battle_panel_character_loadout"
           >
             {activeTab === "equipment" ? (
@@ -152,10 +145,7 @@ export function CharacterCombatPanel({
             )}
           </Panel>
         </div>
-        <div
-          className="grid min-h-0 min-w-0 gap-4 [grid-template-rows:auto_minmax(0,1fr)]"
-          data-testid="battle_div_character_stats_column"
-        >
+        <div className="grid min-w-0 content-start gap-4" data-testid="battle_div_character_stats_column">
           <CharacterStatsPanel combatStats={combatStats} />
           <CombatLogPanel battleLog={battleLog} onClearBattleLog={onClearBattleLog} />
         </div>

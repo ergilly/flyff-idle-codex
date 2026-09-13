@@ -3,6 +3,18 @@ import { MapPage } from "./MapPage";
 import { flarineGeneralStoreTabs } from "@/lib/townShops";
 
 describe("MapPage", () => {
+  it("keeps region navigation usable after zooming and returning to the world", async () => {
+    render(<MapPage />);
+    fireEvent.click(screen.getByRole("button", { name: "Select Flaris" }));
+    expect(await screen.findByRole("button", { name: "Aibatt" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+    expect(screen.getByRole("button", { name: "Reset zoom" })).toHaveTextContent("125%");
+    fireEvent.click(screen.getByRole("button", { name: "Back to world" }));
+    expect(screen.getByRole("button", { name: "Reset zoom" })).toHaveTextContent("100%");
+    fireEvent.click(screen.getByRole("button", { name: "Select Darkon 3" }));
+    expect(await screen.findByRole("button", { name: "Bearnerky" })).toBeInTheDocument();
+  });
+
   it("opens directly to a requested respawn town", async () => {
     render(<MapPage initialTownMapId="darken-city" />);
 

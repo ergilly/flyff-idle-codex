@@ -22,6 +22,16 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof MainApplic
 }
 
 describe("MainApplicationSidebar", () => {
+  it("exposes the collapsed navigation toggle and forwards map selection", () => {
+    const props = renderSidebar({ isMobileNavOpen: false, isProfileMenuOpen: false });
+    const toggle = screen.getByRole("button", { name: "Flyff Idle" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(props.onToggleMobileNav).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Map" }));
+    expect(props.onSelectNavItem).toHaveBeenCalledWith("Map");
+  });
+
   it("routes admin and theme actions", () => {
     const props = renderSidebar();
     fireEvent.click(screen.getByRole("button", { name: "Quests" }));

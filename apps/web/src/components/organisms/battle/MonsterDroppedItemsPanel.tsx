@@ -41,7 +41,7 @@ export function MonsterDroppedItemsPanel({
   return (
     <Panel
       as="section"
-      className="h-full min-h-0 gap-3 [grid-template-rows:auto_minmax(0,1fr)]"
+      className="min-w-0 content-start gap-3"
       data-testid="battle_panel_monster_dropped_items"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -81,7 +81,7 @@ export function MonsterDroppedItemsPanel({
         </div>
       </div>
       <div
-        className="grid min-h-0 overflow-y-auto rounded-control border border-dashed border-[rgba(138,116,65,0.62)] bg-black/24 p-3 pr-2 [scrollbar-color:rgba(245,212,81,0.55)_rgba(0,0,0,0.28)] [scrollbar-width:thin]"
+        className="grid max-h-80 min-h-24 overflow-y-auto rounded-control border border-dashed border-[rgba(138,116,65,0.62)] bg-black/24 p-3 pr-2 [scrollbar-color:rgba(245,212,81,0.55)_rgba(0,0,0,0.28)] [scrollbar-width:thin]"
         data-testid="battle_div_monster_dropped_items_inventory"
       >
         {hasDroppedItems ? (

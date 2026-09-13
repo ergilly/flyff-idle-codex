@@ -76,11 +76,7 @@ export function MonsterPanel({
   const [isDropsOverlayOpen, setIsDropsOverlayOpen] = useState(false);
 
   return (
-    <Panel
-      as="section"
-      className="h-full min-h-0 gap-4 [grid-template-rows:auto_auto_auto_minmax(0,1fr)]"
-      data-testid="battle_panel_monster"
-    >
+    <Panel as="section" className="min-w-0 content-start gap-4" data-testid="battle_panel_monster">
       <MonsterCombatHeader
         isCombatInProgress={isAttackTimelineActive}
         monsterHp={monsterHp}
@@ -251,7 +247,18 @@ function MonsterStatsAndOptionsPanel({
     <Panel as="section" className="content-start gap-4" data-testid="battle_panel_monster_stats">
       <SectionHeading eyebrow="Monster" testId="battle_heading_monster_stats" />
       {selectedVariant ? (
-        <div className="grid gap-3 min-[900px]:grid-cols-3" data-testid="battle_div_monster_more_stats">
+        <div className="grid gap-3" data-testid="battle_div_monster_more_stats">
+          <MonsterCombatOptions
+            battleOutcome={battleOutcome}
+            combatUnavailableReason={combatUnavailableReason}
+            isCombatInProgress={isCombatInProgress}
+            isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
+            onPauseCombat={onPauseCombat}
+            onRunAway={onRunAway}
+            onStartCombat={onStartCombat}
+            onViewDrops={onViewDrops}
+            selectedVariant={selectedVariant}
+          />
           <div
             className="grid content-start gap-2 rounded-control border border-[rgba(138,116,65,0.58)] bg-black/24 p-3 text-sm font-bold"
             data-testid="battle_div_monster_offensive_stats"
@@ -303,20 +310,9 @@ function MonsterStatsAndOptionsPanel({
             <InfoRow label="Defense" value={formatBattleValue(selectedVariant.defense)} />
             <InfoRow label="Magic DEF" value={formatBattleValue(selectedVariant.magicDefense)} />
           </div>
-          <MonsterCombatOptions
-            battleOutcome={battleOutcome}
-            combatUnavailableReason={combatUnavailableReason}
-            isCombatInProgress={isCombatInProgress}
-            isPauseAfterCurrentMonster={isPauseAfterCurrentMonster}
-            onPauseCombat={onPauseCombat}
-            onRunAway={onRunAway}
-            onStartCombat={onStartCombat}
-            onViewDrops={onViewDrops}
-            selectedVariant={selectedVariant}
-          />
         </div>
       ) : (
-        <div className="grid gap-3 min-[900px]:grid-cols-3" data-testid="battle_div_monster_more_stats">
+        <div className="grid gap-3" data-testid="battle_div_monster_more_stats">
           <MutedText data-testid="battle_p_no_monster_stats">No monster stats are available yet.</MutedText>
         </div>
       )}

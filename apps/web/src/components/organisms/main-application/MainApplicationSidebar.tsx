@@ -126,7 +126,7 @@ export function MainApplicationSidebar({
 function AppSidebar(props: HTMLAttributes<HTMLElement>) {
   return (
     <aside
-      className="grid content-start gap-6 border-r-[3px] border-border bg-[linear-gradient(180deg,rgba(23,22,16,0.98),rgba(5,5,4,0.98)),var(--panel)] px-4 py-[22px] shadow-[inset_-2px_0_0_rgba(255,225,115,0.14)] max-[920px]:border-b-[3px] max-[920px]:border-r-0 max-[920px]:shadow-[inset_0_-2px_0_rgba(255,225,115,0.14)] max-[560px]:gap-3 max-[560px]:py-3 [grid-template-rows:auto_auto_1fr_auto]"
+      className="grid content-start gap-6 border-r-[3px] border-border bg-[linear-gradient(180deg,rgba(23,22,16,0.98),rgba(5,5,4,0.98)),var(--panel)] px-4 py-[22px] shadow-[inset_-2px_0_0_rgba(255,225,115,0.14)] max-[920px]:border-b-[3px] max-[920px]:border-r-0 max-[920px]:shadow-[inset_0_-2px_0_rgba(255,225,115,0.14)] max-[920px]:gap-3 max-[920px]:py-3 [grid-template-rows:auto_auto_1fr_auto] max-[920px]:[grid-template-rows:auto]"
       {...props}
     />
   );
@@ -142,9 +142,9 @@ function AppBrand({
   onToggle: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2.5 text-primary-strong [text-shadow:0_1px_2px_#000] max-[560px]:flex-1">
+    <div className="flex items-center gap-2.5 text-primary-strong [text-shadow:0_1px_2px_#000] max-[920px]:flex-1">
       <button
-        className="hidden min-h-[42px] w-full cursor-pointer items-center justify-between rounded-control border-2 border-border bg-panel-muted px-3 text-left font-extrabold text-primary-strong shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[560px]:flex"
+        className="hidden min-h-[42px] w-full cursor-pointer items-center justify-between rounded-control border-2 border-border bg-panel-muted px-3 text-left font-extrabold text-primary-strong shadow-[inset_0_0_0_1px_rgba(255,225,115,0.1)] max-[920px]:flex"
         data-testid="game_sidebar_button_mobile_nav_toggle"
         type="button"
         aria-expanded={isOpen}
@@ -158,7 +158,7 @@ function AppBrand({
           size={17}
         />
       </button>
-      <div className="flex items-center gap-2.5 max-[560px]:hidden">{children}</div>
+      <div className="flex items-center gap-2.5 max-[920px]:hidden">{children}</div>
     </div>
   );
 }
@@ -166,7 +166,7 @@ function AppBrand({
 function MobileSidebarTop({ children }: { children: ReactNode }) {
   return (
     <div
-      className="contents max-[560px]:flex max-[560px]:items-start max-[560px]:gap-2"
+      className="contents max-[920px]:flex max-[920px]:items-start max-[920px]:gap-2"
       data-testid="game_sidebar_div_mobile_top"
     >
       {children}
@@ -179,7 +179,7 @@ function AppNav({ children, isOpen }: { children: ReactNode; isOpen: boolean }) 
     <nav
       className={cx(
         "grid gap-2 max-[920px]:grid-cols-2 max-[560px]:grid-cols-1",
-        !isOpen && "max-[560px]:hidden"
+        !isOpen && "max-[920px]:hidden"
       )}
       id="mobile-primary-nav"
       data-testid="game_sidebar_nav_primary"
@@ -193,8 +193,8 @@ function AppSidebarActions({ children, isOpen }: { children: ReactNode; isOpen: 
   return (
     <div
       className={cx(
-        "grid self-end gap-2 border-t border-border pt-3.5 shadow-[inset_0_1px_0_rgba(255,225,115,0.08)] max-[560px]:self-auto max-[560px]:pt-3",
-        !isOpen && "max-[560px]:hidden"
+        "grid self-end gap-2 border-t border-border pt-3.5 shadow-[inset_0_1px_0_rgba(255,225,115,0.08)] max-[920px]:self-auto max-[920px]:pt-3",
+        !isOpen && "max-[920px]:hidden"
       )}
       data-testid="game_sidebar_div_actions"
     >
