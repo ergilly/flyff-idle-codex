@@ -115,7 +115,7 @@ export function CharacterPageContent({
         </Panel>
 
         <div
-          className="grid min-w-0 content-start gap-4 min-[640px]:grid-cols-2"
+          className="grid min-w-0 content-start gap-4 min-[640px]:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]"
           data-testid="character_div_setup_column"
         >
           <div className="min-w-0" data-testid="character_div_equipment_column">

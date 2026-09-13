@@ -50,6 +50,8 @@ describe("CharacterPageContent", () => {
     expect(screen.getByTestId("character_section_workspace")).toHaveClass(
       "min-[640px]:grid-cols-[minmax(240px,320px)_minmax(0,1fr)]"
     );
-    expect(screen.getByTestId("character_div_setup_column")).toHaveClass("min-[640px]:grid-cols-2");
+    expect(screen.getByTestId("character_div_setup_column")).toHaveClass(
+      "min-[640px]:grid-cols-[minmax(0,1fr)_minmax(220px,0.45fr)]"
+    );
   });
 });
