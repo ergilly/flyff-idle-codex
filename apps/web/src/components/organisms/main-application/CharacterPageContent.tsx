@@ -153,7 +153,7 @@ export function CharacterPageContent({
 function CharacterPageWorkspace({ children }: { children: ReactNode }) {
   return (
     <section
-      className="grid h-full min-h-0 items-start gap-4 min-[640px]:grid-cols-[minmax(240px,320px)_minmax(0,1fr)] max-[640px]:h-auto"
+      className="grid h-full min-h-0 items-start gap-4 min-[640px]:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] max-[640px]:h-auto"
       data-testid="character_section_workspace"
     >
       {children}
