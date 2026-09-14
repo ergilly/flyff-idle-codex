@@ -6,6 +6,7 @@ import { useCharacterItems } from "@/hooks/main-application/useCharacterItems";
 import { useBattleSession } from "@/hooks/main-application/useBattleSession";
 import { useAdminActions } from "@/hooks/main-application/useAdminActions";
 import { useBankActions } from "@/hooks/main-application/useBankActions";
+import { useGamePreferences } from "@/hooks/main-application/useGamePreferences";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
@@ -60,13 +61,10 @@ export function MainApplicationPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [autosaveIntervalSeconds, setAutosaveIntervalSeconds] = useState(60);
   useEffect(() => {
     const token = localStorage.getItem("flyffIdleToken");
     const storedUser = localStorage.getItem("flyffIdleUser");
     const storedCharacterId = localStorage.getItem("flyffIdleSelectedCharacterId");
-    const storedAutosave = Number(localStorage.getItem("flyffIdleAutosaveSeconds"));
-    if ([30, 60, 120, 300, 600, 1800].includes(storedAutosave)) setAutosaveIntervalSeconds(storedAutosave);
     document.documentElement.dataset.theme = "dark";
     setSelectedCharacterId(storedCharacterId);
     try {
@@ -91,6 +89,7 @@ export function MainApplicationPage() {
     () => characters.find((character) => character.id === selectedCharacterId) ?? null,
     [characters, selectedCharacterId]
   );
+  const { preferences, updatePreferences } = useGamePreferences();
   const {
     appliedStats,
     availableSkillPoints,
@@ -148,7 +147,7 @@ export function MainApplicationPage() {
     saveStatus
   } = useBattleSession({
     activeEquipmentSet,
-    autosaveIntervalMs: autosaveIntervalSeconds * 1000,
+    autosaveIntervalMs: preferences.autosaveIntervalSeconds * 1000,
     isCombatViewActive: activeNavItem === "Combat",
     itemsById,
     onAuthenticationRequired: () => router.replace("/"),
@@ -315,6 +314,7 @@ export function MainApplicationPage() {
       character={selectedCharacter}
       initialBattleState={battleStateByCharacterId[selectedCharacter.id]}
       initialCharacterResources={characterResourcesById[selectedCharacter.id]}
+      combatLogDetail={preferences.combatLogDetail}
       itemsById={itemsById}
       onBattleStateChange={handleBattleStateChange}
       onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
@@ -406,6 +406,7 @@ export function MainApplicationPage() {
         ) : activeNavItem === "Inventory" ? (
           <InventoryPage
             character={selectedCharacter}
+            compactGrid={preferences.compactInventoryGrid}
             actionError={itemActionError}
             isActionPending={isItemActionPending}
             itemsById={itemsById}
@@ -452,11 +453,20 @@ export function MainApplicationPage() {
           />
         ) : activeNavItem === "Combat" ? null : activeNavItem === "Settings" ? (
           <SettingsPage
-            autosaveIntervalSeconds={autosaveIntervalSeconds}
-            onAutosaveIntervalChange={(seconds) => {
-              setAutosaveIntervalSeconds(seconds);
-              localStorage.setItem("flyffIdleAutosaveSeconds", String(seconds));
-            }}
+            autosaveIntervalSeconds={preferences.autosaveIntervalSeconds}
+            combatLogDetail={preferences.combatLogDetail}
+            compactInventoryGrid={preferences.compactInventoryGrid}
+            reducedMotion={preferences.reducedMotion}
+            saveError={saveError}
+            saveStatus={saveStatus}
+            onAutosaveIntervalChange={(autosaveIntervalSeconds) =>
+              updatePreferences({ autosaveIntervalSeconds })
+            }
+            onCombatLogDetailChange={(combatLogDetail) => updatePreferences({ combatLogDetail })}
+            onCompactInventoryGridChange={(compactInventoryGrid) =>
+              updatePreferences({ compactInventoryGrid })
+            }
+            onReducedMotionChange={(reducedMotion) => updatePreferences({ reducedMotion })}
           />
         ) : activeNavItem === "Admin" ? (
           <AdminPage

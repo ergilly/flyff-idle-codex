@@ -12,6 +12,7 @@ import { emptyConsumableLoadout } from "@/lib/battle/recovery";
 import {
   type ActionSlot,
   type BattleLogEntry,
+  type CombatLogDetail,
   type CharacterPanelTab,
   type ConsumableCooldownState,
   type ConsumableResource,
@@ -25,6 +26,7 @@ export function CharacterCombatPanel({
   activeEquipmentSet,
   activeTab,
   character,
+  combatLogDetail = "expanded",
   characterAttackTiming,
   characterFp,
   characterMaxFp,
@@ -58,6 +60,7 @@ export function CharacterCombatPanel({
   activeEquipmentSet: number;
   activeTab: CharacterPanelTab;
   character: Character;
+  combatLogDetail?: CombatLogDetail;
   characterAttackTiming: AttackTiming;
   characterFp: number;
   characterMaxFp: number;
@@ -147,7 +150,11 @@ export function CharacterCombatPanel({
         </div>
         <div className="grid min-w-0 content-start gap-4" data-testid="battle_div_character_stats_column">
           <CharacterStatsPanel combatStats={combatStats} />
-          <CombatLogPanel battleLog={battleLog} onClearBattleLog={onClearBattleLog} />
+          <CombatLogPanel
+            battleLog={battleLog}
+            detail={combatLogDetail}
+            onClearBattleLog={onClearBattleLog}
+          />
         </div>
       </div>
     </Panel>

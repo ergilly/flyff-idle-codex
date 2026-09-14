@@ -2,14 +2,16 @@ import { Button } from "@/components/atoms/Button";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
-import { type BattleLogEntry } from "@/lib/battle/types";
+import { type BattleLogEntry, type CombatLogDetail } from "@/lib/battle/types";
 import { cx } from "@/lib/classNames";
 
 export function CombatLogPanel({
   battleLog,
+  detail = "expanded",
   onClearBattleLog
 }: {
   battleLog: BattleLogEntry[];
+  detail?: CombatLogDetail;
   onClearBattleLog: () => void;
 }) {
   return (
@@ -33,7 +35,7 @@ export function CombatLogPanel({
       >
         {battleLog.length > 0 ? (
           <ol className="grid content-start gap-1.5 text-sm font-bold" data-testid="battle_list_combat_log">
-            {battleLog.map((entry) => (
+            {(detail === "concise" ? battleLog.slice(-10) : battleLog).map((entry) => (
               <li
                 className={cx(
                   "rounded-[4px] border border-transparent bg-black/18 px-2 py-1",
