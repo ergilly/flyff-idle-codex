@@ -133,6 +133,7 @@ describe("InventoryPage", () => {
       "data-slot",
       "Inventory 1"
     );
+    expect(screen.getByTestId("item_comparison_section")).toHaveTextContent("No combat stat changes");
 
     fireEvent.click(screen.getByRole("button", { name: "Slot 3: Biscuit, quantity 3" }));
     expect(onSelectSlot).toHaveBeenCalledWith(2);
@@ -278,6 +279,9 @@ describe("InventoryPage", () => {
     expect(screen.getByRole("complementary", { name: "Biscuit details" })).toBeInTheDocument();
     expect(screen.queryByTestId("inventory_div_equip_actions")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Equip to set 1" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("item_comparison_requirements")).toHaveTextContent(
+      "No compatible equipment slot"
+    );
   });
 
   it("does not show equip actions for items with unmet requirements", () => {

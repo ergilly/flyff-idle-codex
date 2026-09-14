@@ -241,6 +241,8 @@ export function InventoryPage({
         actionError={actionError}
         className="themed-scrollbar h-full max-h-full max-w-none overflow-y-auto border-border"
         character={character}
+        comparisonEquipmentSet={activeEquipmentSet}
+        comparisonItemsById={itemsById}
         emptyDescription="Select an inventory item to inspect its stats."
         equippedItemIds={activeEquipmentItemIds}
         item={selectedItem}

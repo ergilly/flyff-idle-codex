@@ -142,27 +142,40 @@ export function canEquipItem(
   equipment: CharacterEquipment,
   itemsById: Record<string, ItemMetadata>
 ) {
-  if (
-    isItemRequirementUnmet("Gender", item, character) ||
-    isItemRequirementUnmet("Req Job", item, character) ||
-    isItemRequirementUnmet("Level", item, character)
-  ) {
-    return false;
+  return getItemRequirementErrors(character, item, equipment, itemsById).length === 0;
+}
+
+export function getItemRequirementErrors(
+  character: Character,
+  item: ItemMetadata,
+  equipment: CharacterEquipment,
+  itemsById: Record<string, ItemMetadata>
+) {
+  const errors: string[] = [];
+
+  if (isItemRequirementUnmet("Gender", item, character)) {
+    errors.push(`Requires ${item.sex === "male" ? "male" : "female"} character`);
+  }
+
+  if (isItemRequirementUnmet("Req Job", item, character) && item.requiredJob) {
+    errors.push(`Requires ${item.requiredJob}`);
+  }
+
+  if (isItemRequirementUnmet("Level", item, character) && item.level !== null) {
+    errors.push(`Requires level ${item.level}`);
   }
 
   const equipmentSlot = getEquipmentSlotForItem(character, item, equipment, itemsById);
 
   if (!equipmentSlot) {
-    return false;
-  }
-
-  if (equipmentSlot === "offhand" && equipment.mainhand) {
+    errors.push("No compatible equipment slot");
+  } else if (equipmentSlot === "offhand" && equipment.mainhand) {
     const mainhandItem = itemsById[equipment.mainhand];
 
     if (mainhandItem?.twoHanded) {
-      return false;
+      errors.push("Unequip your two-handed weapon first");
     }
   }
 
-  return true;
+  return errors;
 }
