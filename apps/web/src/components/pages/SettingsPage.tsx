@@ -2,32 +2,19 @@ import { Panel } from "@/components/atoms/Panel";
 import { MutedText } from "@/components/atoms/MutedText";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { autosaveIntervals } from "@/hooks/main-application/useGamePreferences";
-import type { CombatLogDetail } from "@/lib/battle/types";
 
 type SettingsPageProps = {
   autosaveIntervalSeconds: number;
-  combatLogDetail: CombatLogDetail;
-  compactInventoryGrid: boolean;
-  reducedMotion: boolean;
   saveError?: string;
   saveStatus?: "idle" | "saving" | "saved" | "error";
   onAutosaveIntervalChange: (seconds: number) => void;
-  onCombatLogDetailChange: (detail: CombatLogDetail) => void;
-  onCompactInventoryGridChange: (compact: boolean) => void;
-  onReducedMotionChange: (reduced: boolean) => void;
 };
 
 export function SettingsPage({
   autosaveIntervalSeconds,
-  combatLogDetail,
-  compactInventoryGrid,
-  reducedMotion,
   saveError = "",
   saveStatus = "idle",
-  onAutosaveIntervalChange,
-  onCombatLogDetailChange,
-  onCompactInventoryGridChange,
-  onReducedMotionChange
+  onAutosaveIntervalChange
 }: SettingsPageProps) {
   const saveMessage =
     saveError ||
@@ -45,54 +32,25 @@ export function SettingsPage({
         data-testid="settings_panel_preferences"
       >
         <SectionHeading eyebrow="Preferences" testId="settings_heading_preferences" title="Settings" />
-        <div className="grid gap-4 md:grid-cols-2">
-          <SettingsGroup title="Save & progress" testId="settings_section_save">
-            <label className="grid gap-2 text-sm font-bold" htmlFor="settings_autosave_interval">
-              Autosave interval
-              <select
-                className="rounded-control border border-border bg-panel-muted px-3 py-2"
-                data-testid="settings_select_autosave_interval"
-                id="settings_autosave_interval"
-                value={autosaveIntervalSeconds}
-                onChange={(event) => onAutosaveIntervalChange(Number(event.target.value))}
-              >
-                {autosaveIntervals.map((seconds) => (
-                  <option key={seconds} value={seconds}>
-                    {formatInterval(seconds)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <MutedText data-testid="settings_p_autosave_status">{saveMessage}</MutedText>
-          </SettingsGroup>
-          <SettingsGroup title="Gameplay preferences" testId="settings_section_gameplay">
-            <CheckboxSetting
-              checked={compactInventoryGrid}
-              label="Compact inventory grid"
-              onChange={onCompactInventoryGridChange}
-              testId="settings_input_compact_inventory"
-            />
-            <label className="grid gap-2 text-sm font-bold" htmlFor="settings_combat_log_detail">
-              Combat log detail
-              <select
-                className="rounded-control border border-border bg-panel-muted px-3 py-2"
-                data-testid="settings_select_combat_log_detail"
-                id="settings_combat_log_detail"
-                value={combatLogDetail}
-                onChange={(event) => onCombatLogDetailChange(event.target.value as CombatLogDetail)}
-              >
-                <option value="expanded">Expanded</option>
-                <option value="concise">Concise</option>
-              </select>
-            </label>
-            <CheckboxSetting
-              checked={reducedMotion}
-              label="Reduce motion"
-              onChange={onReducedMotionChange}
-              testId="settings_input_reduced_motion"
-            />
-          </SettingsGroup>
-        </div>
+        <SettingsGroup title="Save & progress" testId="settings_section_save">
+          <label className="grid gap-2 text-sm font-bold" htmlFor="settings_autosave_interval">
+            Autosave interval
+            <select
+              className="rounded-control border border-border bg-panel-muted px-3 py-2"
+              data-testid="settings_select_autosave_interval"
+              id="settings_autosave_interval"
+              value={autosaveIntervalSeconds}
+              onChange={(event) => onAutosaveIntervalChange(Number(event.target.value))}
+            >
+              {autosaveIntervals.map((seconds) => (
+                <option key={seconds} value={seconds}>
+                  {formatInterval(seconds)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <MutedText data-testid="settings_p_autosave_status">{saveMessage}</MutedText>
+        </SettingsGroup>
       </Panel>
     </section>
   );
@@ -120,29 +78,5 @@ function SettingsGroup({
       <h3 className="m-0 text-sm font-black uppercase text-primary-strong">{title}</h3>
       {children}
     </section>
-  );
-}
-
-function CheckboxSetting({
-  checked,
-  label,
-  onChange,
-  testId
-}: {
-  checked: boolean;
-  label: string;
-  onChange: (checked: boolean) => void;
-  testId: string;
-}) {
-  return (
-    <label className="flex items-center gap-2 text-sm font-bold">
-      <input
-        checked={checked}
-        data-testid={testId}
-        onChange={(event) => onChange(event.target.checked)}
-        type="checkbox"
-      />
-      {label}
-    </label>
   );
 }

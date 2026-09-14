@@ -16,7 +16,6 @@ type InventoryPageProps = {
   actionError?: string;
   activeEquipmentSet?: number;
   character: Character;
-  compactGrid?: boolean;
   isActionPending?: boolean;
   itemsById: Record<string, ItemMetadata>;
   onEquipSlot?: (slotIndex: number, equipmentSet: number) => void;
@@ -37,7 +36,6 @@ export function InventoryPage({
   actionError = "",
   activeEquipmentSet = 0,
   character,
-  compactGrid = false,
   isActionPending = false,
   itemsById,
   onEquipSlot,
@@ -161,8 +159,7 @@ export function InventoryPage({
         </div>
         <div
           className={cx(
-            "themed-scrollbar grid min-h-0 content-start justify-start gap-2 overflow-y-auto pr-2",
-            compactGrid ? "grid-cols-[repeat(auto-fill,76px)]" : "grid-cols-[repeat(auto-fill,100px)]"
+            "themed-scrollbar grid min-h-0 content-start justify-start gap-2 overflow-y-auto pr-2 grid-cols-[repeat(auto-fill,100px)]"
           )}
           aria-label="Inventory slots"
         >
@@ -189,7 +186,6 @@ export function InventoryPage({
               <InventorySlot
                 $filled={Boolean(displayedInventoryItem)}
                 $muted={Boolean(displayedInventoryItem) && !matchesFilter}
-                $compact={compactGrid}
                 $selected={isSelected}
                 aria-label={slotLabel}
                 aria-pressed={isSelected}
@@ -320,26 +316,16 @@ function handleDrop(
 }
 
 type InventorySlotProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  $compact: boolean;
   $filled: boolean;
   $muted: boolean;
   $selected: boolean;
 };
 
-function InventorySlot({
-  $compact,
-  $filled,
-  $muted,
-  $selected,
-  children,
-  className,
-  ...props
-}: InventorySlotProps) {
+function InventorySlot({ $filled, $muted, $selected, children, className, ...props }: InventorySlotProps) {
   return (
     <button
       className={cx(
         "relative grid h-[100px] w-[100px] place-items-center rounded-[5px] border-2 border-[rgba(118,107,73,0.72)] bg-[linear-gradient(180deg,rgba(12,12,10,0.94),rgba(0,0,0,0.98))] p-1 text-center shadow-[inset_0_0_0_2px_rgba(0,0,0,0.9),inset_0_0_12px_rgba(214,199,119,0.1),0_0_8px_rgba(0,0,0,0.4)] disabled:opacity-100",
-        $compact && "h-[76px] w-[76px]",
         $filled ? "cursor-pointer" : "cursor-default",
         $selected &&
           "outline outline-1 -outline-offset-4 outline-[rgba(255,222,91,0.74)] shadow-[inset_0_0_18px_rgba(255,216,76,0.2)]",

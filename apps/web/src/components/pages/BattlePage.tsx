@@ -33,7 +33,6 @@ const maxBattleLogEntries = 50;
 
 export function BattlePage({
   character,
-  combatLogDetail = "expanded",
   initialBattleState,
   initialCharacterResources,
   itemsById,
@@ -337,7 +336,6 @@ export function BattlePage({
         activeEquipmentSet={activeEquipmentSet}
         activeTab={activeCharacterTab}
         character={character}
-        combatLogDetail={combatLogDetail}
         characterFp={currentCharacterFp}
         characterMaxFp={characterFp}
         characterHp={currentCharacterHp}

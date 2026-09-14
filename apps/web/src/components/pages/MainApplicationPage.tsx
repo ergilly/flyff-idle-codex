@@ -314,7 +314,6 @@ export function MainApplicationPage() {
       character={selectedCharacter}
       initialBattleState={battleStateByCharacterId[selectedCharacter.id]}
       initialCharacterResources={characterResourcesById[selectedCharacter.id]}
-      combatLogDetail={preferences.combatLogDetail}
       itemsById={itemsById}
       onBattleStateChange={handleBattleStateChange}
       onClearMonsterTarget={() => setSelectedMonsterFamily(null)}
@@ -406,7 +405,6 @@ export function MainApplicationPage() {
         ) : activeNavItem === "Inventory" ? (
           <InventoryPage
             character={selectedCharacter}
-            compactGrid={preferences.compactInventoryGrid}
             actionError={itemActionError}
             isActionPending={isItemActionPending}
             itemsById={itemsById}
@@ -454,19 +452,11 @@ export function MainApplicationPage() {
         ) : activeNavItem === "Combat" ? null : activeNavItem === "Settings" ? (
           <SettingsPage
             autosaveIntervalSeconds={preferences.autosaveIntervalSeconds}
-            combatLogDetail={preferences.combatLogDetail}
-            compactInventoryGrid={preferences.compactInventoryGrid}
-            reducedMotion={preferences.reducedMotion}
             saveError={saveError}
             saveStatus={saveStatus}
             onAutosaveIntervalChange={(autosaveIntervalSeconds) =>
               updatePreferences({ autosaveIntervalSeconds })
             }
-            onCombatLogDetailChange={(combatLogDetail) => updatePreferences({ combatLogDetail })}
-            onCompactInventoryGridChange={(compactInventoryGrid) =>
-              updatePreferences({ compactInventoryGrid })
-            }
-            onReducedMotionChange={(reducedMotion) => updatePreferences({ reducedMotion })}
           />
         ) : activeNavItem === "Admin" ? (
           <AdminPage

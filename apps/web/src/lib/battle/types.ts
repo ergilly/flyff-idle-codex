@@ -24,7 +24,6 @@ export type CharacterResourceState = {
 
 export type ConsumableCooldownState = Record<ConsumableResource, number>;
 export type CharacterPanelTab = "equipment" | "skills";
-export type CombatLogDetail = "concise" | "expanded";
 export type BattleOutcome = "fighting" | "playerDefeated" | "monsterDefeated";
 
 export type BattleLogEntry = {
@@ -58,7 +57,6 @@ export type BattleState = {
 
 export type BattlePageProps = {
   character: Character;
-  combatLogDetail?: CombatLogDetail;
   initialBattleState?: BattlePersistenceState;
   initialCharacterResources?: CharacterResourceState;
   itemsById: Record<string, ItemMetadata>;

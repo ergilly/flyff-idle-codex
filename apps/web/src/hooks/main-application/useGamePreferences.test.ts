@@ -4,17 +4,13 @@ import { defaultGamePreferences, useGamePreferences } from "./useGamePreferences
 describe("useGamePreferences", () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.removeAttribute("data-reduced-motion");
   });
 
-  it("loads valid stored preferences and applies reduced motion", async () => {
+  it("loads the stored autosave interval", async () => {
     localStorage.setItem(
       "flyffIdlePreferences",
       JSON.stringify({
-        autosaveIntervalSeconds: 300,
-        compactInventoryGrid: true,
-        combatLogDetail: "concise",
-        reducedMotion: true
+        autosaveIntervalSeconds: 300
       })
     );
 
@@ -22,13 +18,9 @@ describe("useGamePreferences", () => {
 
     await waitFor(() =>
       expect(result.current.preferences).toMatchObject({
-        autosaveIntervalSeconds: 300,
-        compactInventoryGrid: true,
-        combatLogDetail: "concise",
-        reducedMotion: true
+        autosaveIntervalSeconds: 300
       })
     );
-    expect(document.documentElement.dataset.reducedMotion).toBe("true");
   });
 
   it("falls back to defaults for invalid stored preferences and persists updates", async () => {
@@ -37,13 +29,12 @@ describe("useGamePreferences", () => {
     const { result } = renderHook(() => useGamePreferences());
     await waitFor(() => expect(result.current.preferences).toEqual(defaultGamePreferences));
 
-    act(() => result.current.updatePreferences({ reducedMotion: true }));
+    act(() => result.current.updatePreferences({ autosaveIntervalSeconds: 300 }));
 
     await waitFor(() => {
       expect(JSON.parse(localStorage.getItem("flyffIdlePreferences") ?? "{}")).toMatchObject({
-        reducedMotion: true
+        autosaveIntervalSeconds: 300
       });
     });
-    expect(document.documentElement.dataset.reducedMotion).toBe("true");
   });
 });

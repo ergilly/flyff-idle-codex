@@ -19,17 +19,3 @@ it("renders entry tones and clears populated logs", () => {
   fireEvent.click(screen.getByRole("button", { name: "Clear" }));
   expect(onClear).toHaveBeenCalledTimes(1);
 });
-
-it("limits concise logs to the most recent entries", () => {
-  const battleLog = Array.from({ length: 11 }, (_entry, index) => ({
-    id: index + 1,
-    message: `Action ${index + 1}`,
-    tone: "muted" as const
-  }));
-
-  render(<CombatLogPanel battleLog={battleLog} detail="concise" onClearBattleLog={jest.fn()} />);
-
-  expect(screen.queryByTestId("battle_li_combat_log_1")).not.toBeInTheDocument();
-  expect(screen.getByTestId("battle_li_combat_log_2")).toBeInTheDocument();
-  expect(screen.getByTestId("battle_li_combat_log_11")).toBeInTheDocument();
-});
