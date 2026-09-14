@@ -12,6 +12,7 @@
     "db:seed": "tsx src/data/seed.ts",
     "db:reset-test-accounts": "tsx src/data/resetTestAccounts.ts",
     "game-data:build": "tsx src/data/buildGameDataDatabase.ts",
+    "content:validate": "tsx src/content/validateContent.ts",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --config jest.config.cjs --runInBand --testPathPattern=\"tests/unit|src/.*\\.test\\.ts$\"",
     "test:integration": "jest --config jest.config.cjs --runInBand --testPathPattern=tests/integration",
