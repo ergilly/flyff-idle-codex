@@ -6,11 +6,9 @@ import {
   ListChecks,
   ShieldCheck,
   Map,
-  Moon,
   Shield,
   Sparkles,
-  Swords,
-  Sun
+  Swords
 } from "lucide-react";
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { ProfileActionsMenu } from "@/components/molecules/main-application/ProfileActionsMenu";
@@ -27,7 +25,6 @@ export const navItems = [
 ];
 
 export type MainApplicationNavItem = (typeof navItems)[number]["label"] | "Admin" | "Settings";
-export type MainApplicationTheme = "dark" | "light";
 
 type MainApplicationSidebarProps = {
   activeNavItem: string;
@@ -39,9 +36,7 @@ type MainApplicationSidebarProps = {
   onLogout: () => void;
   onProfileMenuToggle: () => void;
   onSelectNavItem: (label: MainApplicationNavItem) => void;
-  onThemeToggle: () => void;
   onToggleMobileNav: () => void;
-  theme: MainApplicationTheme;
 };
 
 export function MainApplicationSidebar({
@@ -54,9 +49,7 @@ export function MainApplicationSidebar({
   onLogout,
   onProfileMenuToggle,
   onSelectNavItem,
-  onThemeToggle,
-  onToggleMobileNav,
-  theme
+  onToggleMobileNav
 }: MainApplicationSidebarProps) {
   return (
     <AppSidebar aria-label="Primary navigation" data-testid="game_sidebar_aside">
@@ -108,15 +101,6 @@ export function MainApplicationSidebar({
         >
           <Cog aria-hidden="true" size={18} />
           <span>Settings</span>
-        </AppNavButton>
-        <AppNavButton
-          type="button"
-          $active={false}
-          data-testid="game_sidebar_button_theme_toggle"
-          onClick={onThemeToggle}
-        >
-          {theme === "dark" ? <Sun aria-hidden="true" size={18} /> : <Moon aria-hidden="true" size={18} />}
-          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
         </AppNavButton>
       </AppSidebarActions>
     </AppSidebar>
