@@ -158,7 +158,9 @@ export function InventoryPage({
           </label>
         </div>
         <div
-          className="themed-scrollbar grid min-h-0 grid-cols-[repeat(auto-fill,100px)] content-start justify-start gap-2 overflow-y-auto pr-2"
+          className={cx(
+            "themed-scrollbar grid min-h-0 content-start justify-start gap-2 overflow-y-auto pr-2 grid-cols-[repeat(auto-fill,100px)]"
+          )}
           aria-label="Inventory slots"
         >
           {Array.from({ length: inventorySlotCount }, (_slot, slotIndex) => {
