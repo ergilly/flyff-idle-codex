@@ -81,15 +81,11 @@ jest.mock("@/components/organisms/main-application/MainApplicationSidebar", () =
   MainApplicationSidebar: ({
     isAdmin,
     onLogout,
-    onSelectNavItem,
-    onThemeToggle,
-    theme
+    onSelectNavItem
   }: {
     isAdmin: boolean;
     onLogout: () => void;
     onSelectNavItem: (label: string) => void;
-    onThemeToggle: () => void;
-    theme: string;
   }) => (
     <nav aria-label="mock sidebar">
       <button type="button" onClick={() => onSelectNavItem("Character Page")}>
@@ -112,9 +108,6 @@ jest.mock("@/components/organisms/main-application/MainApplicationSidebar", () =
           Admin
         </button>
       ) : null}
-      <button type="button" onClick={onThemeToggle}>
-        Toggle {theme}
-      </button>
       <button type="button" onClick={onLogout}>
         Logout
       </button>
@@ -584,16 +577,12 @@ describe("MainApplicationPage", () => {
     expect(replace).toHaveBeenCalledWith("/characters");
   });
 
-  it("loads the selected character, applies theme, and logs out", async () => {
+  it("loads the selected character and logs out", async () => {
     arrangeSession();
-    localStorage.setItem("flyffIdleTheme", "light");
 
     render(<MainApplicationPage />);
 
     expect(await waitForSelectedCharacter()).toBeInTheDocument();
-    expect(document.documentElement.dataset.theme).toBe("light");
-
-    fireEvent.click(screen.getByRole("button", { name: "Toggle light" }));
     expect(document.documentElement.dataset.theme).toBe("dark");
 
     fireEvent.click(screen.getByRole("button", { name: "Logout" }));

@@ -38,22 +38,6 @@
   --text-muted: #a89c78;
 }
 
-[data-theme="light"] {
-  color-scheme: light;
-  --background: #f7f5ef;
-  --foreground: #1c2230;
-  --panel: #ffffff;
-  --panel-elevated: #f8fbfc;
-  --panel-muted: #eef4f6;
-  --primary: #286a8f;
-  --primary-strong: #1f526e;
-  --accent: #cf6f3e;
-  --border: #d9dee5;
-  --danger: #9c2f2f;
-  --danger-panel: #fff0f0;
-  --text-muted: #5d6878;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -85,15 +69,6 @@ body {
   --panel-shell: rgba(8, 8, 7, 0.96);
   --shell-shadow: rgba(0, 0, 0, 0.62);
   --button-text: #120e05;
-}
-
-[data-theme="light"] {
-  --page-highlight: rgba(255, 218, 88, 0.18);
-  --page-overlay-start: rgba(247, 245, 239, 0.88);
-  --page-overlay-end: rgba(247, 245, 239, 0.92);
-  --panel-shell: rgba(255, 255, 255, 0.95);
-  --shell-shadow: rgba(28, 34, 48, 0.18);
-  --button-text: #ffffff;
 }
 
 button,

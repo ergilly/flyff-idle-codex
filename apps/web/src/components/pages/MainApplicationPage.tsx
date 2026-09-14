@@ -22,8 +22,7 @@ import { MainApplicationHeader } from "@/components/organisms/main-application/M
 import {
   MainApplicationSidebar,
   navItems,
-  type MainApplicationNavItem,
-  type MainApplicationTheme
+  type MainApplicationNavItem
 } from "@/components/organisms/main-application/MainApplicationSidebar";
 import {
   MainApplicationCenteredState,
@@ -49,11 +48,6 @@ import type { MapRegionId } from "@/lib/mapMonsterMarkers";
 import type { TravelMethod } from "@/lib/mapTravel";
 import type { TownMapId } from "@/lib/townMapLocations";
 import type { RespawnDestination } from "@/lib/battle/respawn";
-const storageKey = "flyffIdleTheme";
-function applyTheme(theme: MainApplicationTheme) {
-  document.documentElement.dataset.theme = theme;
-  localStorage.setItem(storageKey, theme);
-}
 export function MainApplicationPage() {
   const router = useRouter();
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -61,7 +55,6 @@ export function MainApplicationPage() {
   const [activeNavItem, setActiveNavItem] = useState<MainApplicationNavItem>(navItems[0].label);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<MainApplicationTheme>("dark");
   const [selectedMonsterFamily, setSelectedMonsterFamily] = useState<MapMonsterFamily | null>(null);
   const [respawnTownMapId, setRespawnTownMapId] = useState<TownMapId>();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -72,11 +65,9 @@ export function MainApplicationPage() {
     const token = localStorage.getItem("flyffIdleToken");
     const storedUser = localStorage.getItem("flyffIdleUser");
     const storedCharacterId = localStorage.getItem("flyffIdleSelectedCharacterId");
-    const storedTheme = localStorage.getItem(storageKey) === "light" ? "light" : "dark";
-    setTheme(storedTheme);
     const storedAutosave = Number(localStorage.getItem("flyffIdleAutosaveSeconds"));
     if ([30, 60, 120, 300, 600, 1800].includes(storedAutosave)) setAutosaveIntervalSeconds(storedAutosave);
-    applyTheme(storedTheme);
+    document.documentElement.dataset.theme = "dark";
     setSelectedCharacterId(storedCharacterId);
     try {
       setIsAdmin(storedUser ? Boolean((JSON.parse(storedUser) as { isAdmin?: boolean }).isAdmin) : false);
@@ -274,12 +265,6 @@ export function MainApplicationPage() {
       )
     );
   }
-  function handleThemeToggle() {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    applyTheme(nextTheme);
-    setIsMobileNavOpen(false);
-  }
   function handleRespawnAtTown(destination: RespawnDestination) {
     setRespawnTownMapId(destination.townMapId);
     setSelectedMonsterFamily(null);
@@ -358,9 +343,7 @@ export function MainApplicationPage() {
           onLogout={handleLogout}
           onProfileMenuToggle={() => setIsProfileMenuOpen((isOpen) => !isOpen)}
           onSelectNavItem={handleSelectNavItem}
-          onThemeToggle={handleThemeToggle}
           onToggleMobileNav={() => setIsMobileNavOpen((isOpen) => !isOpen)}
-          theme={theme}
         />
       }
       header={

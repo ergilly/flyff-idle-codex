@@ -12,9 +12,7 @@ function renderSidebar(overrides: Partial<React.ComponentProps<typeof MainApplic
     onLogout: jest.fn(),
     onProfileMenuToggle: jest.fn(),
     onSelectNavItem: jest.fn(),
-    onThemeToggle: jest.fn(),
     onToggleMobileNav: jest.fn(),
-    theme: "dark",
     ...overrides
   };
   render(<MainApplicationSidebar {...props} />);
@@ -32,21 +30,19 @@ describe("MainApplicationSidebar", () => {
     expect(props.onSelectNavItem).toHaveBeenCalledWith("Map");
   });
 
-  it("routes admin and theme actions", () => {
+  it("routes admin navigation", () => {
     const props = renderSidebar();
     fireEvent.click(screen.getByRole("button", { name: "Quests" }));
     fireEvent.click(screen.getByRole("button", { name: "Admin" }));
-    fireEvent.click(screen.getByRole("button", { name: "Light mode" }));
 
     expect(props.onSelectNavItem).toHaveBeenCalledWith("Quests");
     expect(props.onSelectNavItem).toHaveBeenCalledWith("Admin");
-    expect(props.onThemeToggle).toHaveBeenCalled();
   });
 
-  it("hides admin navigation and offers dark mode to non-admin users", () => {
-    renderSidebar({ isAdmin: false, isMobileNavOpen: false, isProfileMenuOpen: false, theme: "light" });
+  it("hides admin navigation for non-admin users", () => {
+    renderSidebar({ isAdmin: false, isMobileNavOpen: false, isProfileMenuOpen: false });
 
     expect(screen.queryByRole("button", { name: "Admin" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Dark mode" })).toBeInTheDocument();
+    expect(screen.queryByTestId("game_sidebar_button_theme_toggle")).not.toBeInTheDocument();
   });
 });

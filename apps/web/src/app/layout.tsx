@@ -9,20 +9,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                var theme = localStorage.getItem("flyffIdleTheme") === "light" ? "light" : "dark";
-                document.documentElement.dataset.theme = theme;
-              } catch {
-                document.documentElement.dataset.theme = "dark";
-              }
-            `
-          }}
-        />
-      </head>
       <body>{children}</body>
     </html>
   );
