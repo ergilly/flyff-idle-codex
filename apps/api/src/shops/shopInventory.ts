@@ -1,7 +1,7 @@
-import { townShopCatalog } from "../data/shops/townShopCatalog.js";
+import { loadShopCatalog } from "../content/contentLoader.js";
 import type { TownShop } from "./shopTypes.js";
 
-const catalog: Record<string, TownShop> = townShopCatalog;
+const catalog: Record<string, TownShop> = loadShopCatalog();
 
 export function getTownShop(townMapId: string, locationId: string) {
   return catalog[`${townMapId}/${locationId}`] ?? null;

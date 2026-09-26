@@ -63,9 +63,12 @@ describe("game data service", () => {
   });
 
   it("includes every imported NPC in the deployable game data database", () => {
-    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
-      readOnly: true
-    });
+    const database = new DatabaseSync(
+      path.resolve(__dirname, "../../../..", "content/generated/game-data.db"),
+      {
+        readOnly: true
+      }
+    );
 
     try {
       const { count } = database
@@ -79,9 +82,12 @@ describe("game data service", () => {
   });
 
   it("includes every imported quest in the deployable game data database", () => {
-    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
-      readOnly: true
-    });
+    const database = new DatabaseSync(
+      path.resolve(__dirname, "../../../..", "content/generated/game-data.db"),
+      {
+        readOnly: true
+      }
+    );
 
     try {
       const { count } = database
@@ -201,9 +207,12 @@ describe("game data service", () => {
   });
 
   it("stores attack timing for every mapped monster in every populated region", () => {
-    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
-      readOnly: true
-    });
+    const database = new DatabaseSync(
+      path.resolve(__dirname, "../../../..", "content/generated/game-data.db"),
+      {
+        readOnly: true
+      }
+    );
 
     try {
       const records = database

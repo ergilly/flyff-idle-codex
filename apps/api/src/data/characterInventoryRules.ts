@@ -1,4 +1,4 @@
-import type { ItemMetadata } from "./generated/itemIconIndex.js";
+import type { ItemMetadata } from "../items/itemTypes.js";
 import { findItemsByIds } from "../items/itemIconRepository.js";
 import type { Character } from "../types.js";
 import { getItemData, getNumberField, getStringField } from "./characterInventoryRepository.js";

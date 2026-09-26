@@ -1,5 +1,6 @@
 import { loadStoredDataSet } from "./gameData.database.js";
 import { dataSetNames, type DataSetName, type JsonDataRecord } from "./gameData.types.js";
+import { applyQuestContent } from "../content/questContent.js";
 import {
   createQuestTextReferenceIndex,
   resolveQuestText,
@@ -41,14 +42,20 @@ function getQuestTextReferenceIndex() {
   return questTextReferenceIndex;
 }
 
-function resolveDataSetRecord(dataSetName: DataSetName, item: JsonDataRecord) {
+function resolveDataSetRecord(dataSetName: DataSetName, item: JsonDataRecord): JsonDataRecord | undefined {
   if (dataSetName !== "quests") return item;
+
+  const authoredQuest = applyQuestContent(item);
+
+  if (!authoredQuest) {
+    return undefined;
+  }
 
   const cachedQuest = resolvedQuestCache.get(item);
 
   if (cachedQuest) return cachedQuest;
 
-  const resolvedQuest = resolveQuestText(item, getQuestTextReferenceIndex());
+  const resolvedQuest = resolveQuestText(authoredQuest, getQuestTextReferenceIndex());
   resolvedQuestCache.set(item, resolvedQuest);
   return resolvedQuest;
 }
@@ -202,6 +209,7 @@ export function queryDataSet(dataSetName: DataSetName, query: Record<string, unk
       scalarFilters.every(({ field, expected }) => matchesScalarFilter(getFieldValue(item, field), expected))
     )
     .map((item) => resolveDataSetRecord(dataSetName, item))
+    .filter((item): item is JsonDataRecord => Boolean(item))
     .filter((item) => (textQuery ? matchesQuery(item, textQuery) : true));
 
   return {

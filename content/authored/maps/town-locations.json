@@ -1,0 +1,377 @@
+{
+  "version": 1,
+  "towns": {
+    "flarine-town": [
+      {
+        "id": "red-chip-merchant",
+        "iconSrc": "/images/maps/town-icons/red-chip-merchant.png",
+        "kind": "shop",
+        "label": "Red Chip Merchant",
+        "x": 32.9,
+        "y": 20.9
+      },
+      {
+        "id": "center-for-guild-combat",
+        "iconSrc": "/images/maps/town-icons/center-for-guild-combat.png",
+        "kind": "npc",
+        "label": "Center for Guild Combat",
+        "x": 35.2,
+        "y": 29.3
+      },
+      {
+        "id": "guild-house-manager",
+        "iconSrc": "/images/maps/town-icons/guild-house-manager.png",
+        "kind": "npc",
+        "label": "Guild House Manager",
+        "x": 23,
+        "y": 44.5
+      },
+      {
+        "id": "general-store",
+        "iconSrc": "/images/maps/town-icons/general-store.png",
+        "kind": "shop",
+        "label": "General Store",
+        "x": 30.2,
+        "y": 45.3
+      },
+      {
+        "id": "arena-manager",
+        "iconSrc": "/images/maps/town-icons/arena-manager.png",
+        "kind": "npc",
+        "label": "Arena Manager",
+        "x": 19.9,
+        "y": 52
+      },
+      {
+        "id": "pet-tamer",
+        "iconSrc": "/images/maps/town-icons/pet-tamer.png",
+        "kind": "npc",
+        "label": "Pet Tamer",
+        "x": 35,
+        "y": 51.8
+      },
+      {
+        "id": "station",
+        "iconSrc": "/images/maps/town-icons/station.png",
+        "kind": "shop",
+        "label": "Station",
+        "x": 26.3,
+        "y": 57.1
+      },
+      {
+        "id": "armory",
+        "iconSrc": "/images/maps/town-icons/armory.png",
+        "kind": "shop",
+        "label": "Armory",
+        "x": 18.6,
+        "y": 60.3
+      },
+      {
+        "id": "housing-specialist",
+        "iconSrc": "/images/maps/town-icons/housing-specialist.png",
+        "kind": "npc",
+        "label": "Housing Specialist",
+        "x": 35.5,
+        "y": 59.8
+      },
+      {
+        "id": "buff-pang",
+        "iconSrc": "/images/maps/town-icons/buff-pang.png",
+        "kind": "npc",
+        "label": "Buff Pang",
+        "x": 29.5,
+        "y": 65.1
+      },
+      {
+        "id": "public-office",
+        "iconSrc": "/images/maps/town-icons/public-office.png",
+        "kind": "npc",
+        "label": "Public Office",
+        "x": 26.7,
+        "y": 68.5
+      },
+      {
+        "id": "quest-office",
+        "iconSrc": "/images/maps/town-icons/quest-office.png",
+        "kind": "npc",
+        "label": "Mikyel",
+        "npcId": 29,
+        "x": 65.8,
+        "y": 52.4
+      },
+      {
+        "id": "magic-vendor",
+        "iconSrc": "/images/maps/town-icons/magic-vendor.png",
+        "kind": "shop",
+        "label": "Magic Vendor",
+        "x": 77.9,
+        "y": 45.7
+      },
+      {
+        "id": "food-vendor",
+        "iconSrc": "/images/maps/town-icons/food-vendor.png",
+        "kind": "shop",
+        "label": "Food Vendor",
+        "x": 77.7,
+        "y": 66.1
+      }
+    ],
+    "sain-city": [
+      {
+        "id": "station",
+        "iconSrc": "/images/maps/town-icons/station.png",
+        "kind": "shop",
+        "label": "Station",
+        "x": 44.9,
+        "y": 25.1
+      },
+      {
+        "id": "magic-vendor",
+        "iconSrc": "/images/maps/town-icons/magic-vendor.png",
+        "kind": "shop",
+        "label": "Magic Vendor",
+        "x": 35.5,
+        "y": 63.5
+      },
+      {
+        "id": "armory",
+        "iconSrc": "/images/maps/town-icons/armory.png",
+        "kind": "shop",
+        "label": "Armory",
+        "x": 40.9,
+        "y": 73.3
+      },
+      {
+        "id": "general-store",
+        "iconSrc": "/images/maps/town-icons/general-store.png",
+        "kind": "shop",
+        "label": "General Store",
+        "x": 47,
+        "y": 72.6
+      },
+      {
+        "id": "food-vendor",
+        "iconSrc": "/images/maps/town-icons/food-vendor.png",
+        "kind": "shop",
+        "label": "Food Vendor",
+        "x": 40,
+        "y": 79.1
+      },
+      {
+        "id": "quest-office",
+        "iconSrc": "/images/maps/town-icons/quest-office.png",
+        "kind": "npc",
+        "label": "Lancomi",
+        "npcId": 4000,
+        "x": 54.8,
+        "y": 75.4
+      },
+      {
+        "id": "arena-manager",
+        "iconSrc": "/images/maps/town-icons/arena-manager.png",
+        "kind": "npc",
+        "label": "Arena Manager",
+        "x": 48,
+        "y": 81.8
+      },
+      {
+        "id": "pet-tamer",
+        "iconSrc": "/images/maps/town-icons/pet-tamer.png",
+        "kind": "npc",
+        "label": "Pet Tamer",
+        "x": 52.4,
+        "y": 81.7
+      },
+      {
+        "id": "buff-pang",
+        "iconSrc": "/images/maps/town-icons/buff-pang.png",
+        "kind": "npc",
+        "label": "Buff Pang",
+        "x": 50.2,
+        "y": 84.7
+      },
+      {
+        "id": "public-office",
+        "iconSrc": "/images/maps/town-icons/public-office.png",
+        "kind": "npc",
+        "label": "Public Office",
+        "x": 52.5,
+        "y": 87.8
+      }
+    ],
+    "darken-city": [
+      {
+        "id": "pet-tamer",
+        "iconSrc": "/images/maps/town-icons/pet-tamer.png",
+        "kind": "npc",
+        "label": "Pet Tamer",
+        "x": 41.7,
+        "y": 42.2
+      },
+      {
+        "id": "public-office",
+        "iconSrc": "/images/maps/town-icons/public-office.png",
+        "kind": "npc",
+        "label": "Public Office",
+        "x": 43.5,
+        "y": 45.8
+      },
+      {
+        "id": "general-store",
+        "iconSrc": "/images/maps/town-icons/general-store.png",
+        "kind": "shop",
+        "label": "General Store",
+        "x": 54.4,
+        "y": 46.9
+      },
+      {
+        "id": "arena-manager",
+        "iconSrc": "/images/maps/town-icons/arena-manager.png",
+        "kind": "npc",
+        "label": "Arena Manager",
+        "x": 36.1,
+        "y": 50
+      },
+      {
+        "id": "buff-pang",
+        "iconSrc": "/images/maps/town-icons/buff-pang.png",
+        "kind": "npc",
+        "label": "Buff Pang",
+        "x": 34.3,
+        "y": 50.4
+      },
+      {
+        "id": "station",
+        "iconSrc": "/images/maps/town-icons/station.png",
+        "kind": "shop",
+        "label": "Station",
+        "x": 47.7,
+        "y": 51.4
+      },
+      {
+        "id": "quest-office",
+        "iconSrc": "/images/maps/town-icons/quest-office.png",
+        "kind": "npc",
+        "label": "Lurif",
+        "npcId": 4677,
+        "x": 42.3,
+        "y": 57.3
+      },
+      {
+        "id": "armory",
+        "iconSrc": "/images/maps/town-icons/armory.png",
+        "kind": "shop",
+        "label": "Armory",
+        "x": 22.8,
+        "y": 59.7
+      },
+      {
+        "id": "magic-vendor",
+        "iconSrc": "/images/maps/town-icons/magic-vendor.png",
+        "kind": "shop",
+        "label": "Magic Vendor",
+        "x": 60.4,
+        "y": 71.9
+      },
+      {
+        "id": "food-vendor",
+        "iconSrc": "/images/maps/town-icons/food-vendor.png",
+        "kind": "shop",
+        "label": "Food Vendor",
+        "x": 43.8,
+        "y": 78.1
+      }
+    ],
+    "eillun": [
+      {
+        "id": "housing-specialist",
+        "iconSrc": "/images/maps/town-icons/housing-specialist.png",
+        "kind": "npc",
+        "label": "Housing Specialist",
+        "x": 46.6,
+        "y": 22.4
+      },
+      {
+        "id": "magic-vendor",
+        "iconSrc": "/images/maps/town-icons/magic-vendor.png",
+        "kind": "shop",
+        "label": "Magic Vendor",
+        "x": 46.4,
+        "y": 35.9
+      },
+      {
+        "id": "food-vendor",
+        "iconSrc": "/images/maps/town-icons/food-vendor.png",
+        "kind": "shop",
+        "label": "Food Vendor",
+        "x": 42.7,
+        "y": 39.2
+      },
+      {
+        "id": "general-store",
+        "iconSrc": "/images/maps/town-icons/general-store.png",
+        "kind": "shop",
+        "label": "General Store",
+        "x": 51.6,
+        "y": 34.7
+      },
+      {
+        "id": "guild-house-manager",
+        "iconSrc": "/images/maps/town-icons/guild-house-manager.png",
+        "kind": "npc",
+        "label": "Guild House Manager",
+        "x": 62.9,
+        "y": 28.3
+      },
+      {
+        "id": "red-chip-merchant",
+        "iconSrc": "/images/maps/town-icons/red-chip-merchant.png",
+        "kind": "shop",
+        "label": "Red Chip Merchant",
+        "x": 70.8,
+        "y": 40.4
+      },
+      {
+        "id": "pet-tamer",
+        "iconSrc": "/images/maps/town-icons/pet-tamer.png",
+        "kind": "npc",
+        "label": "Pet Tamer",
+        "x": 40,
+        "y": 43.2
+      },
+      {
+        "id": "public-office",
+        "iconSrc": "/images/maps/town-icons/public-office.png",
+        "kind": "npc",
+        "label": "Public Office",
+        "x": 38.4,
+        "y": 53.3
+      },
+      {
+        "id": "quest-office",
+        "iconSrc": "/images/maps/town-icons/quest-office.png",
+        "kind": "npc",
+        "label": "Miorang",
+        "npcId": 20250,
+        "x": 41.6,
+        "y": 58.6
+      },
+      {
+        "id": "armory",
+        "iconSrc": "/images/maps/town-icons/armory.png",
+        "kind": "shop",
+        "label": "Armory",
+        "x": 53.5,
+        "y": 60.2
+      },
+      {
+        "id": "arena-manager",
+        "iconSrc": "/images/maps/town-icons/arena-manager.png",
+        "kind": "npc",
+        "label": "Arena Manager",
+        "x": 64.9,
+        "y": 65.3
+      }
+    ]
+  }
+}

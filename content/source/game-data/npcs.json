@@ -1,0 +1,9781 @@
+{
+  "29": {
+    "id": 29,
+    "name": "Mikyel",
+    "place": "questoffice",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7129.189,
+        "y": 99.95781,
+        "z": 3252.483,
+        "continent": 8859
+      }
+    ],
+    "image": "agent.png"
+  },
+  "54": {
+    "id": 54,
+    "name": "[Blade Guardian] Sencyrit",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3344.047,
+        "y": 146.9522,
+        "z": 2056.097,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "193": {
+    "id": 193,
+    "name": "[Arena Store] Deek",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      },
+      {
+        "name": "Poster",
+        "items": [
+          3907,
+          5869
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          3343,
+          7116
+        ]
+      },
+      {
+        "name": "Arrow",
+        "items": [
+          4586,
+          59637,
+          36879
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 29586,
+        "x": 250.2736,
+        "y": 99.99996,
+        "z": 167.1609
+      }
+    ],
+    "image": "lui.png"
+  },
+  "233": {
+    "id": 233,
+    "name": "[Elementor Guardian] Wendien",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3348.821,
+        "y": 146.9274,
+        "z": 2058.485,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "237": {
+    "id": 237,
+    "name": "Rudvihil",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7219.022,
+        "y": 108.8241,
+        "z": 3190.55,
+        "continent": 8859
+      }
+    ],
+    "image": "almani.png"
+  },
+  "265": {
+    "id": 265,
+    "name": "Achaben",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Poster",
+        "items": [
+          3907,
+          5869
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          3343,
+          7116,
+          3574
+        ]
+      },
+      {
+        "name": "Arrow",
+        "items": [
+          4586,
+          59637,
+          36879
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3879.864,
+        "y": 59,
+        "z": 4458.07,
+        "continent": 4357
+      }
+    ],
+    "image": "achaben.png"
+  },
+  "286": {
+    "id": 286,
+    "name": "[High-Dwarpet] Goripeg",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6991.909,
+        "y": 124.6035,
+        "z": 3891.937,
+        "continent": 1018
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "293": {
+    "id": 293,
+    "name": "Dr. Estern",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7940.799,
+        "y": 159.0761,
+        "z": 2405.927,
+        "continent": 8641
+      }
+    ],
+    "image": "rhine.png"
+  },
+  "295": {
+    "id": 295,
+    "name": "[Arena Manager] Harold",
+    "menus": [
+      "dialog",
+      "arenaleave",
+      "arenaranking",
+      "arenareward"
+    ],
+    "locations": [
+      {
+        "world": 29586,
+        "x": 262.0775,
+        "y": 100,
+        "z": 161.1784
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "296": {
+    "id": 296,
+    "name": "Dior",
+    "place": "flyingstation",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Broom",
+        "items": [
+          8507,
+          2128,
+          3258,
+          7336
+        ]
+      },
+      {
+        "name": "Board",
+        "items": [
+          7182,
+          4482,
+          6333,
+          4715
+        ]
+      },
+      {
+        "name": "Fuel",
+        "items": [
+          6462
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6958.964,
+        "y": 124.16,
+        "z": 3237.629,
+        "continent": 8859
+      }
+    ],
+    "image": "tina.png"
+  },
+  "320": {
+    "id": 320,
+    "name": "[High-Dwarpet] Tucani",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6995.009,
+        "y": 125.3354,
+        "z": 3897.01,
+        "continent": 1018
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "349": {
+    "id": 349,
+    "name": "Martin",
+    "place": "magicstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Wand",
+        "items": [
+          1067,
+          1294,
+          3856,
+          5044,
+          5525,
+          7963,
+          920,
+          2216,
+          6634
+        ]
+      },
+      {
+        "name": "Staff",
+        "items": [
+          2114,
+          7242,
+          5255,
+          4699,
+          4795,
+          854,
+          6730,
+          8701,
+          9923
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          47839,
+          3896
+        ]
+      },
+      {
+        "name": "Robe",
+        "items": [
+          6561,
+          3753,
+          9223,
+          1188,
+          2294,
+          7969,
+          860,
+          7265,
+          1172,
+          715,
+          3000,
+          4534,
+          3056,
+          2083,
+          3699,
+          5384,
+          4544,
+          9733,
+          316,
+          8734,
+          5538,
+          9785,
+          4536,
+          3340,
+          1019,
+          7331
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8315.521,
+        "y": 100,
+        "z": 3728.628,
+        "continent": 525
+      }
+    ],
+    "image": "martin.png"
+  },
+  "383": {
+    "id": 383,
+    "name": "Hair Designer",
+    "menus": [
+      "dialog",
+      "hairshop"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6958.221,
+        "y": 100,
+        "z": 3349.968,
+        "continent": 8859
+      }
+    ],
+    "image": "hair.png"
+  },
+  "399": {
+    "id": 399,
+    "name": "Zoro",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6082.313,
+        "y": 153.543,
+        "z": 4224.653,
+        "continent": 2155
+      }
+    ],
+    "image": "zoro.png"
+  },
+  "442": {
+    "id": 442,
+    "name": "Gigaka",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5253.155,
+        "y": 262.332,
+        "z": 1387.599,
+        "continent": 9774
+      }
+    ],
+    "image": "gigaka.png"
+  },
+  "453": {
+    "id": 453,
+    "name": "[Pepoview] Clackcable",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8385.096,
+        "y": 100,
+        "z": 3653.676,
+        "continent": 525
+      }
+    ],
+    "image": "bill.png"
+  },
+  "600": {
+    "id": 600,
+    "name": "[Ringmaster Master] Ellend",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3799.287,
+        "y": 59,
+        "z": 4490.738,
+        "continent": 4357
+      }
+    ],
+    "image": "ringmaster.png"
+  },
+  "647": {
+    "id": 647,
+    "name": "Bernard",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3827.019,
+        "y": 59,
+        "z": 4548.456,
+        "continent": 4357
+      }
+    ],
+    "image": "lui.png"
+  },
+  "733": {
+    "id": 733,
+    "name": "Flaris Pang",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7341.891,
+        "y": 158.5353,
+        "z": 3873.567,
+        "continent": 1018
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "750": {
+    "id": 750,
+    "name": "Parine",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8414.342,
+        "y": 140.1407,
+        "z": 3974.805,
+        "continent": 525
+      }
+    ],
+    "image": "stima.png"
+  },
+  "765": {
+    "id": 765,
+    "name": "[Elementor Master] Horison",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3796.826,
+        "y": 59,
+        "z": 4496.982,
+        "continent": 4357
+      }
+    ],
+    "image": "elementor.png"
+  },
+  "771": {
+    "id": 771,
+    "name": "Tandy",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Blinkwing",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          47839,
+          3896,
+          4896
+        ]
+      },
+      {
+        "name": "Class Goods",
+        "items": [
+          4586,
+          3907,
+          5869,
+          59637,
+          36879
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          8161,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          4923,
+          7347
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3202.744,
+        "y": 11.05,
+        "z": 3437.849,
+        "continent": 7493
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "850": {
+    "id": 850,
+    "name": "Lui",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Poster",
+        "items": [
+          3907,
+          5869
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          2476,
+          6443,
+          8367,
+          7153,
+          942
+        ]
+      },
+      {
+        "name": "Arrows",
+        "items": [
+          4586,
+          59637,
+          36879
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6975.657,
+        "y": 100,
+        "z": 3266.874,
+        "continent": 8859
+      }
+    ],
+    "image": "lui.png"
+  },
+  "976": {
+    "id": 976,
+    "name": "Kumah",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 1098,
+        "x": 602.9302,
+        "y": 205.4169,
+        "z": 649.8489
+      }
+    ],
+    "image": "kuma.png"
+  },
+  "986": {
+    "id": 986,
+    "name": "Ann",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8461.95,
+        "y": 100,
+        "z": 3709.779,
+        "continent": 525
+      }
+    ],
+    "image": "juria.png"
+  },
+  "1049": {
+    "id": 1049,
+    "name": "[Mercenary Instructor] Hyuit",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7153.896,
+        "y": 99.99863,
+        "z": 3244.874,
+        "continent": 8859
+      }
+    ],
+    "image": "marche.png"
+  },
+  "1215": {
+    "id": 1215,
+    "name": "Mawrang",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "createultimate",
+      "piercingremove"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          6021,
+          714,
+          3157,
+          2608,
+          7657,
+          7577,
+          2459,
+          119,
+          5098,
+          8374,
+          8326,
+          9094,
+          7185,
+          2761,
+          4176,
+          3575
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          9936,
+          2715,
+          2320,
+          2036,
+          9050,
+          4926,
+          4856,
+          389,
+          3471,
+          197,
+          9906,
+          4558
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          7642,
+          4663,
+          8975,
+          6019,
+          8546,
+          1142,
+          1467,
+          6269,
+          2537,
+          6343,
+          3388,
+          199
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          7339,
+          2930,
+          9507,
+          6929,
+          2571,
+          3418,
+          4109,
+          9633,
+          5213,
+          7700,
+          6880,
+          3369
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5348.721,
+        "y": 262.3486,
+        "z": 1435.808,
+        "continent": 9774
+      }
+    ],
+    "image": "mawrang.png"
+  },
+  "1223": {
+    "id": 1223,
+    "name": "YaoRin",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8303.86,
+        "y": 100,
+        "z": 3841.846,
+        "continent": 8641
+      }
+    ],
+    "image": "miorang.png"
+  },
+  "1327": {
+    "id": 1327,
+    "name": "[High-Dwarpet] Liekyen",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3733.855,
+        "y": 59,
+        "z": 4525.991,
+        "continent": 4357
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "1412": {
+    "id": 1412,
+    "name": "[Blade Master] Corel",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3797.289,
+        "y": 59,
+        "z": 4486.816,
+        "continent": 4357
+      }
+    ],
+    "image": "blade.png"
+  },
+  "1508": {
+    "id": 1508,
+    "name": "[Pepoview] Ruminerr",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8386.912,
+        "y": 100,
+        "z": 3651.859,
+        "continent": 525
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "1686": {
+    "id": 1686,
+    "name": "Bolpor",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3831.705,
+        "y": 59,
+        "z": 4356.61,
+        "continent": 4357
+      }
+    ],
+    "image": "bolpor.png"
+  },
+  "1689": {
+    "id": 1689,
+    "name": "Julia",
+    "place": "publicoffice",
+    "menus": [
+      "dialog",
+      "bank",
+      "guildbank",
+      "guildrank",
+      "guildrankwar",
+      "guildrankinfo",
+      "couplebank"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6959.104,
+        "y": 100,
+        "z": 3213.523,
+        "continent": 8859
+      },
+      {
+        "world": 4839,
+        "x": 1270.647,
+        "y": 115,
+        "z": 1351.677
+      }
+    ],
+    "image": "juria.png"
+  },
+  "1691": {
+    "id": 1691,
+    "name": "[Ringmaster Wise-man] Clamb",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7693.286,
+        "y": 170.2032,
+        "z": 4225.888,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "1698": {
+    "id": 1698,
+    "name": "Phacham",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          3238,
+          5127,
+          9354,
+          3173,
+          5386,
+          5043,
+          7789,
+          2351,
+          9953,
+          2053,
+          357,
+          5837,
+          4468,
+          9947,
+          2832,
+          8700
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          9349,
+          5326,
+          3427,
+          2808,
+          406,
+          6428,
+          2164,
+          5191,
+          5781,
+          7516,
+          6329,
+          1060,
+          9935,
+          9703,
+          9408,
+          2401
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          1000,
+          5317,
+          1042,
+          8888,
+          466,
+          8236,
+          2921,
+          5552,
+          9058,
+          4982,
+          4073,
+          8423,
+          2203,
+          2925,
+          6626,
+          1307
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          9139,
+          6893,
+          5090,
+          8260,
+          8079,
+          9765,
+          2806,
+          7581,
+          890,
+          521,
+          5862,
+          9054,
+          2324,
+          1148,
+          2432,
+          7734
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5580.702,
+        "y": 75,
+        "z": 3901.839,
+        "continent": 2155
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "1724": {
+    "id": 1724,
+    "name": "Darkon Pang II",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3220.544,
+        "y": 11.00308,
+        "z": 3412.613,
+        "continent": 7493
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "1771": {
+    "id": 1771,
+    "name": "[Jester Wise-man] Radyon",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7635.972,
+        "y": 169.02,
+        "z": 4229.069,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "1785": {
+    "id": 1785,
+    "name": "Sotta",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7179.42,
+        "y": 99.99999,
+        "z": 3216.337,
+        "continent": 8859
+      }
+    ],
+    "image": "bolpor.png"
+  },
+  "1830": {
+    "id": 1830,
+    "name": "[Historian] Martinyc",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6998.787,
+        "y": 100,
+        "z": 3203.146,
+        "continent": 8859
+      }
+    ],
+    "image": "agent.png"
+  },
+  "1842": {
+    "id": 1842,
+    "name": "[Chairman of History Society] Gothante",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8353.016,
+        "y": 99.77516,
+        "z": 3983.67,
+        "continent": 525
+      }
+    ],
+    "image": "almani.png"
+  },
+  "1872": {
+    "id": 1872,
+    "name": "Boboko",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          7549,
+          5866,
+          2121,
+          6924,
+          3692,
+          7259,
+          2370,
+          884,
+          6695,
+          276,
+          922,
+          2285,
+          4538,
+          9593,
+          409,
+          2837
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          5054,
+          987,
+          967,
+          7840,
+          3869,
+          6032,
+          5875,
+          3694,
+          3449,
+          2594,
+          1779,
+          5735,
+          8340,
+          7854,
+          1919,
+          4528
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          5236,
+          7140,
+          2616,
+          7654,
+          4941,
+          6250,
+          1623,
+          6326,
+          5688,
+          9436,
+          2967,
+          4948,
+          9310,
+          3511,
+          3570,
+          8334
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6926.973,
+        "y": 100,
+        "z": 3228.766,
+        "continent": 8859
+      }
+    ],
+    "image": "boboku.png"
+  },
+  "1893": {
+    "id": 1893,
+    "name": "[Blade Wise-man] Guabrill",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7678.971,
+        "y": 179.0898,
+        "z": 4250.959,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "1903": {
+    "id": 1903,
+    "name": "Letana",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8291.55,
+        "y": 100,
+        "z": 3850.268,
+        "continent": 8641
+      }
+    ],
+    "image": "meialune.png"
+  },
+  "1915": {
+    "id": 1915,
+    "name": "Kimberley",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8374.658,
+        "y": 100,
+        "z": 3659.452,
+        "continent": 525
+      }
+    ],
+    "image": "juria.png"
+  },
+  "1921": {
+    "id": 1921,
+    "name": "Buff Pang",
+    "menus": [
+      "dialog",
+      "buff"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6971.795,
+        "y": 100.09,
+        "z": 3422.614,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 7167.799,
+        "y": 100,
+        "z": 3297.016,
+        "continent": 8859
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "1931": {
+    "id": 1931,
+    "name": "Elaine",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5776.152,
+        "y": 141.3371,
+        "z": 4206.248,
+        "continent": 2155
+      }
+    ],
+    "image": "ellain.png"
+  },
+  "1988": {
+    "id": 1988,
+    "name": "Herth",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8360.62,
+        "y": 100,
+        "z": 3751.038,
+        "continent": 525
+      }
+    ],
+    "image": "juria.png"
+  },
+  "2052": {
+    "id": 2052,
+    "name": "Jeff",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6952.611,
+        "y": 100,
+        "z": 3274.097,
+        "continent": 8859
+      }
+    ],
+    "image": "bill.png"
+  },
+  "2077": {
+    "id": 2077,
+    "name": "[Jewel Manager] Peach",
+    "menus": [
+      "dialog",
+      "createshiningpowerdice",
+      "createjewels",
+      "createuniqueweapon",
+      "exchangerareitempieces",
+      "exchangecardpieces",
+      "removelevelreduction",
+      "removecostumeblessing",
+      "dismantle",
+      "removeultimatejewel",
+      "createultimatejewel",
+      "fuseultimatejewel",
+      "synethsisultimatejewel",
+      "convertultimatejewel"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6928.991,
+        "y": 100,
+        "z": 3226.484,
+        "continent": 8859
+      }
+    ],
+    "image": "remine.png"
+  },
+  "2085": {
+    "id": 2085,
+    "name": "Auxilior",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          4375,
+          4022,
+          3682,
+          9721,
+          9937,
+          775,
+          1,
+          8900,
+          810,
+          9419,
+          7674,
+          4499,
+          7964,
+          2677,
+          6863,
+          7276,
+          9028,
+          4515,
+          1096,
+          4274,
+          6530,
+          9092,
+          9370,
+          3039,
+          9665,
+          5298,
+          6677,
+          7563,
+          8415,
+          9435,
+          3154,
+          3212,
+          3851,
+          1680,
+          5582,
+          6283,
+          5066,
+          1287,
+          3251,
+          2696,
+          9289,
+          7760,
+          5550,
+          963,
+          4918,
+          2325,
+          3648,
+          4039
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          7568,
+          4649,
+          9539,
+          2282,
+          7052,
+          8688,
+          7817,
+          7228,
+          9358,
+          5619,
+          6054,
+          2918,
+          3451,
+          429,
+          7929,
+          5878,
+          535,
+          991,
+          9064,
+          3931,
+          4901,
+          645,
+          5614,
+          4582,
+          2723,
+          540,
+          2928,
+          1511,
+          391,
+          6151,
+          9813,
+          954,
+          4842,
+          970,
+          2350,
+          288,
+          5030,
+          9396,
+          866,
+          8653,
+          7893,
+          7990,
+          2577,
+          5777,
+          7101,
+          3366,
+          6498,
+          2269
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          994,
+          7926,
+          569,
+          7753,
+          6139,
+          1274,
+          7129,
+          8404,
+          7187,
+          2384,
+          8595,
+          9834,
+          999,
+          5991,
+          2026,
+          6424,
+          8630,
+          4374,
+          4951,
+          6642,
+          6819,
+          6638,
+          5839,
+          6240,
+          3096,
+          6312,
+          4316,
+          2641,
+          9885,
+          2383,
+          8092,
+          5932,
+          322,
+          6653,
+          8187,
+          567,
+          9269,
+          9759,
+          8012,
+          36,
+          1503,
+          4969,
+          5038,
+          169,
+          9862,
+          7342,
+          1997,
+          3946
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          2523,
+          3529,
+          8129,
+          2343,
+          126,
+          7571,
+          5174,
+          5826,
+          4868,
+          3998,
+          493,
+          9636,
+          2576,
+          7085,
+          8684,
+          4682,
+          4766,
+          9997,
+          3820,
+          3671,
+          1328,
+          4911,
+          9531,
+          9198,
+          8733,
+          93,
+          4222,
+          8272,
+          8511,
+          6251,
+          3269,
+          448,
+          5959,
+          1239,
+          2745,
+          8983,
+          5010,
+          3705,
+          7177,
+          5439,
+          2642,
+          700,
+          2569,
+          6854,
+          1483,
+          9228,
+          4409,
+          6437
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5326.817,
+        "y": 262.3486,
+        "z": 1444.902,
+        "continent": 9774
+      }
+    ],
+    "image": "snowgirl.png"
+  },
+  "2091": {
+    "id": 2091,
+    "name": "Eshylop",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3890.031,
+        "y": 58.84149,
+        "z": 4145.79,
+        "continent": 2155
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "2109": {
+    "id": 2109,
+    "name": "Nevil",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 2927,
+        "x": 1073.514,
+        "y": 86.39999,
+        "z": 696.3137
+      }
+    ],
+    "image": "keakoon.png"
+  },
+  "2150": {
+    "id": 2150,
+    "name": "Marche",
+    "place": "magicstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Wand",
+        "items": [
+          162,
+          1067,
+          1294,
+          3856
+        ]
+      },
+      {
+        "name": "Staff",
+        "items": [
+          5006,
+          2114,
+          7242,
+          5255
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          47839,
+          3896
+        ]
+      },
+      {
+        "name": "Robe",
+        "items": [
+          9523,
+          6561,
+          33,
+          663,
+          3753,
+          9223,
+          1188,
+          2294,
+          8774,
+          2083,
+          842,
+          5230,
+          3699,
+          5384,
+          4544,
+          9733
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7169.168,
+        "y": 100,
+        "z": 3271.165,
+        "continent": 8859
+      }
+    ],
+    "image": "marche.png"
+  },
+  "2268": {
+    "id": 2268,
+    "name": "Mayun",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8197.681,
+        "y": 84.79285,
+        "z": 2805.672,
+        "continent": 8641
+      }
+    ],
+    "image": "bill.png"
+  },
+  "2349": {
+    "id": 2349,
+    "name": "Guild Siege Merchant",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      },
+      {
+        "name": "Poster",
+        "items": [
+          3907,
+          5869
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          3343,
+          7116,
+          3574
+        ]
+      },
+      {
+        "name": "Arrow",
+        "items": [
+          4586,
+          59637,
+          36879
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 7240,
+        "x": 319.1345,
+        "y": 95.01941,
+        "z": 192.7233
+      },
+      {
+        "world": 7240,
+        "x": 266.1848,
+        "y": 97.12379,
+        "z": 329.9517
+      },
+      {
+        "world": 13290,
+        "x": 316.7563,
+        "y": 95.15868,
+        "z": 196.0516
+      },
+      {
+        "world": 13290,
+        "x": 264.4692,
+        "y": 98.5135,
+        "z": 331.7558
+      },
+      {
+        "world": 13960,
+        "x": 323.7852,
+        "y": 103,
+        "z": 166.1281
+      },
+      {
+        "world": 13960,
+        "x": 264.4495,
+        "y": 103,
+        "z": 333.9944
+      },
+      {
+        "world": 15152,
+        "x": 317.2221,
+        "y": 95.16097,
+        "z": 195.9592,
+        "continent": 9127
+      },
+      {
+        "world": 15152,
+        "x": 264.3778,
+        "y": 98.23278,
+        "z": 330.9843,
+        "continent": 9127
+      },
+      {
+        "world": 15715,
+        "x": 313.3262,
+        "y": 95.77771,
+        "z": 188.3444
+      },
+      {
+        "world": 15715,
+        "x": 274.3807,
+        "y": 95.48218,
+        "z": 324.3282
+      },
+      {
+        "world": 16492,
+        "x": 314.5402,
+        "y": 95.27451,
+        "z": 192.1894,
+        "continent": 9127
+      },
+      {
+        "world": 16492,
+        "x": 274.7403,
+        "y": 95.47635,
+        "z": 324.2786,
+        "continent": 9127
+      },
+      {
+        "world": 12346,
+        "x": 319.1345,
+        "y": 95.01941,
+        "z": 192.7233
+      },
+      {
+        "world": 12346,
+        "x": 266.1848,
+        "y": 97.12379,
+        "z": 329.9517
+      },
+      {
+        "world": 58851,
+        "x": 361.9312,
+        "y": 95.00002,
+        "z": 130.8371
+      },
+      {
+        "world": 58851,
+        "x": 145.2902,
+        "y": 95.6442,
+        "z": 357.347
+      },
+      {
+        "world": 55633,
+        "x": 369.3145,
+        "y": 95.45071,
+        "z": 128.6745
+      },
+      {
+        "world": 55633,
+        "x": 151.579,
+        "y": 95.12118,
+        "z": 367.6721
+      },
+      {
+        "world": 7240,
+        "x": 319,
+        "y": 94,
+        "z": 191
+      },
+      {
+        "world": 7240,
+        "x": 264,
+        "y": 98,
+        "z": 332
+      }
+    ],
+    "image": "achaben.png"
+  },
+  "2386": {
+    "id": 2386,
+    "name": "[Knight Wise-man] Hormes",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7677.979,
+        "y": 179.2452,
+        "z": 4251.637,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "2414": {
+    "id": 2414,
+    "name": "[Novelist] Gergantes",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6960.132,
+        "y": 100,
+        "z": 3339.728,
+        "continent": 8859
+      }
+    ],
+    "image": "chitller.png"
+  },
+  "2420": {
+    "id": 2420,
+    "name": "Eshylop",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 3171,
+        "x": 305.866,
+        "y": 59,
+        "z": 339.5188
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "2496": {
+    "id": 2496,
+    "name": "[Ranger Priest] Rupim",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3170.873,
+        "y": 65.62785,
+        "z": 3644.523,
+        "continent": 7493
+      }
+    ],
+    "image": "rangerpriest.png"
+  },
+  "2595": {
+    "id": 2595,
+    "name": "Amadolka",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5600.739,
+        "y": 75.00008,
+        "z": 3767.308,
+        "continent": 2155
+      }
+    ],
+    "image": "lui.png"
+  },
+  "2599": {
+    "id": 2599,
+    "name": "[Pepoview] Vianlee",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8396.88,
+        "y": 100.1,
+        "z": 3654.479,
+        "continent": 525
+      }
+    ],
+    "image": "milina.png"
+  },
+  "2659": {
+    "id": 2659,
+    "name": "[Knight Guardian] Boneper",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3344.027,
+        "y": 146.9564,
+        "z": 2071.1,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "2673": {
+    "id": 2673,
+    "name": "[Ranger Guardian] Kailreard",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3351.367,
+        "y": 146.9858,
+        "z": 2063.716,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "2758": {
+    "id": 2758,
+    "name": "[Jester Guardian] Heingard",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3336.709,
+        "y": 146.9001,
+        "z": 2063.72,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "2838": {
+    "id": 2838,
+    "name": "[Dreadpet Manager] Kanane",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7741.04,
+        "y": 95.5146,
+        "z": 4074.891,
+        "continent": 1018
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "2871": {
+    "id": 2871,
+    "name": "JeongHwa",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8334.948,
+        "y": 100,
+        "z": 3713.428,
+        "continent": 525
+      }
+    ],
+    "image": "haven.png"
+  },
+  "2881": {
+    "id": 2881,
+    "name": "Is",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6960.071,
+        "y": 100,
+        "z": 3266.104,
+        "continent": 8859
+      }
+    ],
+    "image": "juria.png"
+  },
+  "2882": {
+    "id": 2882,
+    "name": "Heltung",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8446.1,
+        "y": 100,
+        "z": 3576.305,
+        "continent": 525
+      }
+    ],
+    "image": "achaben.png"
+  },
+  "2935": {
+    "id": 2935,
+    "name": "[Magician Master] Hee",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6929.126,
+        "y": 100.3,
+        "z": 3329.574,
+        "continent": 8859
+      }
+    ],
+    "image": "agent.png"
+  },
+  "2941": {
+    "id": 2941,
+    "name": "Colack",
+    "place": "shieldstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Shields",
+        "items": [
+          8312,
+          5242,
+          5175,
+          2856,
+          2090,
+          582
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8369.506,
+        "y": 100,
+        "z": 3675.497,
+        "continent": 525
+      }
+    ],
+    "image": "bulrox.png"
+  },
+  "2957": {
+    "id": 2957,
+    "name": "[Manager of Ancient Document] Rovanett",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8439.945,
+        "y": 100.0252,
+        "z": 3547.745,
+        "continent": 525
+      }
+    ],
+    "image": "agent.png"
+  },
+  "2982": {
+    "id": 2982,
+    "name": "Airon",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 1098,
+        "x": 1082.891,
+        "y": 107.7917,
+        "z": 1307.667
+      }
+    ],
+    "image": "airon.png"
+  },
+  "2988": {
+    "id": 2988,
+    "name": "Makeup Artist",
+    "menus": [
+      "dialog",
+      "trade",
+      "skinshop",
+      "cosmeticwardrobe"
+    ],
+    "shop": [
+      {
+        "name": "Gloves",
+        "items": [
+          8771
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6961.313,
+        "y": 100,
+        "z": 3349.829,
+        "continent": 8859
+      }
+    ],
+    "image": "makeup.png"
+  },
+  "3099": {
+    "id": 3099,
+    "name": "Banker Pang",
+    "menus": [
+      "bank"
+    ],
+    "locations": [],
+    "image": "infopeng.png"
+  },
+  "3120": {
+    "id": 3120,
+    "name": "[Billposter Priest] Fera",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3524.219,
+        "y": 41.10264,
+        "z": 3547.311,
+        "continent": 7493
+      }
+    ],
+    "image": "billposterpriest.png"
+  },
+  "3150": {
+    "id": 3150,
+    "name": "[Guild Siege Manager] Frankie",
+    "menus": [
+      "dialog",
+      "guildsiegeapply",
+      "guildsiegestate",
+      "guildsiegejoin",
+      "guildsiegelineup",
+      "guildsiegeinfo1",
+      "guildsiegeinfo2",
+      "guildsiegeinfo3"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6990.147,
+        "y": 100,
+        "z": 3333.688,
+        "continent": 8859
+      }
+    ],
+    "image": "guildwar01.png"
+  },
+  "3199": {
+    "id": 3199,
+    "name": "Bulrox",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "piercingremove",
+      "createultimate"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          8256,
+          2842,
+          7725,
+          4913,
+          9788,
+          4877,
+          3531,
+          2116,
+          6713,
+          4092,
+          3940,
+          7159,
+          6073,
+          9648,
+          6939,
+          7520,
+          8350,
+          8706
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          3480,
+          1334,
+          6555,
+          8969,
+          4041,
+          1522,
+          1700,
+          8801,
+          9234,
+          4215,
+          6836,
+          6245,
+          7892,
+          9984,
+          9341,
+          5197,
+          3229,
+          2097
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          3186,
+          4358,
+          5427,
+          9654,
+          91,
+          9808,
+          217,
+          5919,
+          5117,
+          4467,
+          3567,
+          5691,
+          8446,
+          7439,
+          8075,
+          4167,
+          8220,
+          1677
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8372.59,
+        "y": 100,
+        "z": 3671.628,
+        "continent": 525
+      },
+      {
+        "world": 29586,
+        "x": 271.0116,
+        "y": 99.99999,
+        "z": 166.1824
+      }
+    ],
+    "image": "bulrox.png"
+  },
+  "3339": {
+    "id": 3339,
+    "name": "Porgo",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8532.436,
+        "y": 100,
+        "z": 3607.489,
+        "continent": 525
+      }
+    ],
+    "image": "lui.png"
+  },
+  "3368": {
+    "id": 3368,
+    "name": "Helena",
+    "place": "publicoffice",
+    "menus": [
+      "dialog",
+      "bank",
+      "guildbank",
+      "guildrank",
+      "guildrankwar",
+      "guildrankinfo",
+      "couplebank"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8463.478,
+        "y": 100,
+        "z": 3600.757,
+        "continent": 525
+      }
+    ],
+    "image": "juria.png"
+  },
+  "3409": {
+    "id": 3409,
+    "name": "[Mercenary Master] Andy",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6929.621,
+        "y": 100.3,
+        "z": 3323.683,
+        "continent": 8859
+      }
+    ],
+    "image": "guildwar03.png"
+  },
+  "3421": {
+    "id": 3421,
+    "name": "[Pet Tamer]",
+    "menus": [
+      "dialog",
+      "trade",
+      "petcandycrafting",
+      "petsacrificing"
+    ],
+    "shop": [
+      {
+        "name": "Gloves",
+        "items": [
+          6806
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6989.561,
+        "y": 100,
+        "z": 3256.066,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8465.417,
+        "y": 100,
+        "z": 3622.853,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 5569.151,
+        "y": 75.019,
+        "z": 3898.975,
+        "continent": 2155
+      },
+      {
+        "world": 6063,
+        "x": 3824.431,
+        "y": 59,
+        "z": 4462.046,
+        "continent": 4357
+      }
+    ],
+    "image": "pettamer.png"
+  },
+  "3430": {
+    "id": 3430,
+    "name": "Darz",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 615,
+        "x": 1075.565,
+        "y": 5.28125,
+        "z": 1337.622
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "3547": {
+    "id": 3547,
+    "name": "Bill",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Poster",
+        "items": [
+          3907,
+          5869
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          3343,
+          7116
+        ]
+      },
+      {
+        "name": "Arrow",
+        "items": [
+          4586,
+          59637,
+          36879
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8410.16,
+        "y": 100,
+        "z": 3680.759,
+        "continent": 525
+      }
+    ],
+    "image": "bill.png"
+  },
+  "3573": {
+    "id": 3573,
+    "name": "Remine",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "piercingremove",
+      "createultimate"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          1757,
+          3043,
+          5249,
+          1902,
+          6070,
+          9643,
+          3444,
+          3805,
+          2184,
+          3223,
+          6021,
+          714,
+          7657,
+          7577,
+          2459,
+          119,
+          5098,
+          8374,
+          8326,
+          9094,
+          7185,
+          2761
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          1778,
+          254,
+          9936,
+          2715,
+          2320,
+          2036,
+          9050,
+          4926,
+          4856,
+          389,
+          3471,
+          197
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          1173,
+          8496,
+          7339,
+          2930,
+          9507,
+          6929,
+          2571,
+          3418,
+          4109,
+          9633,
+          5213,
+          7700
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3748.583,
+        "y": 59,
+        "z": 4412.304,
+        "continent": 4357
+      }
+    ],
+    "image": "remine.png"
+  },
+  "3653": {
+    "id": 3653,
+    "name": "Azria Pang",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight",
+      "bank",
+      "guildbank",
+      "couplebank"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5285.39,
+        "y": 262.349,
+        "z": 1405.763,
+        "continent": 9774
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "3684": {
+    "id": 3684,
+    "name": "Nemra",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8294.774,
+        "y": 100,
+        "z": 3840.047,
+        "continent": 8641
+      }
+    ],
+    "image": "cheirang.png"
+  },
+  "3752": {
+    "id": 3752,
+    "name": "Hachal",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5535.894,
+        "y": 97,
+        "z": 3462.183,
+        "continent": 2155
+      }
+    ],
+    "image": "almani.png"
+  },
+  "3779": {
+    "id": 3779,
+    "name": "Ciel",
+    "place": "magicstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Wand",
+        "items": [
+          162,
+          1067,
+          1294,
+          3856,
+          5044,
+          5525,
+          7963,
+          920,
+          2216,
+          6634,
+          6595,
+          7642,
+          8975,
+          8546,
+          1467,
+          2537
+        ]
+      },
+      {
+        "name": "Staff",
+        "items": [
+          5006,
+          2114,
+          7242,
+          5255,
+          4699,
+          4795,
+          854,
+          6730,
+          8701,
+          9923,
+          2870,
+          4663,
+          6019,
+          1142,
+          6269,
+          6343
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          8161,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          4923,
+          1101,
+          8815,
+          6617,
+          7347,
+          4602,
+          7376,
+          11166,
+          47839,
+          3896
+        ]
+      },
+      {
+        "name": "Robe",
+        "items": [
+          9523,
+          6561,
+          33,
+          663,
+          3753,
+          9223,
+          1188,
+          2294,
+          7969,
+          860,
+          7265,
+          1172,
+          715,
+          3000,
+          4534,
+          3056,
+          9139,
+          6893,
+          5090,
+          8260,
+          8079,
+          9765,
+          2806,
+          7581,
+          3704,
+          3530,
+          5084,
+          5995,
+          3610,
+          7603,
+          748,
+          8300,
+          8774,
+          2083,
+          842,
+          5230,
+          3699,
+          5384,
+          4544,
+          9733,
+          316,
+          8734,
+          5538,
+          9785,
+          4536,
+          3340,
+          1019,
+          7331,
+          890,
+          521,
+          5862,
+          9054,
+          2324,
+          1148,
+          2432,
+          7734,
+          4724,
+          9476,
+          1214,
+          3583,
+          1491,
+          5490,
+          8674,
+          5442
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 4839,
+        "x": 1250.201,
+        "y": 115,
+        "z": 1372.777
+      }
+    ],
+    "image": "haven.png"
+  },
+  "3826": {
+    "id": 3826,
+    "name": "[Pepoview] Ellangdl",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8396.128,
+        "y": 100.2,
+        "z": 3655.721,
+        "continent": 525
+      }
+    ],
+    "image": "rhine.png"
+  },
+  "3883": {
+    "id": 3883,
+    "name": "Strange Collector",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8383.202,
+        "y": 145,
+        "z": 4085.15,
+        "continent": 525
+      }
+    ],
+    "image": "keakoon.png"
+  },
+  "3891": {
+    "id": 3891,
+    "name": "[Blade Priest] Jeperdy",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3526.78,
+        "y": 88.51694,
+        "z": 2792.018,
+        "continent": 7493
+      }
+    ],
+    "image": "bladepriest.png"
+  },
+  "3972": {
+    "id": 3972,
+    "name": "[Guild Siege Manager] Donaris",
+    "menus": [
+      "dialog",
+      "guildsiegecancel",
+      "guildsiegeranking",
+      "guildsiegejackpot",
+      "guildsiegebestplayer",
+      "guildsiegejackpot2",
+      "guildsiegeinfo4"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6990.219,
+        "y": 100,
+        "z": 3330.43,
+        "continent": 8859
+      }
+    ],
+    "image": "guildwar02.png"
+  },
+  "4000": {
+    "id": 4000,
+    "name": "Lancomi",
+    "place": "questoffice",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8480.749,
+        "y": 100,
+        "z": 3660.423,
+        "continent": 525
+      }
+    ],
+    "image": "agent.png"
+  },
+  "4104": {
+    "id": 4104,
+    "name": "Karin",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8359.337,
+        "y": 100,
+        "z": 3640.241,
+        "continent": 525
+      }
+    ],
+    "image": "karin.png"
+  },
+  "4118": {
+    "id": 4118,
+    "name": "Rocbin",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          7549,
+          5866,
+          2121,
+          6924,
+          3692,
+          7259,
+          2370,
+          884,
+          4445,
+          5539,
+          2310,
+          4429,
+          9536,
+          1654,
+          3042,
+          1138,
+          3238,
+          5127,
+          9354,
+          3173,
+          5386,
+          5043,
+          7789,
+          2351,
+          7189,
+          4578,
+          9265,
+          8596,
+          9908,
+          9491,
+          6902,
+          7888,
+          5562,
+          50,
+          9872,
+          7149,
+          3887,
+          2380,
+          2391,
+          8040,
+          4375,
+          4022,
+          3682,
+          9721,
+          7309,
+          5155,
+          9933,
+          7914,
+          9387,
+          1560,
+          8245,
+          2701,
+          7964,
+          2677,
+          6863,
+          7276,
+          6695,
+          276,
+          922,
+          2285,
+          4538,
+          9593,
+          409,
+          2837,
+          3249,
+          3342,
+          8257,
+          9664,
+          9352,
+          9283,
+          713,
+          4257,
+          9953,
+          2053,
+          357,
+          5837,
+          4468,
+          9947,
+          2832,
+          8700,
+          145,
+          8008,
+          7157,
+          8328,
+          720,
+          1181,
+          8680,
+          2035,
+          5748,
+          8729,
+          7810,
+          7132,
+          302,
+          2481,
+          310,
+          2939,
+          9665,
+          5298,
+          6677,
+          7563,
+          9956,
+          7368,
+          478,
+          1463,
+          3842,
+          4721,
+          4354,
+          6165,
+          5066,
+          1287,
+          3251,
+          2696
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          5054,
+          987,
+          967,
+          7840,
+          3869,
+          6032,
+          5875,
+          3694,
+          1628,
+          2460,
+          5068,
+          5581,
+          4325,
+          4003,
+          8003,
+          9404,
+          9349,
+          5326,
+          3427,
+          2808,
+          406,
+          6428,
+          2164,
+          5191,
+          6207,
+          932,
+          6074,
+          4995,
+          1694,
+          3271,
+          6738,
+          2795,
+          4772,
+          7386,
+          4286,
+          4127,
+          3285,
+          6092,
+          8136,
+          4373,
+          7568,
+          4649,
+          9539,
+          2282,
+          8373,
+          7910,
+          7202,
+          5488,
+          4314,
+          9357,
+          6366,
+          1455,
+          3451,
+          429,
+          7929,
+          5878,
+          3449,
+          2594,
+          1779,
+          5735,
+          8340,
+          7854,
+          1919,
+          4528,
+          5409,
+          4971,
+          9702,
+          7519,
+          2548,
+          531,
+          4079,
+          6265,
+          5781,
+          7516,
+          6329,
+          1060,
+          9935,
+          9703,
+          9408,
+          2401,
+          7498,
+          7015,
+          8192,
+          7108,
+          1824,
+          526,
+          3405,
+          9508,
+          5473,
+          1891,
+          6870,
+          4027,
+          1887,
+          4457,
+          9327,
+          7381,
+          2723,
+          540,
+          2928,
+          1511,
+          9462,
+          2290,
+          7928,
+          2458,
+          1425,
+          2851,
+          5548,
+          1590,
+          5030,
+          9396,
+          866,
+          8653
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          5236,
+          7140,
+          2616,
+          7654,
+          4941,
+          6250,
+          1623,
+          6326,
+          4009,
+          834,
+          5093,
+          3240,
+          9770,
+          2991,
+          5972,
+          9943,
+          1000,
+          5317,
+          1042,
+          8888,
+          466,
+          8236,
+          2921,
+          5552,
+          3644,
+          9454,
+          8066,
+          6317,
+          6657,
+          2943,
+          4823,
+          8483,
+          8133,
+          6977,
+          4691,
+          5281,
+          3969,
+          3051,
+          2046,
+          7812,
+          2523,
+          3529,
+          8129,
+          2343,
+          4934,
+          1854,
+          1672,
+          5020,
+          3345,
+          5323,
+          3276,
+          7579,
+          2576,
+          7085,
+          8684,
+          4682,
+          5688,
+          9436,
+          2967,
+          4948,
+          9310,
+          3511,
+          3570,
+          8334,
+          7390,
+          2536,
+          6889,
+          7669,
+          9187,
+          6675,
+          1331,
+          6964,
+          9058,
+          4982,
+          4073,
+          8423,
+          2203,
+          2925,
+          6626,
+          1307,
+          7982,
+          1500,
+          9337,
+          5123,
+          743,
+          3027,
+          9090,
+          8602,
+          2092,
+          8824,
+          476,
+          2509,
+          5720,
+          1519,
+          1346,
+          4749,
+          8733,
+          93,
+          4222,
+          8272,
+          291,
+          1865,
+          7041,
+          4844,
+          5200,
+          3301,
+          326,
+          5352,
+          5010,
+          3705,
+          7177,
+          5439
+        ]
+      },
+      {
+        "name": "Shield",
+        "items": [
+          5018,
+          8045,
+          7458,
+          8312,
+          5242,
+          5175,
+          2856,
+          2090,
+          582,
+          9102
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 4839,
+        "x": 1286.895,
+        "y": 115,
+        "z": 1358.819
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "4129": {
+    "id": 4129,
+    "name": "[Billposter Master] Ride",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3788.051,
+        "y": 59.09999,
+        "z": 4481.206,
+        "continent": 4357
+      }
+    ],
+    "image": "billposter.png"
+  },
+  "4162": {
+    "id": 4162,
+    "name": "Yuna",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      },
+      {
+        "name": "Poster",
+        "items": [
+          3907,
+          5869
+        ]
+      },
+      {
+        "name": "Arrow",
+        "items": [
+          4586,
+          59637,
+          36879
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 4839,
+        "x": 1251.632,
+        "y": 114.9795,
+        "z": 1349.078
+      }
+    ],
+    "image": "stima.png"
+  },
+  "4177": {
+    "id": 4177,
+    "name": "Dekane",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 2927,
+        "x": 1376.886,
+        "y": 85,
+        "z": 649.5247
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "4228": {
+    "id": 4228,
+    "name": "Ata",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6703.564,
+        "y": 136.0849,
+        "z": 3326.786,
+        "continent": 1018
+      }
+    ],
+    "image": "bill.png"
+  },
+  "4234": {
+    "id": 4234,
+    "name": "Cell",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5561.092,
+        "y": 75.02871,
+        "z": 3909.131,
+        "continent": 2155
+      }
+    ],
+    "image": "bulrox.png"
+  },
+  "4239": {
+    "id": 4239,
+    "name": "Boboku",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "piercingremove",
+      "createultimate"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          8382,
+          9697,
+          8256,
+          2842,
+          7725,
+          4913,
+          9788,
+          4877
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          2266,
+          7289,
+          3480,
+          1334,
+          6555,
+          8969,
+          4041,
+          1522
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          5912,
+          412,
+          3186,
+          4358,
+          5427,
+          9654,
+          91,
+          9808
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6926.101,
+        "y": 100,
+        "z": 3232.107,
+        "continent": 8859
+      }
+    ],
+    "image": "boboku.png"
+  },
+  "4253": {
+    "id": 4253,
+    "name": "Kurmin",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6691.423,
+        "y": 120.054,
+        "z": 3619.134,
+        "continent": 1018
+      }
+    ],
+    "image": "agent.png"
+  },
+  "4284": {
+    "id": 4284,
+    "name": "[Psykeeper Master] Cylor",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3783.305,
+        "y": 59,
+        "z": 4484.463,
+        "continent": 4357
+      }
+    ],
+    "image": "psykeeper.png"
+  },
+  "4298": {
+    "id": 4298,
+    "name": "Hachal",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6544.198,
+        "y": 114.6438,
+        "z": 3598.653,
+        "continent": 1018
+      }
+    ],
+    "image": "almani.png"
+  },
+  "4304": {
+    "id": 4304,
+    "name": "Teshar",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7202.364,
+        "y": 100,
+        "z": 3228.752,
+        "continent": 8859
+      }
+    ],
+    "image": "tina.png"
+  },
+  "4383": {
+    "id": 4383,
+    "name": "[Dreadpet Manager] Gornus",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7453.871,
+        "y": 130.719,
+        "z": 3670.846,
+        "continent": 1018
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "4390": {
+    "id": 4390,
+    "name": "[Psykeeper Wise-man] Cuarine",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7657.554,
+        "y": 161.6951,
+        "z": 4191.509,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "4458": {
+    "id": 4458,
+    "name": "[Billposter Guardian] Capafe",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3339.107,
+        "y": 146.9169,
+        "z": 2068.671,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "4473": {
+    "id": 4473,
+    "name": "Phoho",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7204.204,
+        "y": 100,
+        "z": 3229.8,
+        "continent": 8859
+      }
+    ],
+    "image": "bolpor.png"
+  },
+  "4623": {
+    "id": 4623,
+    "name": "Losha",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7172.419,
+        "y": 100,
+        "z": 3212.385,
+        "continent": 8859
+      }
+    ],
+    "image": "losha.png"
+  },
+  "4641": {
+    "id": 4641,
+    "name": "Reodos",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5401.752,
+        "y": 98.48242,
+        "z": 3579.304,
+        "continent": 2155
+      }
+    ],
+    "image": "reodos.png"
+  },
+  "4660": {
+    "id": 4660,
+    "name": "Andre",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 2991.348,
+        "y": 56.73067,
+        "z": 4063.505,
+        "continent": 7493
+      }
+    ],
+    "image": "chitller.png"
+  },
+  "4677": {
+    "id": 4677,
+    "name": "Lurif",
+    "place": "questoffice",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3841.457,
+        "y": 59,
+        "z": 4422.948,
+        "continent": 4357
+      }
+    ],
+    "image": "agent.png"
+  },
+  "4739": {
+    "id": 4739,
+    "name": "[Ranger Master] Eliff",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3791.939,
+        "y": 59,
+        "z": 4497.156,
+        "continent": 4357
+      }
+    ],
+    "image": "ranger.png"
+  },
+  "4869": {
+    "id": 4869,
+    "name": "[Darken Mayor]",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3831.632,
+        "y": 59.09999,
+        "z": 4457.587,
+        "continent": 4357
+      }
+    ],
+    "image": "mayor.png"
+  },
+  "4898": {
+    "id": 4898,
+    "name": "Hael",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7684.307,
+        "y": 165.2624,
+        "z": 4204.676,
+        "continent": 1018
+      }
+    ],
+    "image": "hael.png"
+  },
+  "4970": {
+    "id": 4970,
+    "name": "Ainher",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 2927,
+        "x": 914.4984,
+        "y": 85,
+        "z": 759.5255
+      }
+    ],
+    "image": "ainher.png"
+  },
+  "5072": {
+    "id": 5072,
+    "name": "Colar",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6133.405,
+        "y": 100,
+        "z": 4168.766,
+        "continent": 2155
+      }
+    ],
+    "image": "bill.png"
+  },
+  "5089": {
+    "id": 5089,
+    "name": "Reonan",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7175.457,
+        "y": 100,
+        "z": 3260.532,
+        "continent": 8859
+      }
+    ],
+    "image": "reonan.png"
+  },
+  "5166": {
+    "id": 5166,
+    "name": "Dr. Estly",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7186.78,
+        "y": 156.1996,
+        "z": 4090.626,
+        "continent": 1018
+      }
+    ],
+    "image": "rhine.png"
+  },
+  "5202": {
+    "id": 5202,
+    "name": "Post Box",
+    "menus": [
+      "post"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6956.824,
+        "y": 100,
+        "z": 3213.4,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8461.915,
+        "y": 100,
+        "z": 3600.867,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3833.489,
+        "y": 59,
+        "z": 4454.837,
+        "continent": 4357
+      },
+      {
+        "world": 6063,
+        "x": 5299.22,
+        "y": 262.3486,
+        "z": 1403.675,
+        "continent": 9774
+      },
+      {
+        "world": 6063,
+        "x": 3221.543,
+        "y": 11.06318,
+        "z": 3411.15,
+        "continent": 7493
+      },
+      {
+        "world": 6063,
+        "x": 7012.285,
+        "y": 205.6727,
+        "z": 1168.244,
+        "continent": 19398
+      },
+      {
+        "world": 6063,
+        "x": 4894.993,
+        "y": 149.9703,
+        "z": 6314.63,
+        "continent": 57799
+      },
+      {
+        "world": 4839,
+        "x": 1254.965,
+        "y": 114.9316,
+        "z": 1347.845
+      }
+    ],
+    "image": "postbox.png"
+  },
+  "5237": {
+    "id": 5237,
+    "name": "[Assist Master] Maki",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6929.746,
+        "y": 100.3,
+        "z": 3325.68,
+        "continent": 8859
+      }
+    ],
+    "image": "priest.png"
+  },
+  "5313": {
+    "id": 5313,
+    "name": "Tomba",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7203.204,
+        "y": 100,
+        "z": 3231.362,
+        "continent": 8859
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "5315": {
+    "id": 5315,
+    "name": "[Ranger Wise-man] Kimel",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7636.031,
+        "y": 168.8396,
+        "z": 4227.36,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "5354": {
+    "id": 5354,
+    "name": "Luzina",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8350.419,
+        "y": 100,
+        "z": 3690.824,
+        "continent": 525
+      }
+    ],
+    "image": "karin.png"
+  },
+  "5395": {
+    "id": 5395,
+    "name": "Roocky",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          5562,
+          50,
+          9872,
+          7149,
+          3887,
+          2380,
+          2391,
+          8040,
+          4375,
+          4022,
+          3682,
+          9721,
+          7309,
+          5155,
+          9933,
+          7914,
+          9387,
+          1560,
+          8245,
+          2701,
+          7964,
+          2677,
+          6863,
+          7276,
+          5748,
+          8729,
+          7810,
+          7132,
+          302,
+          2481,
+          310,
+          2939,
+          9665,
+          5298,
+          6677,
+          7563,
+          9956,
+          7368,
+          478,
+          1463,
+          3842,
+          4721,
+          4354,
+          6165,
+          5066,
+          1287,
+          3251,
+          2696
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          4772,
+          7386,
+          4286,
+          4127,
+          3285,
+          6092,
+          8136,
+          4373,
+          7568,
+          4649,
+          9539,
+          2282,
+          8373,
+          7910,
+          7202,
+          5488,
+          4314,
+          9357,
+          6366,
+          1455,
+          3451,
+          429,
+          7929,
+          5878,
+          5473,
+          1891,
+          6870,
+          4027,
+          1887,
+          4457,
+          9327,
+          7381,
+          2723,
+          540,
+          2928,
+          1511,
+          9462,
+          2290,
+          7928,
+          2458,
+          1425,
+          2851,
+          5548,
+          1590,
+          5030,
+          9396,
+          866,
+          8653
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          8133,
+          6977,
+          4691,
+          5281,
+          3969,
+          3051,
+          2046,
+          7812,
+          2523,
+          3529,
+          8129,
+          2343,
+          4934,
+          1854,
+          1672,
+          5020,
+          3345,
+          5323,
+          3276,
+          7579,
+          2576,
+          7085,
+          8684,
+          4682,
+          2092,
+          8824,
+          476,
+          2509,
+          5720,
+          1519,
+          1346,
+          4749,
+          8733,
+          93,
+          4222,
+          8272,
+          291,
+          1865,
+          7041,
+          4844,
+          5200,
+          3301,
+          326,
+          5352,
+          5010,
+          3705,
+          7177,
+          5439
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3742.708,
+        "y": 59,
+        "z": 4421.124,
+        "continent": 4357
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "5486": {
+    "id": 5486,
+    "name": "Mysterious Robed Girl",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 1098,
+        "x": 1009.457,
+        "y": 20.00018,
+        "z": 1838.055
+      }
+    ],
+    "image": "redrobegirl.png"
+  },
+  "5561": {
+    "id": 5561,
+    "name": "[Knight Master] Karandur",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3792.844,
+        "y": 59,
+        "z": 4482.567,
+        "continent": 4357
+      }
+    ],
+    "image": "knight.png"
+  },
+  "5579": {
+    "id": 5579,
+    "name": "Nersha",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8355.971,
+        "y": 100,
+        "z": 3701.982,
+        "continent": 525
+      }
+    ],
+    "image": "losha.png"
+  },
+  "5617": {
+    "id": 5617,
+    "name": "Drian",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 2927,
+        "x": 829.0259,
+        "y": 85.00223,
+        "z": 966.9241
+      }
+    ],
+    "image": "keakoon.png"
+  },
+  "5647": {
+    "id": 5647,
+    "name": "[High-Dwarpet] Hastan",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7002.028,
+        "y": 124.3954,
+        "z": 3894.994,
+        "continent": 1018
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "5701": {
+    "id": 5701,
+    "name": "[Knight Priest] Lobiet",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3012.95,
+        "y": 93.49133,
+        "z": 2931.393,
+        "continent": 7493
+      }
+    ],
+    "image": "ringmasterpriest.png"
+  },
+  "5726": {
+    "id": 5726,
+    "name": "[Acrobat Master] Pyre",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6929.453,
+        "y": 100.3,
+        "z": 3327.566,
+        "continent": 8859
+      }
+    ],
+    "image": "stima.png"
+  },
+  "5800": {
+    "id": 5800,
+    "name": "Noier",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6703.289,
+        "y": 135.9647,
+        "z": 3327.764,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "5831": {
+    "id": 5831,
+    "name": "[Sage] Radion",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7640.476,
+        "y": 175.1198,
+        "z": 4254.254,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "5893": {
+    "id": 5893,
+    "name": "Leann",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Accessories",
+        "items": [
+          2231,
+          731,
+          10201,
+          12493,
+          10965
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8478.097,
+        "y": 100,
+        "z": 3634.131,
+        "continent": 525
+      }
+    ],
+    "image": "juria.png"
+  },
+  "5937": {
+    "id": 5937,
+    "name": "Eoners",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7204.647,
+        "y": 100,
+        "z": 3226.729,
+        "continent": 8859
+      }
+    ],
+    "image": "haven.png"
+  },
+  "5981": {
+    "id": 5981,
+    "name": "[Jester Master] Lorein",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3783.362,
+        "y": 59,
+        "z": 4488.74,
+        "continent": 4357
+      }
+    ],
+    "image": "jester.png"
+  },
+  "5983": {
+    "id": 5983,
+    "name": "Tina",
+    "place": "flyingstation",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Broom",
+        "items": [
+          8507,
+          2128,
+          3258,
+          7336
+        ]
+      },
+      {
+        "name": "Board",
+        "items": [
+          7182,
+          4482,
+          6333,
+          4715
+        ]
+      },
+      {
+        "name": "Fuel",
+        "items": [
+          6462
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8412.976,
+        "y": 140.2489,
+        "z": 3974.41,
+        "continent": 525
+      }
+    ],
+    "image": "tina.png"
+  },
+  "5986": {
+    "id": 5986,
+    "name": "Ispim",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7160.067,
+        "y": 100,
+        "z": 3221.458,
+        "continent": 8859
+      }
+    ],
+    "image": "juria.png"
+  },
+  "6109": {
+    "id": 6109,
+    "name": "Nein",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3947.286,
+        "y": 117.6512,
+        "z": 2748.429,
+        "continent": 7493
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "6124": {
+    "id": 6124,
+    "name": "[Arena Manager] Lay",
+    "menus": [
+      "dialog",
+      "arenaenter",
+      "arenaranking",
+      "arenareward",
+      "madrigaltournamentboard",
+      "madrigaltournamentteleport",
+      "madrigaltournamentranking",
+      "madrigaltournamentreward",
+      "madrigaltournamentbetting"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6932.14,
+        "y": 100,
+        "z": 3259.181,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8437.869,
+        "y": 100,
+        "z": 3616.031,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3801.5,
+        "y": 59,
+        "z": 4448.122,
+        "continent": 4357
+      }
+    ],
+    "image": "arena.png"
+  },
+  "6159": {
+    "id": 6159,
+    "name": "[Magician Instructor] Lopaze",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7156.872,
+        "y": 100,
+        "z": 3238.307,
+        "continent": 8859
+      }
+    ],
+    "image": "milina.png"
+  },
+  "6167": {
+    "id": 6167,
+    "name": "Segho",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7644.777,
+        "y": 236.2854,
+        "z": 4349.111,
+        "continent": 1018
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "6262": {
+    "id": 6262,
+    "name": "Kablloc",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "piercingremove",
+      "createultimate"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          6021,
+          714,
+          3157,
+          2608,
+          7657,
+          7577,
+          2459,
+          119,
+          5098,
+          8374,
+          8326,
+          9094,
+          7185,
+          2761,
+          4176,
+          3575
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          9936,
+          2715,
+          2320,
+          2036,
+          9050,
+          4926,
+          4856,
+          389,
+          3471,
+          197,
+          9906,
+          4558
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          7642,
+          4663,
+          8975,
+          6019,
+          8546,
+          1142,
+          1467,
+          6269,
+          2537,
+          6343,
+          3388,
+          199
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          7339,
+          2930,
+          9507,
+          6929,
+          2571,
+          3418,
+          4109,
+          9633,
+          5213,
+          7700,
+          6880,
+          3369
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3239.983,
+        "y": 11.55173,
+        "z": 3417.698,
+        "continent": 7493
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "6268": {
+    "id": 6268,
+    "name": "Shun",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          8382,
+          9697,
+          8256,
+          2842,
+          7725,
+          4913,
+          9788,
+          4877,
+          3531,
+          2116,
+          6713,
+          4092,
+          3940,
+          7159,
+          6073,
+          9648,
+          6939,
+          7520,
+          8350,
+          8706,
+          1757,
+          3043,
+          5249,
+          1902,
+          6070,
+          9643,
+          3444,
+          3805,
+          2184,
+          3223,
+          6021,
+          714,
+          3157,
+          2608,
+          7657,
+          7577,
+          2459,
+          119,
+          5098,
+          8374,
+          8326,
+          9094,
+          7185,
+          2761,
+          4176,
+          3575
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          2266,
+          7289,
+          3480,
+          1334,
+          6555,
+          8969,
+          4041,
+          1522,
+          1700,
+          8801,
+          9234,
+          4215,
+          6836,
+          6245,
+          7892,
+          9984,
+          9341,
+          5197,
+          3229,
+          2097,
+          1778,
+          254,
+          9936,
+          2715,
+          2320,
+          2036,
+          9050,
+          4926,
+          4856,
+          389,
+          3471,
+          197,
+          9906,
+          4558
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          5912,
+          412,
+          3186,
+          4358,
+          5427,
+          9654,
+          91,
+          9808,
+          217,
+          5919,
+          5117,
+          4467,
+          3567,
+          5691,
+          8446,
+          7439,
+          8075,
+          4167,
+          8220,
+          1677,
+          1173,
+          8496,
+          7339,
+          2930,
+          9507,
+          6929,
+          2571,
+          3418,
+          4109,
+          9633,
+          5213,
+          7700,
+          6880,
+          3369
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 4839,
+        "x": 1286.43,
+        "y": 115,
+        "z": 1365.532
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "6402": {
+    "id": 6402,
+    "name": "Janne",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8536.5,
+        "y": 100,
+        "z": 3643.722,
+        "continent": 525
+      }
+    ],
+    "image": "juria.png"
+  },
+  "6452": {
+    "id": 6452,
+    "name": "Ghalade",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7204.369,
+        "y": 100,
+        "z": 3227.884,
+        "continent": 8859
+      }
+    ],
+    "image": "remine.png"
+  },
+  "6459": {
+    "id": 6459,
+    "name": "[Magician Drillmaster] Wingyei",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7154.877,
+        "y": 100,
+        "z": 3240.532,
+        "continent": 8859
+      }
+    ],
+    "image": "haven.png"
+  },
+  "6515": {
+    "id": 6515,
+    "name": "[Assist Drillmaster] Elic",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7157.504,
+        "y": 100,
+        "z": 3249.493,
+        "continent": 8859
+      }
+    ],
+    "image": "snowgirl.png"
+  },
+  "6576": {
+    "id": 6576,
+    "name": "[Elementor Priest] Condram",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3959.777,
+        "y": 31.36854,
+        "z": 3510.136,
+        "continent": 7493
+      }
+    ],
+    "image": "billposterpriest.png"
+  },
+  "6613": {
+    "id": 6613,
+    "name": "[MagicBox] Ancimys",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8638.007,
+        "y": 100,
+        "z": 3569.618,
+        "continent": 8641
+      },
+      {
+        "world": 6063,
+        "x": 6955.456,
+        "y": 148.9669,
+        "z": 3848.429,
+        "continent": 1018
+      }
+    ],
+    "image": "ancimys.png"
+  },
+  "6851": {
+    "id": 6851,
+    "name": "Isruel",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6937.835,
+        "y": 100,
+        "z": 3243.339,
+        "continent": 8859
+      }
+    ],
+    "image": "juria.png"
+  },
+  "6878": {
+    "id": 6878,
+    "name": "Darkon Pang",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5511.584,
+        "y": 75.01719,
+        "z": 3887.567,
+        "continent": 2155
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "6946": {
+    "id": 6946,
+    "name": "Card Master",
+    "menus": [
+      "dialog",
+      "upgradecard",
+      "reshufflecard"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7130.349,
+        "y": 99.955,
+        "z": 3257.222,
+        "continent": 8859
+      }
+    ],
+    "image": "dealer.png"
+  },
+  "7038": {
+    "id": 7038,
+    "name": "Locku",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8303.217,
+        "y": 100,
+        "z": 3850.522,
+        "continent": 8641
+      }
+    ],
+    "image": "reonan.png"
+  },
+  "7068": {
+    "id": 7068,
+    "name": "Helgar",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8449.088,
+        "y": 100,
+        "z": 3638.129,
+        "continent": 525
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "7086": {
+    "id": 7086,
+    "name": "Haven",
+    "place": "magicstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Wand",
+        "items": [
+          7642,
+          8975,
+          8546,
+          1467,
+          2537,
+          3388
+        ]
+      },
+      {
+        "name": "Staff",
+        "items": [
+          4663,
+          6019,
+          1142,
+          6269,
+          6343,
+          199
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          47839,
+          3896
+        ]
+      },
+      {
+        "name": "Robe",
+        "items": [
+          5146,
+          8895,
+          9331,
+          4778,
+          3793,
+          5140,
+          1981,
+          7383,
+          994,
+          7926,
+          569,
+          7753,
+          9824,
+          21,
+          5430,
+          839,
+          5178,
+          5597,
+          203,
+          8672,
+          999,
+          5991,
+          2026,
+          6424,
+          8375,
+          1594,
+          3984,
+          418,
+          2702,
+          5589,
+          284,
+          3278,
+          3096,
+          6312,
+          4316,
+          2641,
+          795,
+          4709,
+          7509,
+          6712,
+          9152,
+          6773,
+          8200,
+          8116,
+          9269,
+          9759,
+          8012,
+          36
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3908.938,
+        "y": 59,
+        "z": 4376.03,
+        "continent": 4357
+      }
+    ],
+    "image": "haven.png"
+  },
+  "7146": {
+    "id": 7146,
+    "name": "Kazen",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 2927,
+        "x": 1618.4,
+        "y": 84.35467,
+        "z": 746.3271
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "7216": {
+    "id": 7216,
+    "name": "Saint Pang",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8437.323,
+        "y": 86.93954,
+        "z": 2679.39,
+        "continent": 8641
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "7236": {
+    "id": 7236,
+    "name": "[Pepoview] Brodeay",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8403.951,
+        "y": 99.99995,
+        "z": 3657.744,
+        "continent": 525
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "7275": {
+    "id": 7275,
+    "name": "Sury",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3692.201,
+        "y": 200,
+        "z": 3040.257,
+        "continent": 7493
+      }
+    ],
+    "image": "sury.png"
+  },
+  "7290": {
+    "id": 7290,
+    "name": "Krinton",
+    "place": "shieldstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Shields",
+        "items": [
+          582,
+          9102
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3742.223,
+        "y": 59,
+        "z": 4413.738,
+        "continent": 4357
+      }
+    ],
+    "image": "roocky.png"
+  },
+  "7297": {
+    "id": 7297,
+    "name": "[Elementor Wise-man] Cuzrill",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7655.598,
+        "y": 161.675,
+        "z": 4191.633,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "7320": {
+    "id": 7320,
+    "name": "Guardian Master",
+    "menus": [
+      "inputreward",
+      "showreward"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6964.169,
+        "y": 100,
+        "z": 3213.198,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8466.55,
+        "y": 100,
+        "z": 3600.551,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3832.34,
+        "y": 59.09998,
+        "z": 4455.801,
+        "continent": 4357
+      }
+    ],
+    "image": "question.png"
+  },
+  "7379": {
+    "id": 7379,
+    "name": "Miriun",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Blinkwing",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          47839,
+          3896,
+          4896
+        ]
+      },
+      {
+        "name": "Class Goods",
+        "items": [
+          4586,
+          3907,
+          5869,
+          59637,
+          36879
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          8161,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          4923,
+          3343,
+          7116,
+          3574,
+          7347
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5301.256,
+        "y": 262.3486,
+        "z": 1442.204,
+        "continent": 9774
+      }
+    ],
+    "image": "miriun.png"
+  },
+  "7418": {
+    "id": 7418,
+    "name": "Drico",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 2927,
+        "x": 978.3744,
+        "y": 85,
+        "z": 955.0732
+      }
+    ],
+    "image": "keakoon.png"
+  },
+  "7454": {
+    "id": 7454,
+    "name": "Loyah",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7169.417,
+        "y": 100,
+        "z": 3208.961,
+        "continent": 8859
+      }
+    ],
+    "image": "losha.png"
+  },
+  "7480": {
+    "id": 7480,
+    "name": "Jinitte",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3208.391,
+        "y": 11.05,
+        "z": 3437.291,
+        "continent": 7493
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "7510": {
+    "id": 7510,
+    "name": "Nerco",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8203.597,
+        "y": 85.382,
+        "z": 2981.205,
+        "continent": 8641
+      }
+    ],
+    "image": "nerco.png"
+  },
+  "7588": {
+    "id": 7588,
+    "name": "[Assist Instructor] Kidmen",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7160.542,
+        "y": 100,
+        "z": 3249.823,
+        "continent": 8859
+      }
+    ],
+    "image": "marche.png"
+  },
+  "7596": {
+    "id": 7596,
+    "name": "Almani",
+    "place": "flyingstation",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Broom",
+        "items": [
+          8507,
+          2128,
+          3258,
+          7336
+        ]
+      },
+      {
+        "name": "Board",
+        "items": [
+          7182,
+          4482,
+          6333,
+          4715
+        ]
+      },
+      {
+        "name": "Fuel",
+        "items": [
+          6462
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3848.219,
+        "y": 140.6,
+        "z": 4460.36,
+        "continent": 4357
+      }
+    ],
+    "image": "almani.png"
+  },
+  "7624": {
+    "id": 7624,
+    "name": "[Pepoview] Hotse",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8398.086,
+        "y": 100.1001,
+        "z": 3657.5,
+        "continent": 525
+      }
+    ],
+    "image": "haven.png"
+  },
+  "7681": {
+    "id": 7681,
+    "name": "[Billposter Wise-man] Domek",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7693.445,
+        "y": 170.7111,
+        "z": 4227.503,
+        "continent": 1018
+      }
+    ],
+    "image": "martin.png"
+  },
+  "7699": {
+    "id": 7699,
+    "name": "Luda",
+    "place": "shieldstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Weapons",
+        "items": [
+          3497,
+          8968,
+          2074,
+          4983,
+          8521,
+          2167,
+          4932
+        ]
+      },
+      {
+        "name": "Armors",
+        "items": [
+          3314,
+          5535,
+          4750,
+          4491,
+          8753,
+          3738,
+          3975,
+          2462,
+          3999,
+          1452,
+          1725,
+          6040,
+          5011,
+          8195,
+          2670,
+          7542,
+          5219,
+          8481,
+          6232,
+          1259,
+          603,
+          9438
+        ]
+      },
+      {
+        "name": "Shields",
+        "items": [
+          5018,
+          8045,
+          7458,
+          8312,
+          5242
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6927.303,
+        "y": 100,
+        "z": 3236.48,
+        "continent": 8859
+      }
+    ],
+    "image": "bulrox.png"
+  },
+  "7708": {
+    "id": 7708,
+    "name": "Ryupang",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7214.24,
+        "y": 109.4975,
+        "z": 3673.458,
+        "continent": 1018
+      }
+    ],
+    "image": "rhine.png"
+  },
+  "7714": {
+    "id": 7714,
+    "name": "[Ringmaster Priest] Heedan",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3273.105,
+        "y": 132,
+        "z": 4250.094,
+        "continent": 7493
+      }
+    ],
+    "image": "ringmasterpriest.png"
+  },
+  "7722": {
+    "id": 7722,
+    "name": "Buff Pang",
+    "menus": [
+      "dialog",
+      "buff"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 9264.451,
+        "y": 98.99931,
+        "z": 3716.613,
+        "continent": 9143
+      },
+      {
+        "world": 6063,
+        "x": 6970.858,
+        "y": 100,
+        "z": 3215.084,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 6690.873,
+        "y": 113.467,
+        "z": 3606.347,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 7254.952,
+        "y": 106.706,
+        "z": 3657.967,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 6836.411,
+        "y": 102.014,
+        "z": 3803.898,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 7351.099,
+        "y": 155.903,
+        "z": 3926.167,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 7193.471,
+        "y": 155.562,
+        "z": 4104.44,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 7654.951,
+        "y": 158.991,
+        "z": 4167.755,
+        "continent": 1018
+      },
+      {
+        "world": 6063,
+        "x": 8444.201,
+        "y": 100,
+        "z": 3602.293,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 8269.16,
+        "y": 98.433,
+        "z": 3182.524,
+        "continent": 8641
+      },
+      {
+        "world": 6063,
+        "x": 8555.484,
+        "y": 100.543,
+        "z": 3109.624,
+        "continent": 8641
+      },
+      {
+        "world": 6063,
+        "x": 8279.326,
+        "y": 81.118,
+        "z": 2810.451,
+        "continent": 8641
+      },
+      {
+        "world": 6063,
+        "x": 8574.239,
+        "y": 99.73,
+        "z": 2139.628,
+        "continent": 8641
+      },
+      {
+        "world": 6063,
+        "x": 7998.554,
+        "y": 78.092,
+        "z": 2666.944,
+        "continent": 8641
+      },
+      {
+        "world": 6063,
+        "x": 5576.784,
+        "y": 75.002,
+        "z": 3897.412,
+        "continent": 2155
+      },
+      {
+        "world": 6063,
+        "x": 3793.978,
+        "y": 59,
+        "z": 4444.591,
+        "continent": 4357
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "7726": {
+    "id": 7726,
+    "name": "Zaoma",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6844.228,
+        "y": 182,
+        "z": 4099.208,
+        "continent": 1018
+      }
+    ],
+    "image": "mawrang.png"
+  },
+  "7739": {
+    "id": 7739,
+    "name": "Ismeralda",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7042.263,
+        "y": 99.49438,
+        "z": 3244.289,
+        "continent": 8859
+      }
+    ],
+    "image": "juria.png"
+  },
+  "7940": {
+    "id": 7940,
+    "name": "Bozman",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          5866,
+          3692,
+          7259,
+          2370,
+          884,
+          4445,
+          5539,
+          2310,
+          4429,
+          9536,
+          1654,
+          3042,
+          1138,
+          276,
+          4538,
+          9593,
+          409,
+          2837,
+          3249,
+          3342,
+          8257,
+          9664,
+          9352,
+          9283,
+          713,
+          4257
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          987,
+          3869,
+          6032,
+          5875,
+          3694,
+          1628,
+          2460,
+          5068,
+          5581,
+          4325,
+          4003,
+          8003,
+          9404,
+          2594,
+          8340,
+          7854,
+          1919,
+          4528,
+          5409,
+          4971,
+          9702,
+          7519,
+          2548,
+          531,
+          4079,
+          6265
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          7140,
+          4941,
+          6250,
+          1623,
+          6326,
+          4009,
+          834,
+          5093,
+          3240,
+          9770,
+          2991,
+          5972,
+          9943,
+          9436,
+          9310,
+          3511,
+          3570,
+          8334,
+          7390,
+          2536,
+          6889,
+          7669,
+          9187,
+          6675,
+          1331,
+          6964
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8375.102,
+        "y": 100,
+        "z": 3673.197,
+        "continent": 525
+      },
+      {
+        "world": 29586,
+        "x": 275.5926,
+        "y": 100,
+        "z": 167.6749
+      }
+    ],
+    "image": "boboku.png"
+  },
+  "7977": {
+    "id": 7977,
+    "name": "Stima",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          1757,
+          3043,
+          5249,
+          1902
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          1778,
+          254,
+          9936,
+          2715
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          1173,
+          8496,
+          7339,
+          2930
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          6595,
+          2870,
+          7642,
+          4663
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5572.357,
+        "y": 75.00009,
+        "z": 3897.209,
+        "continent": 2155
+      }
+    ],
+    "image": "stima.png"
+  },
+  "8137": {
+    "id": 8137,
+    "name": "[Psykeeper Priest] Pereb",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 2522.289,
+        "y": 55,
+        "z": 4599.882,
+        "continent": 7493
+      }
+    ],
+    "image": "bladepriest.png"
+  },
+  "8217": {
+    "id": 8217,
+    "name": "Dr. Est",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5541.337,
+        "y": 71.61962,
+        "z": 4352.409,
+        "continent": 2155
+      }
+    ],
+    "image": "rhine.png"
+  },
+  "8227": {
+    "id": 8227,
+    "name": "[High-Dwarpet] Langdrong",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6998.488,
+        "y": 125.0495,
+        "z": 3897.479,
+        "continent": 1018
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "8440": {
+    "id": 8440,
+    "name": "[Public Official of Flarine]",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6960.414,
+        "y": 100,
+        "z": 3204.269,
+        "continent": 8859
+      }
+    ],
+    "image": "rhine.png"
+  },
+  "8480": {
+    "id": 8480,
+    "name": "[Mayor of Saint City]",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8464.291,
+        "y": 100,
+        "z": 3651.486,
+        "continent": 525
+      }
+    ],
+    "image": "mayor.png"
+  },
+  "8715": {
+    "id": 8715,
+    "name": "[Lv60 Guild Siege Manager] Olivia",
+    "menus": [
+      "dialog",
+      "guildsiegeinfo60",
+      "guildsiegeapply60",
+      "guildsiegestate60",
+      "guildsiegejoin60",
+      "guildsiegelineup60",
+      "guildsiegeranking60",
+      "guildsiegecancel60"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6990.158,
+        "y": 100,
+        "z": 3323.346,
+        "continent": 8859
+      }
+    ],
+    "image": "guildwar04.png"
+  },
+  "8863": {
+    "id": 8863,
+    "name": "[Mercenary Drillmaster] Mustang",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7155.077,
+        "y": 99.99858,
+        "z": 3247.413,
+        "continent": 8859
+      }
+    ],
+    "image": "guildwar02.png"
+  },
+  "8930": {
+    "id": 8930,
+    "name": "Obnis",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 1098,
+        "x": 521.9835,
+        "y": 169.0619,
+        "z": 890.7885
+      }
+    ],
+    "image": "obnis.png"
+  },
+  "9103": {
+    "id": 9103,
+    "name": "Ollien",
+    "place": "publicoffice",
+    "menus": [
+      "dialog",
+      "bank",
+      "guildbank",
+      "guildrank",
+      "guildrankwar",
+      "guildrankinfo",
+      "couplebank"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3829.779,
+        "y": 59.1,
+        "z": 4457.244,
+        "continent": 4357
+      }
+    ],
+    "image": "ollien.png"
+  },
+  "9191": {
+    "id": 9191,
+    "name": "[Mentor] Inisis",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3804.64,
+        "y": 59,
+        "z": 4456.074,
+        "continent": 4357
+      }
+    ],
+    "image": "icinis.png"
+  },
+  "9227": {
+    "id": 9227,
+    "name": "[Acrobat Instructor] Tailer",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7163.792,
+        "y": 100,
+        "z": 3238.345,
+        "continent": 8859
+      }
+    ],
+    "image": "marche.png"
+  },
+  "9285": {
+    "id": 9285,
+    "name": "[Lv80 Guild Siege Manager] Atlas",
+    "menus": [
+      "dialog",
+      "guildsiegeinfo80",
+      "guildsiegeapply80",
+      "guildsiegestate80",
+      "guildsiegejoin80",
+      "guildsiegelineup80",
+      "guildsiegeranking80",
+      "guildsiegecancel80"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6990.276,
+        "y": 100,
+        "z": 3326.571,
+        "continent": 8859
+      }
+    ],
+    "image": "guildwar03.png"
+  },
+  "9345": {
+    "id": 9345,
+    "name": "[Acrobat Drillmaster] Hent",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7160.891,
+        "y": 100,
+        "z": 3237.672,
+        "continent": 8859
+      }
+    ],
+    "image": "chitller.png"
+  },
+  "9416": {
+    "id": 9416,
+    "name": "Ancimys",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7036.381,
+        "y": 118.3392,
+        "z": 3728.501,
+        "continent": 1018
+      }
+    ],
+    "image": "ancimys.png"
+  },
+  "9459": {
+    "id": 9459,
+    "name": "[Jester Priest] Homeit",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 2788.061,
+        "y": 191.9232,
+        "z": 2885.31,
+        "continent": 7493
+      }
+    ],
+    "image": "jesterpriest.png"
+  },
+  "9483": {
+    "id": 9483,
+    "name": "Handel",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 9007.022,
+        "y": 82.866,
+        "z": 4367.152,
+        "continent": 9143
+      }
+    ],
+    "image": "hendel.png"
+  },
+  "9614": {
+    "id": 9614,
+    "name": "Haom",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 1098,
+        "x": 1943.401,
+        "y": 112.116,
+        "z": 1636.12
+      }
+    ],
+    "image": "haom.png"
+  },
+  "9645": {
+    "id": 9645,
+    "name": "Buur",
+    "place": "questoffice",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5347.814,
+        "y": 262.3486,
+        "z": 1416.394,
+        "continent": 9774
+      }
+    ],
+    "image": "buur.png"
+  },
+  "9673": {
+    "id": 9673,
+    "name": "[BowlMerchant] Bowler",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 9560.335,
+        "y": 90.53459,
+        "z": 4020.011,
+        "continent": 9143
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "9705": {
+    "id": 9705,
+    "name": "Chenbing",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          5562,
+          50,
+          9872,
+          7149,
+          3887,
+          2380,
+          2391,
+          8040,
+          4375,
+          4022,
+          3682,
+          9721,
+          7309,
+          5155,
+          9933,
+          7914,
+          9387,
+          1560,
+          8245,
+          2701,
+          7964,
+          2677,
+          6863,
+          7276,
+          5748,
+          8729,
+          7810,
+          7132,
+          302,
+          2481,
+          310,
+          2939,
+          9665,
+          5298,
+          6677,
+          7563,
+          9956,
+          7368,
+          478,
+          1463,
+          3842,
+          4721,
+          4354,
+          6165,
+          5066,
+          1287,
+          3251,
+          2696
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          4772,
+          7386,
+          4286,
+          4127,
+          3285,
+          6092,
+          8136,
+          4373,
+          7568,
+          4649,
+          9539,
+          2282,
+          8373,
+          7910,
+          7202,
+          5488,
+          4314,
+          9357,
+          6366,
+          1455,
+          3451,
+          429,
+          7929,
+          5878,
+          5473,
+          1891,
+          6870,
+          4027,
+          1887,
+          4457,
+          9327,
+          7381,
+          2723,
+          540,
+          2928,
+          1511,
+          9462,
+          2290,
+          7928,
+          2458,
+          1425,
+          2851,
+          5548,
+          1590,
+          5030,
+          9396,
+          866,
+          8653
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          5146,
+          8895,
+          9331,
+          4778,
+          3793,
+          5140,
+          1981,
+          7383,
+          994,
+          7926,
+          569,
+          7753,
+          9824,
+          21,
+          5430,
+          839,
+          5178,
+          5597,
+          203,
+          8672,
+          999,
+          5991,
+          2026,
+          6424,
+          8375,
+          1594,
+          3984,
+          418,
+          2702,
+          5589,
+          284,
+          3278,
+          3096,
+          6312,
+          4316,
+          2641,
+          795,
+          4709,
+          7509,
+          6712,
+          9152,
+          6773,
+          8200,
+          8116,
+          9269,
+          9759,
+          8012,
+          36
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          8133,
+          6977,
+          4691,
+          5281,
+          3969,
+          3051,
+          2046,
+          7812,
+          2523,
+          3529,
+          8129,
+          2343,
+          4934,
+          1854,
+          1672,
+          5020,
+          3345,
+          5323,
+          3276,
+          7579,
+          2576,
+          7085,
+          8684,
+          4682,
+          2092,
+          8824,
+          476,
+          2509,
+          5720,
+          1519,
+          1346,
+          4749,
+          8733,
+          93,
+          4222,
+          8272,
+          291,
+          1865,
+          7041,
+          4844,
+          5200,
+          3301,
+          326,
+          5352,
+          5010,
+          3705,
+          7177,
+          5439
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3238.182,
+        "y": 11.65112,
+        "z": 3421.026,
+        "continent": 7493
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "9778": {
+    "id": 9778,
+    "name": "[Psykeeper Guardian] Shyniff",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3348.991,
+        "y": 146.9666,
+        "z": 2068.673,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "9779": {
+    "id": 9779,
+    "name": "Rankashu",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5072.615,
+        "y": 55,
+        "z": 3962.481,
+        "continent": 2155
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "9792": {
+    "id": 9792,
+    "name": "[Great Magician] Laola",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3007.869,
+        "y": 49.15271,
+        "z": 3967.413,
+        "continent": 7493
+      }
+    ],
+    "image": "laola.png"
+  },
+  "9896": {
+    "id": 9896,
+    "name": "[Dreadpet Manager] Himadel",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6835.973,
+        "y": 108.6157,
+        "z": 3132.558,
+        "continent": 1018
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "9919": {
+    "id": 9919,
+    "name": "[Mayor of Flarine]",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6960.027,
+        "y": 100,
+        "z": 3227.316,
+        "continent": 8859
+      }
+    ],
+    "image": "mayor.png"
+  },
+  "9961": {
+    "id": 9961,
+    "name": "[Chip Merchant] Waforu",
+    "menus": [
+      "dialog",
+      "traderedchips",
+      "tradegreenchips",
+      "tradebluechips",
+      "tradepkchips",
+      "tradekalgaschips",
+      "tradeyellowchips"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6982.454,
+        "y": 100,
+        "z": 3351.165,
+        "continent": 8859
+      }
+    ],
+    "image": "waforu.png"
+  },
+  "9985": {
+    "id": 9985,
+    "name": "[Ringmaster Guardian] Romvoette",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3339.078,
+        "y": 146.882,
+        "z": 2058.45,
+        "continent": 7493
+      }
+    ],
+    "image": "guard01.png"
+  },
+  "10696": {
+    "id": 10696,
+    "name": "[Master Quests] Leila",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3346,
+        "y": 125,
+        "z": 1945.522,
+        "continent": 7493
+      }
+    ],
+    "image": "hendel.png"
+  },
+  "11113": {
+    "id": 11113,
+    "name": "Leren Chasm Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7467.668,
+        "y": 159.5415,
+        "z": 4332.896,
+        "continent": 1018
+      }
+    ],
+    "image": "knight02.png"
+  },
+  "11242": {
+    "id": 11242,
+    "name": "Kammie",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Blinkwing",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          3896,
+          4896,
+          47839
+        ]
+      },
+      {
+        "name": "Class Goods",
+        "items": [
+          4586,
+          3907,
+          5869,
+          59637,
+          36879
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          8161,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          4923,
+          3343,
+          7116,
+          3574,
+          7347
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7015.276,
+        "y": 206.2017,
+        "z": 1189.138,
+        "continent": 19398
+      }
+    ],
+    "image": "kammie.png"
+  },
+  "11492": {
+    "id": 11492,
+    "name": "Rankashin",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 4241,
+        "x": 1038.238,
+        "y": 148.8712,
+        "z": 629.4785
+      }
+    ],
+    "image": "dwarpet.png"
+  },
+  "11734": {
+    "id": 11734,
+    "name": "Secret Room Manager",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6983.025,
+        "y": 100,
+        "z": 3305.448,
+        "continent": 8859
+      }
+    ],
+    "image": "knight01.png"
+  },
+  "12374": {
+    "id": 12374,
+    "name": "Kalgas Assault Manager",
+    "menus": [
+      "kalgasassaultinfo",
+      "kalgasassaultregister",
+      "kalgasassaultentry",
+      "kalgasassaultranking"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6929.177,
+        "y": 100.0076,
+        "z": 3251.971,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8437.522,
+        "y": 100.0076,
+        "z": 3606.713,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3803.963,
+        "y": 59.00663,
+        "z": 4451.432,
+        "continent": 4357
+      }
+    ],
+    "image": "question.png"
+  },
+  "12629": {
+    "id": 12629,
+    "name": "Eshylop",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 11959,
+        "x": 2865.866,
+        "y": 59,
+        "z": 339.5188
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "13392": {
+    "id": 13392,
+    "name": "Hearth",
+    "menus": [
+      "cooking"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7172.34,
+        "y": 100.0076,
+        "z": 3209.583,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8357.644,
+        "y": 100.0076,
+        "z": 3646.375,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3843.061,
+        "y": 59.00663,
+        "z": 4357.04,
+        "continent": 4357
+      },
+      {
+        "world": 6063,
+        "x": 3203.998,
+        "y": 11.04753,
+        "z": 3443.31,
+        "continent": 7493
+      },
+      {
+        "world": 6063,
+        "x": 5252.044,
+        "y": 262.3192,
+        "z": 1393.841,
+        "continent": 9774
+      },
+      {
+        "world": 6063,
+        "x": 6970.981,
+        "y": 205.6393,
+        "z": 1181.695,
+        "continent": 19398
+      },
+      {
+        "world": 6063,
+        "x": 8483.583,
+        "y": 100.0066,
+        "z": 3587.695,
+        "continent": 525
+      }
+    ],
+    "image": "question.png"
+  },
+  "13746": {
+    "id": 13746,
+    "name": "Smithing Workspace",
+    "menus": [
+      "smithing"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6925.445,
+        "y": 100.0076,
+        "z": 3220.184,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8483.583,
+        "y": 100.0066,
+        "z": 3571.654,
+        "continent": 525
+      }
+    ],
+    "image": "question.png"
+  },
+  "13843": {
+    "id": 13843,
+    "name": "[Life Master] Livi",
+    "menus": [
+      "dialog",
+      "trade",
+      "trademasterchips",
+      "trademasterchips",
+      "trademasterchips",
+      "trademasterchips",
+      "lifestylemasteryrank",
+      "lifestylemasteryreward",
+      "upgradeproduct"
+    ],
+    "shop": [
+      {
+        "name": "Gathering Tool",
+        "items": [
+          12837,
+          10156,
+          13472,
+          13480,
+          4439,
+          14049,
+          14419,
+          14224,
+          13448,
+          12564,
+          11896,
+          10977,
+          10084,
+          14928,
+          11476,
+          18133,
+          7139,
+          10285,
+          17269,
+          14647,
+          13349
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8482.459,
+        "y": 100.0076,
+        "z": 3576.494,
+        "continent": 525
+      }
+    ],
+    "image": "bolpor.png"
+  },
+  "14427": {
+    "id": 14427,
+    "name": "Alchemy Desk",
+    "menus": [
+      "alchemy"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7165.581,
+        "y": 100.0076,
+        "z": 3274.21,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8315.665,
+        "y": 100.2084,
+        "z": 3738.784,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3920.053,
+        "y": 59.00663,
+        "z": 4367.62,
+        "continent": 4357
+      },
+      {
+        "world": 6063,
+        "x": 8483.583,
+        "y": 100.0066,
+        "z": 3580.595,
+        "continent": 525
+      }
+    ],
+    "image": "question.png"
+  },
+  "14431": {
+    "id": 14431,
+    "name": "Buff Pang",
+    "menus": [
+      "buff"
+    ],
+    "locations": [
+      {
+        "world": 18353,
+        "x": 730,
+        "y": 119,
+        "z": 832.2322
+      },
+      {
+        "world": 18353,
+        "x": 730,
+        "y": 119,
+        "z": 683.6238
+      },
+      {
+        "world": 18353,
+        "x": 806.6042,
+        "y": 119,
+        "z": 760
+      },
+      {
+        "world": 18353,
+        "x": 661.9792,
+        "y": 119,
+        "z": 760
+      },
+      {
+        "world": 12233,
+        "x": 224.1525,
+        "y": 101.1667,
+        "z": 84.03304
+      },
+      {
+        "world": 12233,
+        "x": 215.823,
+        "y": 101.4167,
+        "z": 486.3994
+      },
+      {
+        "world": 13467,
+        "x": 726.1411,
+        "y": 119,
+        "z": 682.7958,
+        "continent": 9127
+      },
+      {
+        "world": 13467,
+        "x": 808.387,
+        "y": 119,
+        "z": 756.474,
+        "continent": 9127
+      },
+      {
+        "world": 13467,
+        "x": 735.4435,
+        "y": 119,
+        "z": 834.2498,
+        "continent": 9127
+      },
+      {
+        "world": 13467,
+        "x": 660.4095,
+        "y": 119,
+        "z": 765.9998,
+        "continent": 9127
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "14568": {
+    "id": 14568,
+    "name": "Sunny Pang",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight",
+      "bank",
+      "guildbank",
+      "couplebank"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7012.035,
+        "y": 205.7925,
+        "z": 1165.641,
+        "continent": 19398
+      }
+    ],
+    "image": "sunnypang.png"
+  },
+  "15025": {
+    "id": 15025,
+    "name": "Mysterious Islander",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 8123.135,
+        "y": 234.312,
+        "z": 1225.584,
+        "continent": 19398
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "15035": {
+    "id": 15035,
+    "name": "Envy Depths Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4834.982,
+        "y": 74.11108,
+        "z": 4420.175,
+        "continent": 2155
+      }
+    ],
+    "image": "knight02.png"
+  },
+  "15384": {
+    "id": 15384,
+    "name": "[MagicBox] Ancimys",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5370.744,
+        "y": 75,
+        "z": 3991.255,
+        "continent": 2155
+      }
+    ],
+    "image": "ancimys.png"
+  },
+  "16233": {
+    "id": 16233,
+    "name": "Talus",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "createultimate",
+      "piercingremove"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          6021,
+          714,
+          3157,
+          2608,
+          7657,
+          7577,
+          2459,
+          119,
+          5098,
+          8374,
+          8326,
+          9094,
+          7185,
+          2761,
+          4176,
+          3575
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          9936,
+          2715,
+          2320,
+          2036,
+          9050,
+          4926,
+          4856,
+          389,
+          3471,
+          197,
+          9906,
+          4558
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          7642,
+          4663,
+          8975,
+          6019,
+          8546,
+          1142,
+          1467,
+          6269,
+          2537,
+          6343,
+          3388,
+          199
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          7339,
+          2930,
+          9507,
+          6929,
+          2571,
+          3418,
+          4109,
+          9633,
+          5213,
+          7700,
+          6880,
+          3369
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7032.538,
+        "y": 206.5644,
+        "z": 1192.838,
+        "continent": 19398
+      }
+    ],
+    "image": "talus.png"
+  },
+  "16869": {
+    "id": 16869,
+    "name": "Storm Peak Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5613.688,
+        "y": 282.7662,
+        "z": 847.2887,
+        "continent": 9774
+      }
+    ],
+    "image": "knight02.png"
+  },
+  "17119": {
+    "id": 17119,
+    "name": "Kebaras Pang",
+    "place": "lodelight",
+    "menus": [
+      "dialog",
+      "lodelight"
+    ],
+    "locations": [
+      {
+        "world": 4839,
+        "x": 792.5201,
+        "y": 194.9876,
+        "z": 834.785
+      },
+      {
+        "world": 4839,
+        "x": 1217.433,
+        "y": 190.9927,
+        "z": 1821.977
+      },
+      {
+        "world": 4839,
+        "x": 1802.111,
+        "y": 175.272,
+        "z": 1468.104
+      },
+      {
+        "world": 4839,
+        "x": 1270.432,
+        "y": 115.1278,
+        "z": 1387.2
+      }
+    ],
+    "image": "infopeng.png"
+  },
+  "17461": {
+    "id": 17461,
+    "name": "Inventor Remi",
+    "place": "questoffice",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6961.349,
+        "y": 205.2214,
+        "z": 1158.995,
+        "continent": 19398
+      }
+    ],
+    "image": "remi.png"
+  },
+  "17553": {
+    "id": 17553,
+    "name": "Wandering Merchant",
+    "menus": [
+      "dialog",
+      "wanderingshop"
+    ],
+    "shop": [
+      {
+        "name": "[Event] Mr.Pumpkin",
+        "items": []
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6913.083,
+        "y": 100.0076,
+        "z": 3285.7,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8399.123,
+        "y": 100.0076,
+        "z": 3832.19,
+        "continent": 525
+      },
+      {
+        "world": 6063,
+        "x": 3875.96,
+        "y": 59.00664,
+        "z": 4492.727,
+        "continent": 4357
+      }
+    ],
+    "image": "phacham.png"
+  },
+  "17856": {
+    "id": 17856,
+    "name": "[Messenger of Love] Cupid",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Couple Rings",
+        "items": [
+          17242
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6947.104,
+        "y": 100,
+        "z": 3274.523,
+        "continent": 8859
+      }
+    ],
+    "image": "cupid.png"
+  },
+  "17872": {
+    "id": 17872,
+    "name": "Charlie",
+    "place": "",
+    "menus": [
+      "dialog",
+      "buyplayerhouse",
+      "joinplayerhouse",
+      "visitplayerhouse",
+      "buycouplehouse",
+      "joincouplehouse",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Templates",
+        "items": [
+          14125,
+          15044,
+          16460,
+          12618,
+          19940,
+          19102,
+          7592,
+          11595,
+          18368,
+          11829
+        ]
+      },
+      {
+        "name": "Props",
+        "items": [
+          12344,
+          16372,
+          18445,
+          12041,
+          12605,
+          16702,
+          14976,
+          13222,
+          15665,
+          15483,
+          12146,
+          19251,
+          10470,
+          11309,
+          19099,
+          15696,
+          17285,
+          16377,
+          11587,
+          13481,
+          14495
+        ]
+      },
+      {
+        "name": "NPCs",
+        "items": [
+          13117,
+          10227,
+          15171,
+          18731,
+          14583,
+          11279,
+          18638,
+          11592
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6989.353,
+        "y": 100,
+        "z": 3231.411,
+        "continent": 8859
+      }
+    ],
+    "image": "charlie.png"
+  },
+  "18243": {
+    "id": 18243,
+    "name": "Carpentry Workspace",
+    "menus": [
+      "carpentry"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7004.475,
+        "y": 100.0076,
+        "z": 3232.324,
+        "continent": 8859
+      },
+      {
+        "world": 6063,
+        "x": 8483.583,
+        "y": 100.0066,
+        "z": 3565.309,
+        "continent": 525
+      }
+    ],
+    "image": "question.png"
+  },
+  "18352": {
+    "id": 18352,
+    "name": "The Wilds Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6804.046,
+        "y": 218.7784,
+        "z": 1357.674,
+        "continent": 19398
+      }
+    ],
+    "image": "wildsguard.png"
+  },
+  "18642": {
+    "id": 18642,
+    "name": "Pau Pau",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6966.221,
+        "y": 205.2527,
+        "z": 1178.812,
+        "continent": 19398
+      }
+    ],
+    "image": "paupau.png"
+  },
+  "18871": {
+    "id": 18871,
+    "name": "Guardiane Sanctuary Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3342.431,
+        "y": 125,
+        "z": 1945.522,
+        "continent": 7493
+      }
+    ],
+    "image": "knight02.png"
+  },
+  "19344": {
+    "id": 19344,
+    "name": "BoBu",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          4375,
+          4022,
+          3682,
+          9721,
+          9937,
+          775,
+          1,
+          8900,
+          810,
+          9419,
+          7674,
+          4499,
+          620,
+          8730,
+          802,
+          6716,
+          7964,
+          2677,
+          6863,
+          7276,
+          9028,
+          4515,
+          1096,
+          4274,
+          6530,
+          9092,
+          9370,
+          3039,
+          5204,
+          2103,
+          4722,
+          3569,
+          9665,
+          5298,
+          6677,
+          7563,
+          8415,
+          9435,
+          3154,
+          3212,
+          3851,
+          1680,
+          5582,
+          6283,
+          8385,
+          4595,
+          6480,
+          6449,
+          5066,
+          1287,
+          3251,
+          2696,
+          9289,
+          7760,
+          5550,
+          963,
+          4918,
+          2325,
+          3648,
+          4039,
+          3163,
+          1969,
+          6319,
+          5603
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          7568,
+          4649,
+          9539,
+          2282,
+          7052,
+          8688,
+          7817,
+          7228,
+          9358,
+          5619,
+          6054,
+          2918,
+          6627,
+          2425,
+          5094,
+          9169,
+          3451,
+          429,
+          7929,
+          5878,
+          535,
+          991,
+          9064,
+          3931,
+          4901,
+          645,
+          5614,
+          4582,
+          8462,
+          924,
+          3117,
+          6683,
+          2723,
+          540,
+          2928,
+          1511,
+          391,
+          6151,
+          9813,
+          954,
+          4842,
+          970,
+          2350,
+          288,
+          8228,
+          7558,
+          7354,
+          3217,
+          5030,
+          9396,
+          866,
+          8653,
+          7893,
+          7990,
+          2577,
+          5777,
+          7101,
+          3366,
+          6498,
+          2269,
+          5265,
+          283,
+          5233,
+          536
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          994,
+          7926,
+          569,
+          7753,
+          6139,
+          1274,
+          7129,
+          8404,
+          7187,
+          2384,
+          8595,
+          9834,
+          8638,
+          588,
+          6899,
+          1868,
+          999,
+          5991,
+          2026,
+          6424,
+          8630,
+          4374,
+          4951,
+          6642,
+          6819,
+          6638,
+          5839,
+          6240,
+          8705,
+          6577,
+          8779,
+          2846,
+          3096,
+          6312,
+          4316,
+          2641,
+          9885,
+          2383,
+          8092,
+          5932,
+          322,
+          6653,
+          8187,
+          567,
+          6520,
+          6404,
+          3323,
+          6332,
+          9269,
+          9759,
+          8012,
+          36,
+          1503,
+          4969,
+          5038,
+          169,
+          9862,
+          7342,
+          1997,
+          3946,
+          8111,
+          774,
+          971,
+          1909
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          2523,
+          3529,
+          8129,
+          2343,
+          126,
+          7571,
+          5174,
+          5826,
+          4868,
+          3998,
+          493,
+          9636,
+          4461,
+          5299,
+          9260,
+          7962,
+          2576,
+          7085,
+          8684,
+          4682,
+          4766,
+          9997,
+          3820,
+          3671,
+          1328,
+          4911,
+          9531,
+          9198,
+          6828,
+          1329,
+          931,
+          2966,
+          8733,
+          93,
+          4222,
+          8272,
+          8511,
+          6251,
+          3269,
+          448,
+          5959,
+          1239,
+          2745,
+          8983,
+          6372,
+          5616,
+          155,
+          9543,
+          5010,
+          3705,
+          7177,
+          5439,
+          2642,
+          700,
+          2569,
+          6854,
+          1483,
+          9228,
+          4409,
+          6437,
+          3657,
+          9797,
+          5626,
+          5960
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 7021.859,
+        "y": 207.6493,
+        "z": 1204.214,
+        "continent": 19398
+      }
+    ],
+    "image": "bobu.png"
+  },
+  "19832": {
+    "id": 19832,
+    "name": "Rhisis Catacombs Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 9693.966,
+        "y": 86.92841,
+        "z": 4254.7,
+        "continent": 9143
+      }
+    ],
+    "image": "knight02.png"
+  },
+  "19877": {
+    "id": 19877,
+    "name": "Guest Book",
+    "menus": [
+      "guestbookhouse"
+    ],
+    "locations": [
+      {
+        "world": 16999,
+        "x": 1013.708,
+        "y": 99.92181,
+        "z": 601.78
+      },
+      {
+        "world": 14769,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 16209,
+        "x": 879.0421,
+        "y": 100.087,
+        "z": 521.1179
+      },
+      {
+        "world": 16300,
+        "x": 1005.485,
+        "y": 109.9879,
+        "z": 939.2044
+      },
+      {
+        "world": 15226,
+        "x": 647.4846,
+        "y": 100,
+        "z": 1001.42
+      },
+      {
+        "world": 8875,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 11836,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 14472,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 18473,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 6455,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 12656,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 19506,
+        "x": 944,
+        "y": 100,
+        "z": 556
+      },
+      {
+        "world": 17217,
+        "x": 944,
+        "y": 100,
+        "z": 556
+      },
+      {
+        "world": 17846,
+        "x": 944,
+        "y": 100,
+        "z": 556
+      },
+      {
+        "world": 19829,
+        "x": 944,
+        "y": 100,
+        "z": 556
+      },
+      {
+        "world": 17384,
+        "x": 879.0421,
+        "y": 100.087,
+        "z": 521.1179
+      },
+      {
+        "world": 11803,
+        "x": 879.0421,
+        "y": 100.087,
+        "z": 521.1179
+      },
+      {
+        "world": 13311,
+        "x": 879.0421,
+        "y": 100.087,
+        "z": 521.1179
+      },
+      {
+        "world": 12331,
+        "x": 1005.485,
+        "y": 109.9879,
+        "z": 939.2044
+      },
+      {
+        "world": 13667,
+        "x": 1005.485,
+        "y": 109.9879,
+        "z": 939.2044
+      },
+      {
+        "world": 11613,
+        "x": 1005.485,
+        "y": 109.9879,
+        "z": 939.2044
+      },
+      {
+        "world": 12724,
+        "x": 647.4846,
+        "y": 100,
+        "z": 1001.42
+      },
+      {
+        "world": 12627,
+        "x": 647.4846,
+        "y": 100,
+        "z": 1001.42
+      },
+      {
+        "world": 15341,
+        "x": 647.4846,
+        "y": 100,
+        "z": 1001.42
+      },
+      {
+        "world": 18250,
+        "x": 595.9685,
+        "y": 100,
+        "z": 522.0853,
+        "continent": 9127
+      },
+      {
+        "world": 14794,
+        "x": 595.9685,
+        "y": 100,
+        "z": 522.0853,
+        "continent": 9127
+      },
+      {
+        "world": 16402,
+        "x": 595.9685,
+        "y": 100,
+        "z": 522.0853,
+        "continent": 9127
+      },
+      {
+        "world": 12855,
+        "x": 595.9685,
+        "y": 100,
+        "z": 522.0853,
+        "continent": 9127
+      },
+      {
+        "world": 13076,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 15196,
+        "x": 1013.708,
+        "y": 100,
+        "z": 601.78
+      },
+      {
+        "world": 10187,
+        "x": 944,
+        "y": 100,
+        "z": 556
+      },
+      {
+        "world": 14228,
+        "x": 879.0421,
+        "y": 100.087,
+        "z": 521.1179
+      },
+      {
+        "world": 11771,
+        "x": 595.9685,
+        "y": 100,
+        "z": 522.0853,
+        "continent": 9127
+      }
+    ],
+    "image": "question.png"
+  },
+  "19902": {
+    "id": 19902,
+    "name": "Rainbow Race Officer",
+    "menus": [
+      "rainbowracesoloitem",
+      "rainbowracesolospeed",
+      "rainbowraceduoitem",
+      "rainbowraceduospeed",
+      "rainbowraceenter"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 3831.129,
+        "y": 59.74999,
+        "z": 4479.616,
+        "continent": 4357
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "20250": {
+    "id": 20250,
+    "name": "Miorang",
+    "place": "questoffice",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4899.085,
+        "y": 149.9857,
+        "z": 6327.691,
+        "continent": 57799
+      }
+    ],
+    "image": "miorang.png"
+  },
+  "20258": {
+    "id": 20258,
+    "name": "Ivelyn",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4748.008,
+        "y": 149.5931,
+        "z": 6214.284,
+        "continent": 22785
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "21021": {
+    "id": 21021,
+    "name": "Sovann",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6984.965,
+        "y": 205.4264,
+        "z": 1158.89,
+        "continent": 19398
+      }
+    ],
+    "image": "sanpres.png"
+  },
+  "21177": {
+    "id": 21177,
+    "name": "Pael",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4864.272,
+        "y": 149.7904,
+        "z": 6367.465,
+        "continent": 57799
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "22111": {
+    "id": 22111,
+    "name": "[Eillun Guard] Maeron",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4937.444,
+        "y": 149.3302,
+        "z": 6310.627,
+        "continent": 57799
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "22336": {
+    "id": 22336,
+    "name": "Toran",
+    "place": "shieldstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Shields",
+        "items": [
+          5018,
+          8045,
+          7458,
+          8312,
+          5242,
+          5175,
+          2856,
+          2090,
+          582,
+          9102
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4839.249,
+        "y": 149.9645,
+        "z": 6330.993,
+        "continent": 57799
+      }
+    ],
+    "image": "ralbadan.png"
+  },
+  "22629": {
+    "id": 22629,
+    "name": "Cheirang",
+    "place": "publicoffice",
+    "menus": [
+      "dialog",
+      "bank",
+      "guildbank",
+      "guildrank",
+      "guildrankwar",
+      "guildrankinfo",
+      "couplebank"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4895.538,
+        "y": 149.9897,
+        "z": 6313.072,
+        "continent": 57799
+      }
+    ],
+    "image": "cheirang.png"
+  },
+  "22778": {
+    "id": 22778,
+    "name": "[Eillun Guard] Serkan",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5013.926,
+        "y": 150,
+        "z": 6202.974,
+        "continent": 22785
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "24323": {
+    "id": 24323,
+    "name": "Hyuna",
+    "place": "warpzone",
+    "menus": [
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 23550,
+        "x": 395.306,
+        "y": 110,
+        "z": 480.1907
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "25178": {
+    "id": 25178,
+    "name": "[Elder] Silar",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4926.834,
+        "y": 149.729,
+        "z": 6462.04,
+        "continent": 22785
+      }
+    ],
+    "image": "mawrang.png"
+  },
+  "25907": {
+    "id": 25907,
+    "name": "[Arena Manager] Aerin",
+    "menus": [
+      "dialog",
+      "arenaenter",
+      "arenaranking",
+      "arenareward",
+      "madrigaltournamentboard",
+      "madrigaltournamentteleport",
+      "madrigaltournamentranking",
+      "madrigaltournamentreward",
+      "madrigaltournamentbetting"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4909.674,
+        "y": 149.9619,
+        "z": 6327.208,
+        "continent": 57799
+      }
+    ],
+    "image": "gigaka.png"
+  },
+  "27064": {
+    "id": 27064,
+    "name": "Liana",
+    "place": "generalstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Collector",
+        "items": [
+          1809,
+          3611,
+          7718,
+          6502
+        ]
+      },
+      {
+        "name": "Blinkwing",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          3896,
+          4896,
+          47839
+        ]
+      },
+      {
+        "name": "Class Goods",
+        "items": [
+          4586,
+          3907,
+          5869,
+          59637,
+          36879
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          7809,
+          8840,
+          3868,
+          5933,
+          4758,
+          4700,
+          3872,
+          8161,
+          2476,
+          6443,
+          8367,
+          7153,
+          942,
+          4069,
+          4370,
+          4923,
+          3343,
+          7116,
+          3574,
+          7347
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4845.125,
+        "y": 149.9226,
+        "z": 6360.874,
+        "continent": 57799
+      }
+    ],
+    "image": "cheirang.png"
+  },
+  "28534": {
+    "id": 28534,
+    "name": "Taila",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4833.444,
+        "y": 149.954,
+        "z": 6213.651,
+        "continent": 22785
+      }
+    ],
+    "image": "miorang.png"
+  },
+  "28613": {
+    "id": 28613,
+    "name": "[Eillun Guard] Dreon",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4795.821,
+        "y": 149.166,
+        "z": 6278.375,
+        "continent": 57799
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "28669": {
+    "id": 28669,
+    "name": "[Eillun Guard] Gard",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4792.285,
+        "y": 149.2264,
+        "z": 6287.571,
+        "continent": 57799
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "31108": {
+    "id": 31108,
+    "name": "[Eillun Guard] Kras",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4859.5,
+        "y": 149.7794,
+        "z": 6269.5,
+        "continent": 57799
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "31264": {
+    "id": 31264,
+    "name": "Mysterious Adventurer",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 59671,
+        "x": 593.4669,
+        "y": 100,
+        "z": 640.199
+      },
+      {
+        "world": 59671,
+        "x": 690.6027,
+        "y": 100,
+        "z": 805.6514,
+        "continent": 9127
+      }
+    ],
+    "image": "talus.png"
+  },
+  "31420": {
+    "id": 31420,
+    "name": "[Elder] Traitus",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4751.111,
+        "y": 150.4164,
+        "z": 6345.072,
+        "continent": 57799
+      }
+    ],
+    "image": "mawrang.png"
+  },
+  "31700": {
+    "id": 31700,
+    "name": "Nebrah",
+    "place": "magicstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Wand",
+        "items": [
+          7642,
+          8975,
+          8546,
+          1467,
+          2537,
+          3388
+        ]
+      },
+      {
+        "name": "Staff",
+        "items": [
+          4663,
+          6019,
+          1142,
+          6269,
+          6343,
+          199
+        ]
+      },
+      {
+        "name": "Magic Tools",
+        "items": [
+          1101,
+          8815,
+          6617,
+          4602,
+          7376,
+          11166,
+          3896,
+          47839
+        ]
+      },
+      {
+        "name": "Robe",
+        "items": [
+          5146,
+          8895,
+          9331,
+          4778,
+          3793,
+          5140,
+          1981,
+          7383,
+          994,
+          7926,
+          569,
+          7753,
+          9824,
+          21,
+          5430,
+          839,
+          5178,
+          5597,
+          203,
+          8672,
+          999,
+          5991,
+          2026,
+          6424,
+          8375,
+          1594,
+          3984,
+          418,
+          2702,
+          5589,
+          284,
+          3278,
+          3096,
+          6312,
+          4316,
+          2641,
+          795,
+          4709,
+          7509,
+          6712,
+          9152,
+          6773,
+          8200,
+          8116,
+          9269,
+          9759,
+          8012,
+          36
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4817.733,
+        "y": 149.9645,
+        "z": 6226.402,
+        "continent": 57799
+      }
+    ],
+    "image": "ruidan.png"
+  },
+  "33101": {
+    "id": 33101,
+    "name": "Domir",
+    "place": "weaponstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safepiercing",
+      "createultimate",
+      "piercingremove"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          6021,
+          714,
+          3157,
+          2608,
+          7657,
+          7577,
+          2459,
+          119,
+          5098,
+          8374,
+          8326,
+          9094,
+          7185,
+          2761,
+          4176,
+          3575
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          9936,
+          2715,
+          2320,
+          2036,
+          9050,
+          4926,
+          4856,
+          389,
+          3471,
+          197,
+          9906,
+          4558
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          7642,
+          4663,
+          8975,
+          6019,
+          8546,
+          1142,
+          1467,
+          6269,
+          2537,
+          6343,
+          3388,
+          199
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          7339,
+          2930,
+          9507,
+          6929,
+          2571,
+          3418,
+          4109,
+          9633,
+          5213,
+          7700,
+          6880,
+          3369
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4879.681,
+        "y": 149.9842,
+        "z": 6365.656,
+        "continent": 57799
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "33642": {
+    "id": 33642,
+    "name": "[Village Chief] Huntrang",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4897.876,
+        "y": 150.0102,
+        "z": 6326.454,
+        "continent": 57799
+      }
+    ],
+    "image": "huntrang.png"
+  },
+  "34829": {
+    "id": 34829,
+    "name": "[Captain] Baron",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4894.556,
+        "y": 149.9873,
+        "z": 6358.722,
+        "continent": 57799
+      }
+    ],
+    "image": "relgantus.png"
+  },
+  "35240": {
+    "id": 35240,
+    "name": "Kaela",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5120.789,
+        "y": 155.3667,
+        "z": 6167.618,
+        "continent": 22785
+      }
+    ],
+    "image": "cheirang.png"
+  },
+  "38729": {
+    "id": 38729,
+    "name": "Lumi",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4836.903,
+        "y": 149.9998,
+        "z": 6440.678,
+        "continent": 22785
+      }
+    ],
+    "image": "miorang.png"
+  },
+  "39270": {
+    "id": 39270,
+    "name": "Artin",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4740.134,
+        "y": 149.6477,
+        "z": 6309.893,
+        "continent": 57799
+      }
+    ],
+    "image": "ralbadan.png"
+  },
+  "41463": {
+    "id": 41463,
+    "name": "Selin",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4773.705,
+        "y": 150.4619,
+        "z": 6398.766,
+        "continent": 57799
+      }
+    ],
+    "image": "cheirang.png"
+  },
+  "41795": {
+    "id": 41795,
+    "name": "Asylum Guard",
+    "place": "instance",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6339.749,
+        "y": 24.82039,
+        "z": 7343.457,
+        "continent": 22785
+      }
+    ],
+    "image": "asylumguard.png"
+  },
+  "45210": {
+    "id": 45210,
+    "name": "Sena",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4785.147,
+        "y": 149.9191,
+        "z": 6284.917,
+        "continent": 57799
+      }
+    ],
+    "image": "miorang.png"
+  },
+  "47410": {
+    "id": 47410,
+    "name": "Haret",
+    "place": "armorstore",
+    "menus": [
+      "dialog",
+      "trade",
+      "safeupgrade",
+      "safeelementupgrade",
+      "attribute",
+      "traderings",
+      "tradeearrings",
+      "tradenecklaces"
+    ],
+    "shop": [
+      {
+        "name": "Mercenary",
+        "items": [
+          4375,
+          4022,
+          3682,
+          9721,
+          9937,
+          775,
+          1,
+          8900,
+          810,
+          9419,
+          7674,
+          4499,
+          620,
+          8730,
+          802,
+          6716,
+          7964,
+          2677,
+          6863,
+          7276,
+          9028,
+          4515,
+          1096,
+          4274,
+          6530,
+          9092,
+          9370,
+          3039,
+          5204,
+          2103,
+          4722,
+          3569,
+          9665,
+          5298,
+          6677,
+          7563,
+          8415,
+          9435,
+          3154,
+          3212,
+          3851,
+          1680,
+          5582,
+          6283,
+          8385,
+          4595,
+          6480,
+          6449,
+          5066,
+          1287,
+          3251,
+          2696,
+          9289,
+          7760,
+          5550,
+          963,
+          4918,
+          2325,
+          3648,
+          4039,
+          3163,
+          1969,
+          6319,
+          5603
+        ]
+      },
+      {
+        "name": "Assist",
+        "items": [
+          7568,
+          4649,
+          9539,
+          2282,
+          7052,
+          8688,
+          7817,
+          7228,
+          9358,
+          5619,
+          6054,
+          2918,
+          6627,
+          2425,
+          5094,
+          9169,
+          3451,
+          429,
+          7929,
+          5878,
+          535,
+          991,
+          9064,
+          3931,
+          4901,
+          645,
+          5614,
+          4582,
+          8462,
+          924,
+          3117,
+          6683,
+          2723,
+          540,
+          2928,
+          1511,
+          391,
+          6151,
+          9813,
+          954,
+          4842,
+          970,
+          2350,
+          288,
+          8228,
+          7558,
+          7354,
+          3217,
+          5030,
+          9396,
+          866,
+          8653,
+          7893,
+          7990,
+          2577,
+          5777,
+          7101,
+          3366,
+          6498,
+          2269,
+          5265,
+          283,
+          5233,
+          536
+        ]
+      },
+      {
+        "name": "Magician",
+        "items": [
+          994,
+          7926,
+          569,
+          7753,
+          6139,
+          1274,
+          7129,
+          8404,
+          7187,
+          2384,
+          8595,
+          9834,
+          8638,
+          588,
+          6899,
+          1868,
+          999,
+          5991,
+          2026,
+          6424,
+          8630,
+          4374,
+          4951,
+          6642,
+          6819,
+          6638,
+          5839,
+          6240,
+          8705,
+          6577,
+          8779,
+          2846,
+          3096,
+          6312,
+          4316,
+          2641,
+          9885,
+          2383,
+          8092,
+          5932,
+          322,
+          6653,
+          8187,
+          567,
+          6520,
+          6404,
+          3323,
+          6332,
+          9269,
+          9759,
+          8012,
+          36,
+          1503,
+          4969,
+          5038,
+          169,
+          9862,
+          7342,
+          1997,
+          3946,
+          8111,
+          774,
+          971,
+          1909
+        ]
+      },
+      {
+        "name": "Acrobat",
+        "items": [
+          2523,
+          3529,
+          8129,
+          2343,
+          126,
+          7571,
+          5174,
+          5826,
+          4868,
+          3998,
+          493,
+          9636,
+          4461,
+          5299,
+          9260,
+          7962,
+          2576,
+          7085,
+          8684,
+          4682,
+          4766,
+          9997,
+          3820,
+          3671,
+          1328,
+          4911,
+          9531,
+          9198,
+          6828,
+          1329,
+          931,
+          2966,
+          8733,
+          93,
+          4222,
+          8272,
+          8511,
+          6251,
+          3269,
+          448,
+          5959,
+          1239,
+          2745,
+          8983,
+          6372,
+          5616,
+          155,
+          9543,
+          5010,
+          3705,
+          7177,
+          5439,
+          2642,
+          700,
+          2569,
+          6854,
+          1483,
+          9228,
+          4409,
+          6437,
+          3657,
+          9797,
+          5626,
+          5960
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4866.633,
+        "y": 149.8393,
+        "z": 6292.167,
+        "continent": 57799
+      }
+    ],
+    "image": "ralbadan.png"
+  },
+  "47711": {
+    "id": 47711,
+    "name": "[Pet Tamer] Livia",
+    "menus": [
+      "dialog",
+      "trade",
+      "petcandycrafting",
+      "petsacrificing"
+    ],
+    "shop": [
+      {
+        "name": "Gloves",
+        "items": [
+          6806
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4909.756,
+        "y": 149.994,
+        "z": 6416.598,
+        "continent": 57799
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "48558": {
+    "id": 48558,
+    "name": "[Eillun Guard] Merk",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6332.717,
+        "y": 21.62557,
+        "z": 7316.105,
+        "continent": 22785
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "49826": {
+    "id": 49826,
+    "name": "Karen",
+    "place": "foodstore",
+    "menus": [
+      "dialog",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Food",
+        "items": [
+          5325,
+          9449,
+          2940,
+          5085,
+          5443,
+          542,
+          4388,
+          1124,
+          4493,
+          4683
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4858.468,
+        "y": 149.3011,
+        "z": 6385.226,
+        "continent": 57799
+      }
+    ],
+    "image": "miorang.png"
+  },
+  "50819": {
+    "id": 50819,
+    "name": "[Expedition] Beck",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 5240.256,
+        "y": 200.5287,
+        "z": 5192.796,
+        "continent": 22785
+      }
+    ],
+    "image": "lui.png"
+  },
+  "51059": {
+    "id": 51059,
+    "name": "[Elder] Ayr",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4805.621,
+        "y": 149.925,
+        "z": 6460.423,
+        "continent": 22785
+      }
+    ],
+    "image": "mawrang.png"
+  },
+  "51121": {
+    "id": 51121,
+    "name": "[Jewel Manager] Teron",
+    "menus": [
+      "dialog",
+      "createshiningpowerdice",
+      "createjewels",
+      "createuniqueweapon",
+      "exchangerareitempieces",
+      "exchangecardpieces",
+      "removelevelreduction",
+      "removecostumeblessing",
+      "dismantle",
+      "removeultimatejewel",
+      "createultimatejewel",
+      "fuseultimatejewel"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4830.986,
+        "y": 149.9198,
+        "z": 6319.261,
+        "continent": 57799
+      }
+    ],
+    "image": "bato.png"
+  },
+  "51849": {
+    "id": 51849,
+    "name": "Jarl (Dying)",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 59671,
+        "x": 718.7836,
+        "y": 100.0076,
+        "z": 929.0649,
+        "continent": 9127
+      }
+    ],
+    "image": "huntrang.png"
+  },
+  "52407": {
+    "id": 52407,
+    "name": "Kerin",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4806.085,
+        "y": 150.4714,
+        "z": 6292.511,
+        "continent": 57799
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "53988": {
+    "id": 53988,
+    "name": "Rohan",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4718.764,
+        "y": 150.8132,
+        "z": 6271.496,
+        "continent": 22785
+      }
+    ],
+    "image": "bato.png"
+  },
+  "55027": {
+    "id": 55027,
+    "name": "[Elder] Ebron",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4857.231,
+        "y": 149.8358,
+        "z": 6297.024,
+        "continent": 57799
+      }
+    ],
+    "image": "mawrang.png"
+  },
+  "57019": {
+    "id": 57019,
+    "name": "[Eillun Guard] Liont",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4822.267,
+        "y": 149.1701,
+        "z": 6352.112,
+        "continent": 57799
+      }
+    ],
+    "image": "mewrang.png"
+  },
+  "57381": {
+    "id": 57381,
+    "name": "[Eillun Guard] Kerion",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4829.03,
+        "y": 149.2168,
+        "z": 6359.406,
+        "continent": 57799
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "57841": {
+    "id": 57841,
+    "name": "[Eillun Guard] Raon",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4934.135,
+        "y": 149.3116,
+        "z": 6302.731,
+        "continent": 57799
+      }
+    ],
+    "image": "kanrang.png"
+  },
+  "57846": {
+    "id": 57846,
+    "name": "Belia",
+    "place": "",
+    "menus": [
+      "dialog",
+      "buyplayerhouse",
+      "joinplayerhouse",
+      "visitplayerhouse",
+      "buycouplehouse",
+      "joincouplehouse",
+      "trade"
+    ],
+    "shop": [
+      {
+        "name": "Templates",
+        "items": [
+          14125,
+          15044,
+          16460,
+          12618,
+          19940,
+          19102,
+          7592,
+          11595,
+          18368,
+          11829
+        ]
+      },
+      {
+        "name": "Props",
+        "items": [
+          12344,
+          16372,
+          18445,
+          12041,
+          12605,
+          16702,
+          14976,
+          13222,
+          15665,
+          15483,
+          12146,
+          19251,
+          10470,
+          11309,
+          19099,
+          15696,
+          17285,
+          16377,
+          11587,
+          13481,
+          14495
+        ]
+      },
+      {
+        "name": "NPCs",
+        "items": [
+          13117,
+          10227,
+          15171,
+          18731,
+          14583,
+          11279,
+          18638,
+          11592
+        ]
+      }
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4887.238,
+        "y": 149.8351,
+        "z": 6271.214,
+        "continent": 57799
+      }
+    ],
+    "image": "cheirang.png"
+  },
+  "58482": {
+    "id": 58482,
+    "name": "Jarl",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4904.093,
+        "y": 150.0445,
+        "z": 6309.565,
+        "continent": 57799
+      }
+    ],
+    "image": "huntrang.png"
+  },
+  "58485": {
+    "id": 58485,
+    "name": "[Mysterious] ??? ",
+    "menus": [
+      "dialog"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 6551.447,
+        "y": 86.48354,
+        "z": 4123.774,
+        "continent": 2155
+      }
+    ],
+    "image": "unknown.png"
+  },
+  "58763": {
+    "id": 58763,
+    "name": "[Elder] Melak",
+    "menus": [
+      "dialog",
+      "dungeon"
+    ],
+    "locations": [
+      {
+        "world": 6063,
+        "x": 4781.513,
+        "y": 149.4512,
+        "z": 6261.291,
+        "continent": 57799
+      }
+    ],
+    "image": "mawrang.png"
+  }
+}

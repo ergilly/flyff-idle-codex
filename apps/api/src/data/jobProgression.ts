@@ -1,13 +1,18 @@
-const jobProgressionPaths: ReadonlyArray<readonly string[]> = [
-  ["Slayer", "Blade", "Mercenary", "Vagrant"],
-  ["Templar", "Knight", "Mercenary", "Vagrant"],
-  ["Arcanist", "Elementor", "Magician", "Vagrant"],
-  ["Mentalist", "Psykeeper", "Magician", "Vagrant"],
-  ["Forcemaster", "Billposter", "Assist", "Vagrant"],
-  ["Seraph", "Ringmaster", "Assist", "Vagrant"],
-  ["Harlequin", "Jester", "Acrobat", "Vagrant"],
-  ["Crackshooter", "Ranger", "Acrobat", "Vagrant"]
-];
+import { expectVersion, loadAuthoredContent } from "../content/authoredContent.js";
+
+const jobProgressionPaths = loadAuthoredContent("progression/jobs.json", (value, filePath) => {
+  const document = expectVersion(value, filePath);
+
+  if (!Array.isArray(document.paths) || !document.paths.every(isJobPath)) {
+    throw new Error(`Invalid authored content at ${filePath}: paths must contain job name arrays`);
+  }
+
+  return document.paths;
+});
+
+function isJobPath(value: unknown): value is string[] {
+  return Array.isArray(value) && value.length > 0 && value.every((job) => typeof job === "string");
+}
 
 function normalizeJob(value: string) {
   return value.toLowerCase().replace(/\s+/g, "");

@@ -15,8 +15,7 @@ test/reports
 *.db-journal
 *.db-shm
 *.db-wal
-!apps/api/data/game-data.db
+!content/generated/game-data.db
 .env
 .env.local
 npm-debug.log*
-docs/json

@@ -28,7 +28,8 @@ function getApiRoot() {
 }
 
 export function resolveGameDataDatabasePath(databaseUrl?: string) {
-  const configuredPath = databaseUrl ?? process.env.GAME_DATA_DATABASE_URL ?? "file:./data/game-data.db";
+  const configuredPath =
+    databaseUrl ?? process.env.GAME_DATA_DATABASE_URL ?? "file:../../content/generated/game-data.db";
 
   if (!configuredPath.startsWith("file:")) {
     return configuredPath;

@@ -3,7 +3,7 @@ import { getFlarineGeneralStoreStockItem, getTownShop, getTownShopStockItem } fr
 describe("shop inventory", () => {
   it("finds local shops and stock across merchant tabs", () => {
     expect(getTownShop("flarine-town", "general-store")?.id).toBe("flarine-town/general-store");
-    expect(getFlarineGeneralStoreStockItem("3907")?.name).toBeTruthy();
+    expect(getFlarineGeneralStoreStockItem("3907")?.id).toBe("3907");
   });
 
   it("returns null for unknown shops and stock", () => {

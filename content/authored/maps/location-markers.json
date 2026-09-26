@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "regions": {
+    "flaris": [
+      {
+        "description": "Town marker for Flarine Town.",
+        "family": "flarine-town",
+        "iconSrc": "/images/maps/icons/town-flarine-256.webp",
+        "id": "flaris-town-flarine-town",
+        "label": "Flarine Town",
+        "markerType": "town",
+        "scale": 1.5,
+        "townMapId": "flarine-town",
+        "townMapSrc": "/images/maps/towns/Town_Flarine_Clean.png",
+        "x": 39.5,
+        "y": 70.5
+      },
+      {
+        "description": "Dungeon entrance for Mars Mine.",
+        "family": "mars-mine",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-mars-mine.webp",
+        "id": "flaris-dungeon-mars-mine",
+        "label": "Mars Mine",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 57,
+        "y": 31
+      }
+    ],
+    "saint": [
+      {
+        "description": "Town marker for Sain City.",
+        "family": "sain-city",
+        "iconSrc": "/images/maps/icons/town-sain-city-256.webp",
+        "id": "saint-town-sain-city",
+        "label": "Sain City",
+        "markerType": "town",
+        "scale": 1.8,
+        "townMapId": "sain-city",
+        "townMapSrc": "/images/maps/towns/Town_Saincity_Clean.png",
+        "x": 43,
+        "y": 26
+      },
+      {
+        "description": "Dungeon entrance for Ivillis.",
+        "family": "ivillis",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-ivillis.webp",
+        "id": "saint-dungeon-ivillis",
+        "label": "Ivillis",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 48,
+        "y": 81
+      }
+    ],
+    "rhisis": [],
+    "darkon12": [
+      {
+        "description": "Town marker for Darken City.",
+        "family": "darken-city",
+        "iconSrc": "/images/maps/icons/town-darken-256.webp",
+        "id": "darkon12-town-darken-city",
+        "label": "Darken City",
+        "markerType": "town",
+        "scale": 1.5,
+        "townMapId": "darken-city",
+        "townMapSrc": "/images/maps/towns/Town_Darken_Clean.png",
+        "x": 31.5,
+        "y": 36
+      },
+      {
+        "description": "Dungeon entrance for Floating Castle.",
+        "family": "floating-castle",
+        "iconSrc": "/images/maps/icons/floating-fortress-saturated-256.webp",
+        "id": "darkon12-dungeon-floating-castle",
+        "label": "Floating Castle",
+        "markerType": "dungeon",
+        "scale": 1.8,
+        "x": 51,
+        "y": 13
+      },
+      {
+        "description": "Dungeon entrance for The Wilds.",
+        "family": "the-wilds",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-the-wilds.webp",
+        "id": "darkon12-dungeon-the-wilds",
+        "label": "The Wilds",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 60,
+        "y": 27.7
+      },
+      {
+        "description": "Dungeon entrance for Savage Wilds.",
+        "family": "savage-wilds",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-savage-wilds.webp",
+        "id": "darkon12-dungeon-savage-wilds",
+        "label": "Savage Wilds",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 53,
+        "y": 64
+      },
+      {
+        "description": "Dungeon entrance for Isle of Dreams.",
+        "family": "isle-of-dreams",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-isle-of-dreams.webp",
+        "id": "darkon12-dungeon-isle-of-dreams",
+        "label": "Isle of Dreams",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 9.8,
+        "y": 14.2
+      },
+      {
+        "description": "Dungeon entrance for Island of Nightmares.",
+        "family": "island-of-nightmares",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-island-of-nightmares.webp",
+        "id": "darkon12-dungeon-island-of-nightmares",
+        "label": "Island of Nightmares",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 7,
+        "y": 14.5
+      }
+    ],
+    "darkon3": [
+      {
+        "description": "Dungeon entrance for Cove of the Ancients.",
+        "family": "cove-of-the-ancients",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-cove-of-the-ancients.webp",
+        "id": "darkon3-dungeon-cove-of-the-ancients",
+        "label": "Cove of the Ancients",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 16.5,
+        "y": 67
+      },
+      {
+        "description": "Dungeon entrance for Abyssal Cove of the Ancients.",
+        "family": "abyssal-cove-of-the-ancients",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-abyssal-cove-of-the-ancients.webp",
+        "id": "darkon3-dungeon-abyssal-cove-of-the-ancients",
+        "label": "Abyssal Cove of the Ancients",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 20.5,
+        "y": 81
+      },
+      {
+        "description": "Dungeon entrance for Volkane.",
+        "family": "volkane",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-volkane.webp",
+        "id": "darkon3-dungeon-volkane",
+        "label": "Volkane",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 50,
+        "y": 92.3
+      }
+    ],
+    "shaduwar": [
+      {
+        "description": "Town marker for Fallen Leaf Camp.",
+        "family": "fallen-leaf-camp",
+        "iconSrc": "/images/maps/icons/town-fallen-leaf-camp-256.webp",
+        "id": "shaduwar-town-fallen-leaf-camp",
+        "label": "Fallen Leaf Camp",
+        "markerType": "town",
+        "scale": 1.2,
+        "x": 33,
+        "y": 69
+      },
+      {
+        "description": "Dungeon entrance for Animus.",
+        "family": "animus",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-animus.webp",
+        "id": "shaduwar-dungeon-animus",
+        "label": "Animus",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 51,
+        "y": 25.2
+      },
+      {
+        "description": "Dungeon entrance for Cursed Animus.",
+        "family": "cursed-animus",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-cursed-animus.webp",
+        "id": "shaduwar-dungeon-cursed-animus",
+        "label": "Cursed Animus",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 56,
+        "y": 43.5
+      }
+    ],
+    "valley": [
+      {
+        "description": "Dungeon entrance for Catacombs of Anguish.",
+        "family": "catacombs-of-anguish",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-catacombs-of-anguish.webp",
+        "id": "valley-dungeon-catacombs-of-anguish",
+        "label": "Catacombs of Anguish",
+        "markerType": "dungeon",
+        "scale": 0.9,
+        "x": 25,
+        "y": 28.5
+      }
+    ],
+    "kaillun": [
+      {
+        "description": "Town marker for Eillun.",
+        "family": "eillun",
+        "iconSrc": "/images/maps/icons/town-eillun-256.webp",
+        "id": "kaillun-town-eillun",
+        "label": "Eillun",
+        "markerType": "town",
+        "scale": 1.5,
+        "townMapId": "eillun",
+        "townMapSrc": "/images/maps/towns/Town_Elliun_Clean.png",
+        "x": 43,
+        "y": 48.5
+      },
+      {
+        "description": "Dungeon entrance for Ankou's Asylum.",
+        "family": "ankous-asylum",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-ankous-asylum.webp",
+        "id": "kaillun-dungeon-ankous-asylum",
+        "label": "Ankou's Asylum",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 79,
+        "y": 37
+      }
+    ],
+    "bahara": [
+      {
+        "description": "Town marker for Randera Camp.",
+        "family": "randera-camp",
+        "iconSrc": "/images/maps/icons/town-randera-camp-256.webp",
+        "id": "bahara-town-randera-camp",
+        "label": "Randera Camp",
+        "markerType": "town",
+        "scale": 1.2,
+        "x": 68,
+        "y": 26
+      },
+      {
+        "description": "Dungeon entrance for Kalgas Cave.",
+        "family": "kalgas-cave",
+        "iconSrc": "/images/maps/icons/purple-background-regenerated/256px/dungeon-kalgas-cave.webp",
+        "id": "bahara-dungeon-kalgas-cave",
+        "label": "Kalgas Cave",
+        "markerType": "dungeon",
+        "scale": 0.8,
+        "x": 53,
+        "y": 87
+      }
+    ]
+  }
+}
