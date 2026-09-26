@@ -40,6 +40,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Validate game content
+        run: npm run content:validate
+
       - name: Run unit tests
         run: npm run test:unit
         env:

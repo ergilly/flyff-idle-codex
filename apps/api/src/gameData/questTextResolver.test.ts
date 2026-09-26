@@ -61,9 +61,12 @@ describe("quest text resolver", () => {
   });
 
   it("resolves every placeholder in the deployable quest data", () => {
-    const database = new DatabaseSync(path.resolve(__dirname, "../../data/game-data.db"), {
-      readOnly: true
-    });
+    const database = new DatabaseSync(
+      path.resolve(__dirname, "../../../..", "content/generated/game-data.db"),
+      {
+        readOnly: true
+      }
+    );
 
     try {
       const quests = readDataSet(database, "quests");

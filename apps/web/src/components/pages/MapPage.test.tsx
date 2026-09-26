@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MapPage } from "./MapPage";
-import { flarineGeneralStoreTabs } from "@/lib/townShops";
+import { flarineGeneralStoreTabs } from "@/test/fixtures/shopInventory";
 
 describe("MapPage", () => {
   it("keeps region navigation usable after zooming and returning to the world", async () => {

@@ -28,8 +28,8 @@ runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" fetch ori
 runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" reset --hard origin/main
 runuser -u flyff-idle -- env HOME=/home/flyff-idle git -C "${APP_DIR}" clean -fd
 
-if [[ ! -f "${APP_DIR}/apps/api/data/game-data.db" ]]; then
-  echo "${APP_DIR}/apps/api/data/game-data.db is missing after updating. Build and commit it before deploying." >&2
+if [[ ! -f "${APP_DIR}/content/generated/game-data.db" ]]; then
+  echo "${APP_DIR}/content/generated/game-data.db is missing after updating. Build and commit it before deploying." >&2
   exit 1
 fi
 

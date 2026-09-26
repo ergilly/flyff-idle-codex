@@ -1,31 +1,35 @@
-const freeTravelDescriptionByItemId: Record<string, string> = {
-  "8507": "Allows free travel up to Saint Morning and Rhisis.",
-  "7182": "Allows free travel up to Saint Morning and Rhisis.",
-  "2128": "Allows free travel up to Darkon 1, 2, and Darkon 3.",
-  "4482": "Allows free travel up to Darkon 1, 2, and Darkon 3.",
-  "3258": "Allows free travel up to Shaduwar and the Valley of the Risen.",
-  "6333": "Allows free travel up to Shaduwar and the Valley of the Risen.",
-  "7336": "Allows free travel up to Eillun and Bahara.",
-  "4715": "Allows free travel up to Eillun and Bahara."
-};
+import { expectVersion, isRecord, loadAuthoredContent } from "../content/authoredContent.js";
 
-const flyingItemTierById: Record<string, number> = {
-  "8507": 1,
-  "7182": 1,
-  "2128": 2,
-  "4482": 2,
-  "3258": 3,
-  "6333": 3,
-  "7336": 4,
-  "4715": 4
-};
+type FlyingItemProgression = { tier: number; description: string };
+
+const flyingItemProgressionById = loadAuthoredContent(
+  "progression/flying-items.json",
+  (value, filePath): Record<string, FlyingItemProgression> => {
+    const document = expectVersion(value, filePath);
+
+    if (!isRecord(document.items)) {
+      throw new Error(`Invalid authored content at ${filePath}: items must be an object`);
+    }
+
+    const entries = Object.entries(document.items);
+    if (
+      entries.some(
+        ([, item]) => !isRecord(item) || typeof item.tier !== "number" || typeof item.description !== "string"
+      )
+    ) {
+      throw new Error(`Invalid authored content at ${filePath}: flying item entries are invalid`);
+    }
+
+    return Object.fromEntries(entries) as Record<string, FlyingItemProgression>;
+  }
+);
 
 export function getFlyingItemTier(itemId: string | null) {
-  return itemId ? (flyingItemTierById[itemId] ?? 0) : 0;
+  return itemId ? (flyingItemProgressionById[itemId]?.tier ?? 0) : 0;
 }
 
 export function addFlyingItemProgressionDescription(itemId: string, description: string | null) {
-  const freeTravelDescription = freeTravelDescriptionByItemId[itemId];
+  const freeTravelDescription = flyingItemProgressionById[itemId]?.description;
 
   if (!freeTravelDescription) {
     return description;

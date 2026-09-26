@@ -53,8 +53,9 @@ export function resolveContentDataDirectory(contentDirectory = process.env.CONTE
   }
 
   const candidates = [
+    path.resolve(process.cwd(), "content/authored/shops"),
     path.resolve(process.cwd(), "apps/api/data/content"),
-    path.resolve(process.cwd(), "data/content")
+    path.resolve(process.cwd(), "../../content/authored/shops")
   ];
   return candidates.find((candidate) => fs.existsSync(candidate)) ?? candidates[0];
 }
@@ -63,7 +64,7 @@ export function loadShopCatalog(
   contentDirectory = resolveContentDataDirectory(),
   options: ContentValidationOptions = {}
 ): Record<string, TownShop> {
-  const filePath = path.join(contentDirectory, "shops.json");
+  const filePath = path.join(contentDirectory, "catalog.json");
   let source: string;
 
   try {

@@ -1,5 +1,5 @@
 import type { ItemMetadata } from "@/lib/api";
-import { itemSetIndex } from "@/lib/generated/itemSetIndex";
+import generatedItemSets from "../../../../content/generated/item-set-index.json";
 
 export type ItemSetBonus = {
   equipped: number;
@@ -16,7 +16,7 @@ export type ItemSetMetadata = {
   bonus: ReadonlyArray<ItemSetBonus>;
 };
 
-const itemSetsById: Record<string, ItemSetMetadata> = itemSetIndex;
+const itemSetsById: Record<string, ItemSetMetadata> = generatedItemSets.sets;
 const itemSetByPartId = new Map<string, ItemSetMetadata>();
 
 Object.values(itemSetsById).forEach((itemSet) => {

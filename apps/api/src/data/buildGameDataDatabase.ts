@@ -10,13 +10,15 @@ function findJsonDataDirectory() {
   }
 
   const candidates = [
-    path.resolve(process.cwd(), "docs/json"),
-    path.resolve(process.cwd(), "../../docs/json")
+    path.resolve(process.cwd(), "content/source/game-data"),
+    path.resolve(process.cwd(), "../../content/source/game-data")
   ];
   const directory = candidates.find((candidate) => fs.existsSync(candidate));
 
   if (!directory) {
-    throw new Error("docs/json was not found. Set JSON_DATA_DIR to the source data directory.");
+    throw new Error(
+      "content/source/game-data was not found. Set JSON_DATA_DIR to the source data directory."
+    );
   }
 
   return directory;

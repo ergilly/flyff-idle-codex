@@ -1,4 +1,5 @@
-import { itemIndex, type ItemMetadata as GeneratedItemMetadata } from "../data/generated/itemIconIndex.js";
+import { loadGeneratedItemIndex } from "../content/generatedContent.js";
+import { type ItemMetadata as GeneratedItemMetadata } from "./itemTypes.js";
 import { addFlyingItemProgressionDescription } from "../data/flyingItemProgression.js";
 import { findDataRecord, type JsonDataRecord } from "../gameData/gameData.service.js";
 
@@ -10,6 +11,8 @@ export type ItemMetadata = GeneratedItemMetadata & {
   sellPrice?: number | null;
   tradable?: boolean | null;
 };
+
+const itemIndex = loadGeneratedItemIndex();
 
 function getNumberField(item: JsonDataRecord | undefined, field: string) {
   const value = item?.[field];

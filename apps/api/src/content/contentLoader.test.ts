@@ -5,7 +5,7 @@ import { loadShopCatalog } from "./contentLoader.js";
 
 function createContentDirectory(document: unknown) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "flyff-idle-content-"));
-  fs.writeFileSync(path.join(directory, "shops.json"), JSON.stringify(document));
+  fs.writeFileSync(path.join(directory, "catalog.json"), JSON.stringify(document));
   return directory;
 }
 

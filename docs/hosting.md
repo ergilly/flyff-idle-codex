@@ -6,7 +6,7 @@ while systemd keeps the API running.
 
 ## Storage layout
 
-- `apps/api/data/game-data.db` is generated from `docs/json`, committed with the application, and opened
+- `content/generated/game-data.db` is generated from `content/source/game-data`, committed with the application, and opened
   read-only. It can be replaced on any deployment.
 - `/var/lib/flyff-idle/app.db` stores players, characters, and inventories. It is outside the Git checkout and
   is never replaced by a deployment.
@@ -19,7 +19,7 @@ Oracle's Always Free compute offering includes persistent boot storage and is la
 this application. Availability can be limited in some regions, and Oracle can reclaim an idle Always Free
 instance, so keep an occasional database backup outside the VM.
 
-1. Commit and push the application, including `apps/api/data/game-data.db`.
+1. Commit and push the application, including `content/generated/game-data.db`.
 2. Create an Ubuntu 24.04 or Oracle Linux 8 Always Free VM. An Ampere A1 shape with 1 OCPU and 6 GB RAM is
    sufficient.
 3. Add your SSH public key during VM creation.
@@ -129,13 +129,13 @@ reset command once to apply the new password hash to the four accounts.
 
 ## Updating game reference data
 
-After changing the ignored source files under `docs/json`, regenerate the deployable database locally:
+After changing the source files under `content/source/game-data`, regenerate the deployable database locally:
 
 ```bash
 npm run game-data:build
 ```
 
-Commit the changed `apps/api/data/game-data.db`, push it, and run `sudo flyff-idle-deploy` on the VM. Replacing
+Commit the changed `content/generated/game-data.db`, push it, and run `sudo flyff-idle-deploy` on the VM. Replacing
 this read-only file does not affect player data.
 
 ## Backups

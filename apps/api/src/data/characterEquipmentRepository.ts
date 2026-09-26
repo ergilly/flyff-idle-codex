@@ -1,6 +1,6 @@
 import { db } from "./database.js";
 import type { Character, CharacterConsumableResource } from "../types.js";
-import type { ItemMetadata } from "../data/generated/itemIconIndex.js";
+import type { ItemMetadata } from "../items/itemTypes.js";
 import {
   consumableResources,
   equipmentSetIndexes,

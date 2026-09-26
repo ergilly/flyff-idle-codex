@@ -26,8 +26,8 @@ if [[ "$(realpath "${SCRIPT_DIR}/../..")" != "$(realpath "${APP_DIR}")" ]]; then
   exit 1
 fi
 
-if [[ ! -f "${APP_DIR}/apps/api/data/game-data.db" ]]; then
-  echo "${APP_DIR}/apps/api/data/game-data.db is missing. Build and commit it before installing." >&2
+if [[ ! -f "${APP_DIR}/content/generated/game-data.db" ]]; then
+  echo "${APP_DIR}/content/generated/game-data.db is missing. Build and commit it before installing." >&2
   exit 1
 fi
 
@@ -74,7 +74,7 @@ NODE_ENV=production
 PORT=4000
 JWT_SECRET=$(openssl rand -hex 32)
 DATABASE_URL=file:/var/lib/flyff-idle/app.db
-GAME_DATA_DATABASE_URL=file:${APP_DIR}/apps/api/data/game-data.db
+GAME_DATA_DATABASE_URL=file:${APP_DIR}/content/generated/game-data.db
 TEST_ACCOUNT_PASSWORD=${INITIAL_TEST_PASSWORD}
 EOF
   chmod 600 /etc/flyff-idle/api.env

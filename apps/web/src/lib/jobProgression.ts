@@ -1,13 +1,6 @@
-const jobProgressionPaths: ReadonlyArray<readonly string[]> = [
-  ["Slayer", "Blade", "Mercenary", "Vagrant"],
-  ["Templar", "Knight", "Mercenary", "Vagrant"],
-  ["Arcanist", "Elementor", "Magician", "Vagrant"],
-  ["Mentalist", "Psykeeper", "Magician", "Vagrant"],
-  ["Forcemaster", "Billposter", "Assist", "Vagrant"],
-  ["Seraph", "Ringmaster", "Assist", "Vagrant"],
-  ["Harlequin", "Jester", "Acrobat", "Vagrant"],
-  ["Crackshooter", "Ranger", "Acrobat", "Vagrant"]
-];
+import authoredJobProgression from "../../../../content/authored/progression/jobs.json";
+
+const jobProgressionPaths: ReadonlyArray<readonly string[]> = authoredJobProgression.paths;
 
 const firstJobs = new Set(jobProgressionPaths.map((path) => path[2]));
 const secondJobs = new Set(jobProgressionPaths.map((path) => path[1]));

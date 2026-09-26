@@ -9,7 +9,7 @@ import { CharacterShopInventory } from "@/components/organisms/map/CharacterShop
 import { ShopItemDetailsOverlay } from "@/components/organisms/map/ShopItemDetailsOverlay";
 import { useShopState } from "@/hooks/map/useShopState";
 import type { CharacterInventory, ItemMetadata } from "@/lib/api/types";
-import { flarineGeneralStoreTabs, type ShopInventoryTab, type ShopMerchant } from "@/lib/townShops";
+import { type ShopInventoryTab, type ShopMerchant } from "@/lib/townShops";
 
 type GeneralStorePanelProps = {
   characterLevel?: number;
@@ -27,6 +27,8 @@ type GeneralStorePanelProps = {
   itemsById?: Record<string, ItemMetadata>;
 };
 
+const emptyShopTabs: ShopInventoryTab[] = [{ id: "empty", label: "Inventory", items: [] }];
+
 export function GeneralStorePanel({
   characterLevel,
   characterJob,
@@ -39,7 +41,7 @@ export function GeneralStorePanel({
   itemsById = {},
   shopMerchants,
   shopName = "General Store",
-  shopTabs = flarineGeneralStoreTabs,
+  shopTabs = emptyShopTabs,
   townName = "Flarine"
 }: GeneralStorePanelProps) {
   const merchants = shopMerchants ?? [{ id: "default", name: shopName, tabs: shopTabs }];
