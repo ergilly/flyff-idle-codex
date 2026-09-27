@@ -1,4 +1,4 @@
-import { townMapLocations, type TownMapId } from "@/lib/townMapLocations";
+import { findTownLocationByNpcId, townMapLocations, type TownMapId } from "@/lib/townMapLocations";
 
 describe("town map locations", () => {
   it.each([
@@ -17,5 +17,12 @@ describe("town map locations", () => {
         npcId
       })
     );
+  });
+
+  it("finds the town map target for a quest NPC", () => {
+    expect(findTownLocationByNpcId(29)).toEqual(
+      expect.objectContaining({ id: "quest-office", label: "Mikyel", townMapId: "flarine-town", npcId: 29 })
+    );
+    expect(findTownLocationByNpcId(999999)).toBeUndefined();
   });
 });

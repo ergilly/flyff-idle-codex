@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Panel } from "@/components/atoms/Panel";
+import { Button } from "@/components/atoms/Button";
 import { QuestLogNavigation } from "@/components/molecules/main-application/QuestLogNavigation";
 import { QuestObjectivesSection } from "@/components/molecules/main-application/QuestObjectivesSection";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import type { ActiveQuest, CharacterInventoryItem } from "@/lib/api";
 import type { CharacterProgressionRank } from "@/lib/characterProgression";
+import { findTownLocationByNpcId, type TownMapLocationTarget } from "@/lib/townMapLocations";
 import { cx } from "@/lib/classNames";
 import {
   formatQuestExperiencePercentage,
@@ -20,6 +22,9 @@ type QuestLogPanelProps = {
   completedQuests?: ActiveQuest[];
   inventoryItems?: CharacterInventoryItem[];
   onAbandonQuest?: (questId: number) => Promise<void>;
+  onOpenMap?: (target?: TownMapLocationTarget) => void;
+  onPinQuest?: (quest: ActiveQuest | null) => void;
+  pinnedQuestId?: number | null;
   quests: ActiveQuest[];
 };
 
@@ -29,6 +34,9 @@ export function QuestLogPanel({
   completedQuests = [],
   inventoryItems = [],
   onAbandonQuest,
+  onOpenMap,
+  onPinQuest,
+  pinnedQuestId,
   quests
 }: QuestLogPanelProps) {
   const [abandonError, setAbandonError] = useState("");
@@ -61,6 +69,11 @@ export function QuestLogPanel({
         <p className="max-w-md text-sm text-text-muted">
           Visit a Quest Office on the Map to review and accept an available quest.
         </p>
+        {onOpenMap ? (
+          <Button data-testid="quests_button_open_map" onClick={() => onOpenMap()} type="button">
+            Open map
+          </Button>
+        ) : null}
       </Panel>
     );
   }
@@ -102,6 +115,15 @@ export function QuestLogPanel({
                 {selectedQuestIsCompleted ? "Completed" : "Active"}
               </span>
             </div>
+            {onPinQuest && !selectedQuestIsCompleted ? (
+              <button
+                className="justify-self-start rounded-control border-2 border-primary px-3 py-2 text-xs font-black uppercase tracking-wide text-primary-strong transition-colors hover:bg-primary/10"
+                onClick={() => onPinQuest(pinnedQuestId === selectedQuest.id ? null : selectedQuest)}
+                type="button"
+              >
+                {pinnedQuestId === selectedQuest.id ? "Unpin objective" : "Pin objective"}
+              </button>
+            ) : null}
             <p className="text-sm leading-6 text-text-muted">
               {selectedQuest.description || "No quest description is available."}
             </p>
@@ -120,8 +142,18 @@ export function QuestLogPanel({
           <section className="grid gap-2">
             <h3 className="text-sm font-black uppercase tracking-wide text-primary-strong">Quest contacts</h3>
             <dl className="grid gap-2 rounded-control border-2 border-border bg-panel-muted p-3 text-sm">
-              <QuestContact label="Accepted from" name={selectedQuest.giverName} />
-              <QuestContact label="Hand in to" name={selectedQuest.handInName} />
+              <QuestContact
+                label="Accepted from"
+                name={selectedQuest.giverName}
+                npcId={selectedQuest.giverNpcId}
+                onOpenMap={onOpenMap}
+              />
+              <QuestContact
+                label="Hand in to"
+                name={selectedQuest.handInName}
+                npcId={selectedQuest.handInNpcId}
+                onOpenMap={onOpenMap}
+              />
             </dl>
           </section>
 
@@ -236,11 +268,35 @@ function QuestDetailSection({ empty, title, values }: { empty?: string; title: s
   );
 }
 
-function QuestContact({ label, name }: { label: string; name?: string }) {
+function QuestContact({
+  label,
+  name,
+  npcId,
+  onOpenMap
+}: {
+  label: string;
+  name?: string;
+  npcId?: number;
+  onOpenMap?: (target?: TownMapLocationTarget) => void;
+}) {
+  const mapTarget = npcId ? findTownLocationByNpcId(npcId) : undefined;
+
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-2">
       <dt className="font-bold text-text-muted">{label}</dt>
-      <dd className="font-black text-foreground">{name ?? "Unknown"}</dd>
+      <dd className="flex flex-wrap items-center justify-end gap-2 font-black text-foreground">
+        <span>{name ?? "Unknown"}</span>
+        {onOpenMap && mapTarget ? (
+          <button
+            aria-label={`Show ${label.toLowerCase()} ${name ?? "NPC"} on map`}
+            className="rounded-control border border-primary px-2 py-1 text-[0.65rem] font-black uppercase tracking-wide text-primary-strong transition-colors hover:bg-primary/10"
+            onClick={() => onOpenMap(mapTarget)}
+            type="button"
+          >
+            Map
+          </button>
+        ) : null}
+      </dd>
     </div>
   );
 }

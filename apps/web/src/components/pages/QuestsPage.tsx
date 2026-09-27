@@ -6,6 +6,7 @@ import { MutedText } from "@/components/atoms/MutedText";
 import { QuestLogPanel } from "@/components/organisms/main-application/QuestLogPanel";
 import { fetchActiveQuests, type ActiveQuest, type CharacterInventoryItem } from "@/lib/api";
 import type { CharacterProgressionRank } from "@/lib/characterProgression";
+import type { TownMapLocationTarget } from "@/lib/townMapLocations";
 
 type QuestsPageProps = {
   activeQuestIds?: number[];
@@ -14,6 +15,9 @@ type QuestsPageProps = {
   completedQuestIds?: number[];
   inventoryItems?: CharacterInventoryItem[];
   onAbandonQuest?: (questId: number) => Promise<void>;
+  onOpenMap?: (target?: TownMapLocationTarget) => void;
+  onPinQuest?: (quest: ActiveQuest | null) => void;
+  pinnedQuestId?: number | null;
 };
 
 export function QuestsPage({
@@ -22,7 +26,10 @@ export function QuestsPage({
   characterProgressionRank,
   completedQuestIds = [],
   inventoryItems = [],
-  onAbandonQuest
+  onAbandonQuest,
+  onOpenMap,
+  onPinQuest,
+  pinnedQuestId
 }: QuestsPageProps) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -73,6 +80,9 @@ export function QuestsPage({
       completedQuests={quests.filter((quest) => completedQuestIdSet.has(quest.id))}
       inventoryItems={inventoryItems}
       onAbandonQuest={onAbandonQuest}
+      onOpenMap={onOpenMap}
+      onPinQuest={onPinQuest}
+      pinnedQuestId={pinnedQuestId}
       quests={quests.filter((quest) => activeQuestIdSet.has(quest.id))}
     />
   );

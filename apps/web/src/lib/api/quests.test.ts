@@ -88,7 +88,9 @@ describe("quest API", () => {
     await expect(fetchActiveQuests([129, 129, -1])).resolves.toEqual([
       expect.objectContaining({
         giverName: "Mikyel",
+        giverNpcId: 29,
         handInName: "Mikyel",
+        handInNpcId: 29,
         instructions: ["Collect the dolls from Mia."],
         experiencePercentages: [1],
         objectives: [

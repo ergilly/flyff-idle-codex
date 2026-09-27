@@ -12,7 +12,9 @@ const quests: ActiveQuest[] = [
     maxLevel: 190,
     description: "Collect presents for the children.",
     giverName: "Mikyel",
+    giverNpcId: 29,
     handInName: "Mikyel",
+    handInNpcId: 29,
     instructions: ["Collect the dolls from Mia."],
     objectives: [{ itemId: "7166", kind: "item", label: "Collect 7 x Mia Doll", requiredCount: 7 }],
     experiencePercentages: [...Array.from({ length: 22 }, () => 0), 35, 26.7463],
@@ -26,7 +28,9 @@ const quests: ActiveQuest[] = [
     minLevel: 25,
     maxLevel: 25,
     giverName: "Lancomi",
+    giverNpcId: 4000,
     handInName: "Lancomi",
+    handInNpcId: 4000,
     instructions: [],
     objectives: [{ kind: "other", label: "Defeat 3 x Mia" }],
     rewards: []
@@ -68,9 +72,41 @@ describe("QuestLogPanel", () => {
   });
 
   it("provides an empty state when the character has no active quests", () => {
-    render(<QuestLogPanel characterLevel={23} characterProgressionRank="normal" quests={[]} />);
+    const onOpenMap = jest.fn();
+    render(
+      <QuestLogPanel
+        characterLevel={23}
+        characterProgressionRank="normal"
+        onOpenMap={onOpenMap}
+        quests={[]}
+      />
+    );
     expect(screen.getByRole("heading", { name: "No active quests" })).toBeInTheDocument();
     expect(screen.getByText(/Visit a Quest Office/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open map" }));
+    expect(onOpenMap).toHaveBeenCalledWith();
+  });
+
+  it("pins a quest and opens its mapped contacts", () => {
+    const onOpenMap = jest.fn();
+    const onPinQuest = jest.fn();
+    render(
+      <QuestLogPanel
+        characterLevel={23}
+        characterProgressionRank="normal"
+        onOpenMap={onOpenMap}
+        onPinQuest={onPinQuest}
+        quests={[quests[0]]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Blessed Doll/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Pin objective" }));
+    expect(onPinQuest).toHaveBeenCalledWith(quests[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Show hand in to Mikyel on map" }));
+    expect(onOpenMap).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "quest-office", townMapId: "flarine-town", npcId: 29 })
+    );
   });
 
   it("confirms before abandoning the selected quest", async () => {

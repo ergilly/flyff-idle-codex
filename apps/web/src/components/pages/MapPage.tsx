@@ -9,7 +9,7 @@ import { WorldMapView } from "@/components/organisms/map/WorldMapView";
 import { useMapNavigation } from "@/hooks/map/useMapNavigation";
 import { useMapQuestItemMetadata } from "@/hooks/map/useMapQuestItemMetadata";
 import { useMapViewport } from "@/hooks/map/useMapViewport";
-import type { MapMonsterFamily } from "@/lib/api";
+import type { ActiveQuest, MapMonsterFamily } from "@/lib/api";
 import type { Bank, CharacterInventory, ItemMetadata } from "@/lib/api/types";
 import type { MapRegionId } from "@/lib/mapMonsterMarkers";
 import type { TravelMethod } from "@/lib/mapTravel";
@@ -27,6 +27,7 @@ type MapPageProps = {
   equippedFlyingItemId?: string | null;
   itemsById?: Record<string, ItemMetadata>;
   initialTownMapId?: TownMapId;
+  initialTownLocationId?: string;
   onAcceptQuest?: (npcId: number, questId: number) => Promise<void>;
   onCompleteQuest?: (npcId: number, questId: number) => Promise<void>;
   onBuyShopItem?: (
@@ -43,6 +44,8 @@ type MapPageProps = {
   onTransferBankItem?: (direction: "deposit" | "withdraw", slotIndex: number) => Promise<Bank>;
   onTransferBankPenya?: (direction: "deposit" | "withdraw", amount: number | "all") => Promise<Bank>;
   onTravel?: (destination: MapRegionId, method: TravelMethod) => Promise<void>;
+  onOpenQuestLog?: () => void;
+  pinnedQuest?: ActiveQuest | null;
 };
 
 export function MapPage({
@@ -57,6 +60,7 @@ export function MapPage({
   equippedFlyingItemId,
   itemsById,
   initialTownMapId,
+  initialTownLocationId,
   onAcceptQuest,
   onCompleteQuest,
   onBuyShopItem,
@@ -67,9 +71,17 @@ export function MapPage({
   onTransferAllBankItems,
   onTransferBankItem,
   onTransferBankPenya,
-  onTravel
+  onTravel,
+  onOpenQuestLog,
+  pinnedQuest
 }: MapPageProps) {
-  const navigation = useMapNavigation({ characterLocation, initialTownMapId, onEnterTown, onTravel });
+  const navigation = useMapNavigation({
+    characterLocation,
+    initialTownLocationId,
+    initialTownMapId,
+    onEnterTown,
+    onTravel
+  });
   const viewport = useMapViewport(navigation.resetKey);
   const mapItemsById = useMapQuestItemMetadata(navigation.selectedRegionFamilies, itemsById ?? {});
 
@@ -123,10 +135,12 @@ export function MapPage({
         onCompleteQuest={onCompleteQuest}
         onBuyShopItem={onBuyShopItem}
         onLoadBank={onLoadBank}
+        onOpenQuestLog={onOpenQuestLog}
         onSellShopItem={onSellShopItem}
         onTransferAllBankItems={onTransferAllBankItems}
         onTransferBankItem={onTransferBankItem}
         onTransferBankPenya={onTransferBankPenya}
+        pinnedQuest={pinnedQuest}
       />
       {navigation.pendingTravelDestination ? (
         <MapTravelDialog

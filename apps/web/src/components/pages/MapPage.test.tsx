@@ -347,6 +347,13 @@ describe("MapPage", () => {
     });
   });
 
+  it("opens a quest contact location when the quest log targets it", () => {
+    render(<MapPage initialTownLocationId="quest-office" initialTownMapId="flarine-town" />);
+
+    expect(screen.getByRole("img", { name: "Flarine Town map" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mikyel, npc" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("treats entering a town as leaving combat", () => {
     const onEnterTown = jest.fn();
     render(<MapPage onEnterTown={onEnterTown} />);

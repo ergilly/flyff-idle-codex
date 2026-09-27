@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchMapMonsterFamilyIndex, type MapMonsterFamily } from "@/lib/api";
 import {
   createMapMonsterMarkers,
@@ -20,11 +20,13 @@ const emptyMonsterFamilyIndex: Record<string, MapMonsterFamily[]> = {};
 
 export function useMapNavigation({
   characterLocation,
+  initialTownLocationId,
   initialTownMapId,
   onEnterTown,
   onTravel
 }: {
   characterLocation: string;
+  initialTownLocationId?: string;
   initialTownMapId?: TownMapId;
   onEnterTown?: () => void;
   onTravel?: (destination: MapRegionId, method: TravelMethod) => Promise<void>;
@@ -40,7 +42,14 @@ export function useMapNavigation({
   const [activeRegionId, setActiveRegionId] = useState<MapRegionId | null>(null);
   const [selectedRegionId, setSelectedRegionId] = useState<MapRegionId | null>(initialRegionId ?? null);
   const [selectedTown, setSelectedTown] = useState<MapMonsterMarker | null>(initialTown);
-  const [selectedTownLocation, setSelectedTownLocation] = useState<TownMapLocation | null>(null);
+  const initialTownLocation = initialTown?.townMapId
+    ? (townMapLocations[initialTown.townMapId].find((location) => location.id === initialTownLocationId) ??
+      null)
+    : null;
+  const [selectedTownLocation, setSelectedTownLocation] = useState<TownMapLocation | null>(
+    initialTownLocation
+  );
+  const hasInitializedTownLocation = useRef(false);
   const [monsterFamilyIndex, setMonsterFamilyIndex] = useState(emptyMonsterFamilyIndex);
   const [pendingTravelRegionId, setPendingTravelRegionId] = useState<MapRegionId | null>(null);
   const selectedRegion = mapRegions.find((region) => region.id === selectedRegionId) ?? null;
@@ -56,6 +65,10 @@ export function useMapNavigation({
     : [];
 
   useEffect(() => {
+    if (!hasInitializedTownLocation.current) {
+      hasInitializedTownLocation.current = true;
+      return;
+    }
     setSelectedTownLocation(null);
   }, [selectedRegionId, selectedTown?.id]);
 

@@ -7,6 +7,7 @@ import { useBattleSession } from "@/hooks/main-application/useBattleSession";
 import { useAdminActions } from "@/hooks/main-application/useAdminActions";
 import { useBankActions } from "@/hooks/main-application/useBankActions";
 import { useGamePreferences } from "@/hooks/main-application/useGamePreferences";
+import { useQuestNavigation } from "@/hooks/main-application/useQuestNavigation";
 import { Button } from "@/components/atoms/Button";
 import { ErrorMessage } from "@/components/atoms/ErrorMessage";
 import { MutedText } from "@/components/atoms/MutedText";
@@ -188,6 +189,7 @@ export function MainApplicationPage() {
     setActiveNavItem(label);
     setIsMobileNavOpen(false);
   }
+  const { mapTarget, openMap, openQuestLog, pinQuest, pinnedQuest } = useQuestNavigation(handleSelectNavItem);
   function handleSelectMapMonster(monsterFamily: MapMonsterFamily) {
     setSelectedMonsterFamily(monsterFamily);
     setActiveNavItem("Combat");
@@ -248,6 +250,7 @@ export function MainApplicationPage() {
       throw new Error("Authentication is required");
     }
     updateCharacter(await abandonCharacterQuest(token, selectedCharacter.id, questId));
+    if (pinnedQuest?.id === questId) pinQuest(null);
   }
   async function handleCompleteQuest(npcId: number, questId: number) {
     const token = localStorage.getItem("flyffIdleToken");
@@ -256,6 +259,7 @@ export function MainApplicationPage() {
       throw new Error("Authentication is required");
     }
     updateCharacter(await completeCharacterQuest(token, selectedCharacter.id, questId, npcId));
+    if (pinnedQuest?.id === questId) pinQuest(null);
   }
   function updateCharacter(updatedCharacter: Character) {
     setCharacters((currentCharacters) =>
@@ -423,6 +427,9 @@ export function MainApplicationPage() {
             completedQuestIds={selectedCharacter.completedQuestIds}
             inventoryItems={selectedCharacter.inventory.items}
             onAbandonQuest={handleAbandonQuest}
+            onOpenMap={openMap}
+            onPinQuest={pinQuest}
+            pinnedQuestId={pinnedQuest?.id}
           />
         ) : activeNavItem === "Map" ? (
           <MapPage
@@ -436,16 +443,19 @@ export function MainApplicationPage() {
             characterSex={selectedCharacter.gender}
             equippedFlyingItemId={getCharacterEquipmentSet(selectedCharacter, activeEquipmentSet).flying}
             itemsById={itemsById}
-            initialTownMapId={respawnTownMapId}
+            initialTownLocationId={mapTarget?.id}
+            initialTownMapId={mapTarget?.townMapId ?? respawnTownMapId}
             onAcceptQuest={handleAcceptQuest}
             onBuyShopItem={handleBuyShopItem}
             onCompleteQuest={handleCompleteQuest}
             onLoadBank={handleLoadBank}
             onEnterTown={() => setSelectedMonsterFamily(null)}
+            onOpenQuestLog={openQuestLog}
             onSellShopItem={handleSellShopItem}
             onTransferAllBankItems={handleTransferAllBankItems}
             onTransferBankItem={handleTransferBankItem}
             onTransferBankPenya={handleTransferBankPenya}
+            pinnedQuest={pinnedQuest}
             onSelectMonster={handleSelectMapMonster}
             onTravel={handleTravel}
           />

@@ -27,7 +27,9 @@ export type QuestOfficeQuest = {
 export type ActiveQuest = {
   description?: string;
   giverName?: string;
+  giverNpcId?: number;
   handInName?: string;
+  handInNpcId?: number;
   id: number;
   instructions: string[];
   experiencePercentages?: number[];
@@ -121,7 +123,9 @@ export async function fetchActiveQuests(activeQuestIds: number[]): Promise<Activ
   return quests.map((quest) => ({
     description: quest.description,
     giverName: getName(npcNames, quest.beginNPC, "NPC"),
+    giverNpcId: quest.beginNPC,
     handInName: getName(npcNames, quest.endNPC, "NPC"),
+    handInNpcId: quest.endNPC,
     id: quest.id,
     instructions: quest.dialogsAccept?.filter(Boolean) ?? [],
     experiencePercentages: quest.endReceiveExperience,

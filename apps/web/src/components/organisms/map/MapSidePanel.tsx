@@ -1,9 +1,11 @@
 import { Button } from "@/components/atoms/Button";
 import { MutedText } from "@/components/atoms/MutedText";
 import { Panel } from "@/components/atoms/Panel";
+import { PinnedQuestCard } from "@/components/molecules/map/PinnedQuestCard";
 import { SectionHeading } from "@/components/molecules/main-application/SectionHeading";
 import { TownInteractionPanel } from "@/components/organisms/map/TownInteractionPanel";
 import type { useMapNavigation } from "@/hooks/map/useMapNavigation";
+import type { ActiveQuest } from "@/lib/api";
 import type { Bank, CharacterInventory, ItemMetadata } from "@/lib/api/types";
 import { cx } from "@/lib/classNames";
 import { mapRegions } from "@/lib/mapRegions";
@@ -33,15 +35,18 @@ type MapSidePanelProps = {
   onTransferAllBankItems?: (direction: "deposit" | "withdraw") => Promise<Bank>;
   onTransferBankItem?: (direction: "deposit" | "withdraw", slotIndex: number) => Promise<Bank>;
   onTransferBankPenya?: (direction: "deposit" | "withdraw", amount: number | "all") => Promise<Bank>;
+  onOpenQuestLog?: () => void;
+  pinnedQuest?: ActiveQuest | null;
 };
 
-export function MapSidePanel({ navigation, ...props }: MapSidePanelProps) {
+export function MapSidePanel({ navigation, onOpenQuestLog, pinnedQuest, ...props }: MapSidePanelProps) {
   return (
     <Panel
       as="aside"
       className="h-full min-w-0 max-w-full content-start gap-4"
       data-testid="map_panel_regions"
     >
+      {pinnedQuest ? <PinnedQuestCard onOpenQuestLog={onOpenQuestLog} quest={pinnedQuest} /> : null}
       <div className="flex flex-wrap items-start justify-between gap-3" data-testid="map_div_region_header">
         <SectionHeading
           eyebrow={
