@@ -147,4 +147,22 @@ describe("QuestOfficePanel", () => {
     render(<QuestOfficePanel npcId={4000} npcName="Lancomi" />);
     expect(await screen.findByText("Quest data unavailable")).toBeInTheDocument();
   });
+
+  it("keeps a large quest list inside a scrollable panel", async () => {
+    mockedFetchQuestOfficeQuests.mockResolvedValue(
+      Array.from({ length: 25 }, (_, index) => ({
+        id: index + 1,
+        name: `Quest ${index + 1}`,
+        type: "category",
+        repeatable: false,
+        minLevel: 1,
+        maxLevel: 190
+      }))
+    );
+
+    render(<QuestOfficePanel npcId={29} npcName="Mikyel" />);
+
+    const questList = await screen.findByTestId("map_div_quest_office_list");
+    expect(questList).toHaveClass("max-h-[60vh]", "overflow-y-auto");
+  });
 });

@@ -148,7 +148,7 @@ export function QuestOfficePanel({
   }
 
   return (
-    <section className="grid gap-3" data-testid="map_section_quest_office">
+    <section className="grid min-h-0 gap-3" data-testid="map_section_quest_office">
       <header className="rounded-control border-2 border-primary bg-panel-muted p-4">
         <p className="text-[0.65rem] font-black uppercase tracking-wide text-text-muted">Quest Office</p>
         <h3 className="text-lg font-black text-foreground">{npcName}</h3>
@@ -165,15 +165,20 @@ export function QuestOfficePanel({
           <p className="text-xs font-black uppercase tracking-wide text-text-muted">
             {currentQuests.length} available {currentQuests.length === 1 ? "quest" : "quests"}
           </p>
-          {currentQuests.map(renderQuestCard)}
-          {completedQuests.length > 0 ? (
-            <details className="mt-2 rounded-control border border-border bg-panel-muted p-3 opacity-70">
-              <summary className="cursor-pointer text-xs font-black uppercase tracking-wide text-text-muted">
-                Completed quests ({completedQuests.length})
-              </summary>
-              <div className="mt-3 grid gap-2">{completedQuests.map(renderQuestCard)}</div>
-            </details>
-          ) : null}
+          <div
+            className="grid max-h-[60vh] min-h-0 gap-2 overflow-y-auto pr-1"
+            data-testid="map_div_quest_office_list"
+          >
+            {currentQuests.map(renderQuestCard)}
+            {completedQuests.length > 0 ? (
+              <details className="mt-2 rounded-control border border-border bg-panel-muted p-3 opacity-70">
+                <summary className="cursor-pointer text-xs font-black uppercase tracking-wide text-text-muted">
+                  Completed quests ({completedQuests.length})
+                </summary>
+                <div className="mt-3 grid gap-2">{completedQuests.map(renderQuestCard)}</div>
+              </details>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </section>
